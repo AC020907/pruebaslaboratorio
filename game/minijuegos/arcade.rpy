@@ -336,11 +336,11 @@ init python:
             self.poner(r, Solid("#020617e8", xysize=(1920, 150)), 0, 0, st, at, (0, 0))
             self.poner(r, self.texto(self.titulo, 40, "#facc15" if self.rastreo else "#f87171", True), 40, 18, st, at, (0, 0))
             if self.rastreo:
-                objetivo = "Sigue el rastro hasta la cuenta que INICIO el rumor"
+                objetivo = "Sigue el rastro hasta la cuenta que INICIÓ el rumor"
                 controles = "CLIC cuenta: seguir rastro  -  CLIC DERECHO: retroceder  -  H: pista (-%ds)  -  CLIC rumor: frenarlo  -  ESPACIO: onda" % sim.cfg["costo_pista"]
             else:
-                objetivo = "Revienta los rumores antes de que lleguen a mas cuentas"
-                controles = "CLIC rumor en vuelo: interceptar  -  CLIC cuenta roja: cuarentena  -  ESPACIO: onda de verificacion"
+                objetivo = "Revienta los rumores antes de que lleguen a más cuentas"
+                controles = "CLIC rumor en vuelo: interceptar  -  CLIC cuenta roja: cuarentena  -  ESPACIO: onda de verificación"
             self.poner(r, self.texto(objetivo, 21, "#f8fafc", True), 40, 72, st, at, (0, 0))
             self.poner(r, self.texto(controles, 16, "#94a3b8"), 40, 108, st, at, (0, 0))
 
@@ -390,7 +390,7 @@ init python:
             numero = int(math.ceil(self.sim.intro))
             self.poner(r, self.texto(self.titulo, 64, "#facc15" if self.rastreo else "#f87171", True), 960, 300, st, at)
             if self.rastreo:
-                lineas = ["El rumor ya se esta extendiendo. Encuentra quien lo empezo.",
+                lineas = ["El rumor ya se está extendiendo. Encuentra quién lo empezó.",
                           "Haz clic (o apunta y pulsa A) en la cuenta que se lo envio a la amarilla.",
                           "Pista: los colores mas MORADOS lo compartieron hace mas tiempo."]
             else:

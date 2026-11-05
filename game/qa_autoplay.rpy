@@ -9,6 +9,19 @@ init -10 python:
     QA_PERFIL = _qa_os.environ.get("ALCALDE_QA")
     QA_MODO = _qa_os.environ.get("ALCALDE_QA_MODO", "historia")
     QA_SALIDA = _qa_os.environ.get("ALCALDE_QA_SALIDA", "qa_resultado.json")
+    QA_VISUAL = _qa_os.environ.get("ALCALDE_QA_VISUAL")
+
+    def qa_ajustar_ventana():
+        """ALCALDE_QA_TAM=1366x768 fija el tamano fisico de la ventana (las capturas salen a ese tamano)."""
+        tam = _qa_os.environ.get("ALCALDE_QA_TAM")
+        if tam:
+            w, h = [int(v) for v in tam.lower().split("x")]
+            _preferences.fullscreen = False
+            renpy.set_physical_size((w, h))
+
+screen qa_auto_foto():
+    zorder 1000
+    timer 0.15 repeat True action Function(qa_foto_linea)
 
 init 999 python:
     if QA_PERFIL:
@@ -109,6 +122,7 @@ init 999 python:
                          "afinidad": dict(afinidad), "indicadores": indicadores_ciudad(),
                          "reputacion": jugador.get_reputacion(), "aliado": aliado_domingo(),
                          "estado_envio": estado_envio, "menus": qa_log["menus"], "lineas": qa_log["lineas"],
+                         "voces": qa_log.get("voces", []),
                          "minijuegos": {k: v.get("exito") for k, v in registro_minijuegos.items()}}
                 with open(QA_SALIDA, "w", encoding="utf-8") as f:
                     _qa_json.dump(datos, f, ensure_ascii=False, indent=1)
@@ -145,6 +159,43 @@ init 999 python:
                  "consecuencia": dict(QA_CONSECUENCIA[clave][0 if exito else 1])}
             return registrar_minijuego(r, aplicar)
 
+        # Modo visual: el guion corre a velocidad de lectura rapida (sin skip) y se fotografia cada linea.
+        qa_vis = {"linea": None, "desde": 0.0, "hecha": None, "n": 0}
+
+        def qa_contar_linea_visual(who, *args, **kwargs):
+            qa_contar_linea(who, *args, **kwargs)
+            import time as _t
+            qa_vis["n"] += 1
+            qa_vis["linea"] = "%04d_%s" % (qa_vis["n"], renpy.game.context().current[1] if renpy.game.context().current else "")
+            qa_vis["desde"] = _t.time()
+            return args, kwargs
+
+        def qa_foto_linea():
+            import time as _t
+            if qa_vis["linea"] and qa_vis["linea"] != qa_vis["hecha"] and _t.time() - qa_vis["desde"] > 0.45:
+                qa_vis["hecha"] = qa_vis["linea"]
+                nombre = "%04d_%s" % (qa_vis["n"], str(renpy.game.context().current[0]).replace("/", "_").replace(".rpy", "").replace(":", "_")[-40:])
+                renpy.screenshot(_qa_os.path.join(QA_VISUAL, nombre + ".png"))
+                qa_log.setdefault("voces", []).append((nombre, renpy.music.get_playing(channel="voice")))
+
+        def qa_modo_visual():
+            if not _qa_os.path.isdir(QA_VISUAL):
+                _qa_os.makedirs(QA_VISUAL)
+            config.say_arguments_callback = qa_contar_linea_visual
+            renpy.config.skipping = None
+            _preferences.transitions = 2
+            _preferences.text_cps = 0
+            _preferences.wait_voice = False
+            _preferences.set_mute("voice", not _qa_os.environ.get("ALCALDE_QA_VOZ"))
+            _preferences.set_mute("music", True)
+            _preferences.set_mute("sfx", True)
+            config.afm_characters = 10 ** 6
+            config.afm_bonus = 10 ** 6
+            _preferences.afm_time = 1.1
+            _preferences.afm_enable = True
+            renpy.game.preferences.afm_after_click = False
+            renpy.show_screen("qa_auto_foto")
+
         if QA_PERFIL in QA_PREFERENCIAS:
           config.label_overrides.update({
             "minijuego_moderador": "qa_moderador", "minijuego_contencion": "qa_contencion",
@@ -178,16 +229,23 @@ label splashscreen:
         $ persistent.finales_vistos.discard("mandato")
         $ renpy.save_persistent()
         $ renpy.quit()
+    $ qa_ajustar_ventana()
     $ _preferences.skip_unseen = True
     $ _preferences.skip_after_choices = True
     $ _preferences.transitions = 0
     $ renpy.config.skipping = "fast"
+    if QA_VISUAL and QA_PERFIL in QA_PREFERENCIAS:
+        $ qa_modo_visual()
     if QA_PERFIL == "ritmo":
         $ renpy.config.skipping = None
         jump qa_ritmo_motor
     if QA_PERFIL == "mando":
         $ renpy.config.skipping = None
         jump qa_mando
+    if QA_PERFIL == "galeria":
+        $ _preferences.transitions = 2
+        $ renpy.config.skipping = None
+        jump qa_galeria
     if QA_PERFIL == "capturas":
         $ _preferences.transitions = 2
         $ renpy.config.skipping = None

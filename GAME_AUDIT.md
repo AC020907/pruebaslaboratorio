@@ -310,3 +310,34 @@ Auditoría y endurecimiento: 142 pruebas. Ver la sección "Seguridad" de `leader
 3. **Escucha** de voces (empezando por `GRABACION_RECOMENDADA.md`) y de la música en cada escena.
 4. **Partida completa** contra Render + Neon reales.
 5. **Sesiones** con 5 jugadores nuevos según `PROTOCOLO_PRUEBAS_JUGADORES.md`.
+
+## 12. Auditoría final con capturas del motor real (2026-11-05)
+
+**Método:** `tests/qa_visual.py` fotografía el juego real.
+- **Recorridos:** el guion completo de los 5 perfiles, una captura por línea.
+- **Galería por etapas** (`game/qa_galeria.rpy`): menús, escenas, teléfono, CivitasNet, expediente, mapa, los 5 minijuegos jugados con entradas de mando simuladas (victoria, derrota, error y abandono) y las 5 pantallas de final.
+- **Detalle:** el detalle por defecto y las rutas de las capturas están en `RELEASE_READINESS.md`.
+
+| P | Defecto | Causa raíz | Corrección |
+|---|---|---|---|
+| P0 | El Duelo de Frecuencias se congelaba tras pausar y pulsar CONTINUAR. Las notas quedaban quietas y el duelo se perdía. | `VistaDuelo` solo pide cuadros desde `render()` mientras se juega. Al reanudar, nadie pedía el primero. | `renpy.redraw` al reanudar y al abandonar. Verificado: pausa y reanudación con mando dan S, 97 %. |
+| P1 | Moderación: con mando, A no salía de la pantalla de resultados. | Al terminar seguían visibles la tarjeta y BORRAR/APROBAR, y el foco podía quedar en ellos. | Se ocultan al terminar, `civ_accion` continúa y el botón usa el estilo del juego. |
+| P2 | En el tutorial y la pausa del duelo, los botones y el texto se salían del panel. | Tres `boton_vn` (406 px) no caben en 1068 px. | Estilo `boton_vn_compacto` (300 px, `Frame`) y panel de pausa de 1040 px. |
+| P2 | Guardar, Cargar, Ayuda y las confirmaciones salían en inglés ("Page 1", "empty slot", "Upload Sync", toda la ayuda). | El proyecto no tenía traducción de los textos del motor. | `game/tl/spanish` (traducción oficial del SDK), `config.language = "spanish"` y Sync desactivado. Las voces siguen sonando: 63 de 87 líneas con voz en el recorrido; el resto es narración. |
+| P2 | El rótulo del mapa "BARRIO SUR" quedaba detrás de Rodrigo en la conversación. | Las vistas aéreas traen el rótulo pintado. | El plano de conversación encuadra una zona del barrio sin rótulos. El inpainting se descartó porque dejaba una mancha. |
+| P2 | Textos visibles sin tildes: publicaciones de CivitasNet, avisos de alcance, narración de la red, avisos y motivos de fin de los arcades y del rastreo, "Versión" y "LA GRAN VIRALIZACIÓN". | Textos escritos sin acentos. | 47 líneas corregidas solo en cadenas visibles, sin tocar claves de diccionario. La narración no tiene voz, así que no se rompe ningún archivo de voz. |
+| P3 | Las notas del duelo pasaban por encima del título y la barra de señal. Al abandonar quedaban notas congeladas detrás del resultado. | Se dibujaban desde y = −60 y también en resultados. | Las notas nacen bajo la cabecera con un fundido y no se dibujan en resultados. |
+| P3 | 3,8 MB de PNG opacos en la descarga inicial web (fondos de menú). | `main_menu.png` y `game_menu.png` sin transparencia. | JPG: de 3,05 MB a 0,68 MB y de 0,74 MB a 0,07 MB. |
+| P3 | El botón EMPEZAR del Rastreador usaba el estilo por defecto (azul) sobre un panel claro. | — | Usa `boton_vn`. |
+
+**Comprobado y sin defecto:**
+- **Los 5 finales** se alcanzan con renderizado real: secreto, informada, mandato, caos y dividida.
+- **El QR** de la pantalla final se decodifica desde la captura a `https://ac020907.github.io/pruebaslaboratorio/`.
+- **Mando:** A avanza la narración, las líneas de personaje, las pausas `{w}` del prólogo y las líneas `{nw}`. El historial registra las líneas.
+- **Gran Viralización sin intervenir** se pierde: 0/15 semillas en historia y 1/15 en feria.
+- **La web publicada** no sirve `.env`, partidas, herramientas ni `.git`. El backend responde con la base de datos OK, `/docs` está cerrado y no hay CORS para orígenes ajenos.
+
+**Artefactos del arnés de QA, no del juego:**
+- **Historial y menú:** el QA arranca dentro del `splashscreen`, donde Ren'Py desactiva historial y menú del juego. La galería los restaura.
+- **Texto animado:** la primera A completa la línea y la segunda avanza, que es lo esperado. Las capturas usan texto instantáneo.
+- **Ventana:** pedir 1920×1080 en ventana da 1739×978, porque Windows reserva la barra de tareas. Es la misma proporción 16:9.

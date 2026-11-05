@@ -140,7 +140,8 @@ screen moderador_ui(cola, creadas):
     if cola.racha >= 3:
         text "RACHA x[cola.racha]" size 34 bold True color "#facc15" xalign 0.5 ypos 170 outlines [(3, "#2b2440", 0, 0)]
 
-    if cola.actual is not None and cola.intro <= 0:
+    # Al terminar se retiran tarjeta y botones: si no, el mando puede quedarse con el foco en BORRAR/APROBAR.
+    if cola.actual is not None and cola.intro <= 0 and not cola.terminado():
         bar:
             xalign 0.5
             ypos 330
@@ -209,13 +210,12 @@ screen moderador_ui(cola, creadas):
                 text "Aciertos: [cola.aciertos]   Errores: [cola.errores]   Mejor racha: x[cola.mejor_racha]" size 24 color "#2b2440" xalign 0.5
                 text "Puntos: " + formato_num(cola.puntos) size 30 bold True color "#8c2f4b" xalign 0.5
                 textbutton "CONTINUAR":
-                    style "grafo_button"
-                    text_style "grafo_button_text"
+                    style "boton_vn"
+                    text_style "boton_vn_text"
                     xalign 0.5
-                    xsize 360
-                    text_xalign 0.5
                     default_focus True
                     action Return()
+        key "civ_accion" action Return()
 
 
 label minijuego_moderador(semilla=None, aplicar=True, cantidad=16):

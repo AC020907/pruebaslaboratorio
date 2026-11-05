@@ -743,7 +743,7 @@ screen about():
             spacing 10
             label "Alcalde Digital"
             text "Una novela visual sobre la desinformación en Ciudad Nova."
-            text "Version [config.version]\n"
+            text "Versión [config.version]\n"
             label "Equipo"
             text "Estructuras de Datos II - Universidad del Norte, 2026"
             text "Desarrollo, narrativa, interfaz y arte: equipo Alcalde Digital\n"
