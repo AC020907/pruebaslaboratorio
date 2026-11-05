@@ -1,9 +1,11 @@
 # Release candidate: Civitas con Duelo de Frecuencias
 
-- **Rama:** `feature/duelo-frecuencias` del repositorio `pruebaslaboratorio`.
-- **Punto de retorno:** tag `rc-estable-pre-ritmo`, que es lo que hoy está en producción.
+- **Rama:** `feature/duelo-frecuencias`, fusionada en `main` (merge `5279ad1`).
+- **Punto de retorno:** tag `rc-estable-pre-ritmo` (versión anterior).
 - **Fecha:** 2026-11-05.
-- **Estado: candidata.** **No está publicada.** Producción (Render y GitHub Pages) sigue sirviendo la versión anterior.
+- **Estado: publicada.**
+  - **Web:** GitHub Pages (`gh-pages` `a958de0`) sirve esta versión en `https://ac020907.github.io/pruebaslaboratorio/`. Arranca y llega al menú.
+  - **Servidor:** Render responde `{"ok":true,"db":"ok"}`. Falta un *Manual Deploy* de `main` en Render para servir `/static/qr.png` (hoy 404). El juego no depende de ese archivo: el QR va dentro de la build web.
 
 ## 1. Qué cambió
 
@@ -57,14 +59,14 @@
 | Lint de Ren'Py | — | Sin errores | — | — | — |
 | Lógica, finales y backend | — | 37, 19 y 142 OK | — | — | — |
 
-## 3. Pendiente antes de promover
+## 3. Pendiente (pruebas humanas y de hardware)
 1. **Escuchar** `duelo_feria.ogg` y jugarlo una vez en PC. Si las notas se sienten adelantadas o atrasadas, ajusta la calibración en la pausa del duelo.
 2. **Mando físico:** el duelo, las decisiones (prioridad heredada) y el resto de retos.
 3. **Teléfono real:** el duelo en Fácil con toques, el sonido en iOS después del primer toque y la pausa.
 4. **Partida de feria cronometrada:** la estimación es de unos 12 min (~80 líneas, 5 retos), pero no se ha medido con personas.
 5. **Pendientes de fases anteriores:** escuchar voces y música, y las sesiones de `PROTOCOLO_PRUEBAS_JUGADORES.md`.
 
-## 4. Promover a producción (cuando el equipo lo apruebe)
+## 4. Cómo se promovió (y cómo repetirlo)
 1. Fusiona la rama:
    ```bash
    git switch main && git merge --no-ff feature/duelo-frecuencias && git push origin main
