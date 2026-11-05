@@ -57,8 +57,15 @@ def test_index_page_served(client):
     assert "Tabla de Honor" in r.text and "/static/qr.png" in r.text
 
 
-def test_missing_qr_is_404(client):
-    assert client.get("/static/qr.png").status_code == 404
+def test_qr_served_only_when_generated(client):
+    # tools/web/generar_qr.py crea el QR solo cuando la URL del juego ya funciona.
+    from pathlib import Path
+    existe = (Path(__file__).resolve().parent.parent / "app" / "static" / "qr.png").exists()
+    r = client.get("/static/qr.png")
+    if existe:
+        assert r.status_code == 200 and r.headers["content-type"] == "image/png"
+    else:
+        assert r.status_code == 404
 
 
 def test_not_found_error_shape(client):

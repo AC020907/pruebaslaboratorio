@@ -13,11 +13,12 @@ Proyecto para la **Feria Gamer 2026**.
 - **Historia con decisiones**: prólogo, tres actos y un domingo de elecciones. Las elecciones tienen consecuencias inmediatas y diferidas.
 - **CivitasNet**: una red social ficticia que reacciona a lo que haces. Puedes inspeccionar cada publicación (fuente, contexto, estado de verificación) y guardar pistas.
 - **Expediente**: un cuaderno de investigación con hechos observados, hipótesis, conclusiones comprobadas e hipótesis refutadas.
-- **Cuatro minijuegos** integrados en la historia:
+- **Cinco retos** integrados en la historia:
   - **Moderación Express**: limpia los comentarios de Martina; borra bots y aprueba a las personas reales.
   - **Caza-Rumores**: frena un rumor que se propaga en tiempo real por la red de la ciudad.
   - **Rastreador**: un tablero de evidencias donde reconstruyes la cadena de difusión de un rumor hasta su origen.
   - **La Gran Viralización**: el ataque final, dos horas antes de abrir las urnas.
+  - **Duelo de Frecuencias** (nuevo): un duelo rítmico contra NOVA durante la transmisión del domingo. Cuatro carriles, ritmo original a 120 BPM, dificultad Normal, Fácil o Asistido.
 - **NOVA**: la red de cuentas automáticas detrás de los rumores, con un giro que depende de lo que hiciste.
 - **Eventos variables**: cada partida es un poco distinta, sin bloquear el avance.
 - **Cinco finales** con escenas propias: Ciudad Informada, Ciudad Dividida, Caos Informativo, Mandato Prestado y el final secreto Fuente Abierta. Se coleccionan en el **Archivo de Destinos**.
@@ -25,7 +26,7 @@ Proyecto para la **Feria Gamer 2026**.
 - **Voces y música**: diálogos doblados para Claudia, Martina, Rodrigo, Tomás y NOVA, y banda sonora original por estado de ánimo.
 - **Puntuación Cívica y clasificación online**: hasta 1000 puntos por verificar, decidir, investigar y cuidar la ciudad. Clasificación compartida entre PC y teléfono.
 - **PC, mando y teléfono**: control con ratón, teclado o gamepad, y versión web jugable en el móvil.
-- **Modo Feria** (unos 10 minutos): versión condensada con los cuatro minijuegos, pensada para exhibición.
+- **Modo Feria** (unos 12 minutos): versión condensada con los cinco retos, pensada para exhibición.
 - **Arte**: personajes con sprites transparentes y seis expresiones cada uno, fondos ilustrados y luz de escena según el lugar.
 - **Accesibilidad**: reducir movimiento, velocidad de texto, volumen separado de voz, música y efectos, música que baja cuando hablan y controles táctiles en el mapa.
 
@@ -43,7 +44,7 @@ Proyecto para la **Feria Gamer 2026**.
 
 En el menú principal:
 - **Nueva partida**: la historia completa.
-- **Modo Feria (10 min)**: la versión corta para exhibición.
+- **Modo Feria (12 min)**: la versión corta para exhibición.
 
 Para publicar la versión web, la clasificación online y el QR, sigue **[DESPLIEGUE.md](DESPLIEGUE.md)**.
 
