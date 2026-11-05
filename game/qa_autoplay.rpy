@@ -40,11 +40,11 @@ init 999 python:
         }
         # Resultado de cada minijuego por perfil: (exito, calificacion).
         QA_MINIJUEGOS = {
-            "investigador": {"moderador": (True, "S"), "contencion": (True, "S"), "rastreador": (True, "S"), "viralizacion": (True, "A")},
-            "prudente": {"moderador": (True, "A"), "contencion": (True, "A"), "rastreador": (True, "B"), "viralizacion": (True, "A")},
-            "impulsivo": {"moderador": (True, "B"), "contencion": (True, "B"), "rastreador": (True, "C"), "viralizacion": (True, "B")},
-            "casual": {"moderador": (False, "D"), "contencion": (False, "D"), "rastreador": (False, "D"), "viralizacion": (False, "D")},
-            "dividido": {"moderador": (True, "B"), "contencion": (False, "D"), "rastreador": (True, "C"), "viralizacion": (False, "D")},
+            "investigador": {"moderador": (True, "S"), "contencion": (True, "S"), "rastreador": (True, "S"), "viralizacion": (True, "A"), "ritmo": (True, "S")},
+            "prudente": {"moderador": (True, "A"), "contencion": (True, "A"), "rastreador": (True, "B"), "viralizacion": (True, "A"), "ritmo": (True, "A")},
+            "impulsivo": {"moderador": (True, "B"), "contencion": (True, "B"), "rastreador": (True, "C"), "viralizacion": (True, "B"), "ritmo": (True, "B")},
+            "casual": {"moderador": (False, "D"), "contencion": (False, "D"), "rastreador": (False, "D"), "viralizacion": (False, "D"), "ritmo": (False, "D")},
+            "dividido": {"moderador": (True, "B"), "contencion": (False, "D"), "rastreador": (True, "C"), "viralizacion": (False, "D"), "ritmo": (False, "D")},
         }
         QA_TELEFONO = {"investigador": "verificar", "prudente": "verificar", "impulsivo": "compartir",
                        "casual": "ignorar", "dividido": "mixto"}
@@ -57,6 +57,8 @@ init 999 python:
                              {"desinformacion": 7, "conflictos": 4, "confianza": -4}),
             "rastreador": ({"desinformacion": -8, "confianza": 5, "info_verificada": 5, "reputacion": 8, "puntos": 16},
                            {"desinformacion": 4, "confianza": -3, "reputacion": -4}),
+            "ritmo": ({"desinformacion": -5, "confianza": 4, "info_verificada": 3, "puntos": 12},
+                      {"desinformacion": 2, "confianza": -1}),
         }
         qa_log = {"menus": [], "telefono": [], "lineas": []}
 
@@ -147,6 +149,7 @@ init 999 python:
           config.label_overrides.update({
             "minijuego_moderador": "qa_moderador", "minijuego_contencion": "qa_contencion",
             "minijuego_rastreador": "qa_rastreador", "evento_gran_viralizacion": "qa_viralizacion",
+            "minijuego_ritmo": "qa_ritmo",
         })
 
 label qa_moderador(aplicar=True, **kwargs):
@@ -157,6 +160,8 @@ label qa_rastreador(aplicar=True, **kwargs):
     return qa_resultado_minijuego("rastreador", aplicar)
 label qa_viralizacion(aplicar=True, **kwargs):
     return qa_resultado_minijuego("viralizacion", aplicar)
+label qa_ritmo(aplicar=True, **kwargs):
+    return qa_resultado_minijuego("ritmo", aplicar)
 
 label splashscreen:
     if not QA_PERFIL:
@@ -177,6 +182,9 @@ label splashscreen:
     $ _preferences.skip_after_choices = True
     $ _preferences.transitions = 0
     $ renpy.config.skipping = "fast"
+    if QA_PERFIL == "ritmo":
+        $ renpy.config.skipping = None
+        jump qa_ritmo_motor
     if QA_PERFIL == "mando":
         $ renpy.config.skipping = None
         jump qa_mando

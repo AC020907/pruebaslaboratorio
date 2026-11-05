@@ -82,9 +82,15 @@ init -1 python:
     UMBRAL_ALIADO = {"tomas": 18500, "claudia": 17000, "martina": 17000, "rodrigo": 17000,
                      "martina_patrocinada": 13000}
 
+    # Ganar el Duelo de Frecuencias limpia la senal: el rumor necesita mas reposts para hacerse viral.
+    BONO_DUELO = 1500
+
     def ajustes_viral(base=None):
         ajustes = dict(base or {})
         aliado = aliado_domingo()
-        if aliado:
-            ajustes["umbral_viral"] = UMBRAL_ALIADO[aliado]
+        umbral = UMBRAL_ALIADO[aliado] if aliado else None
+        if hay("duelo_ganado"):
+            umbral = (umbral or 15000) + BONO_DUELO
+        if umbral:
+            ajustes["umbral_viral"] = umbral
         return ajustes or None

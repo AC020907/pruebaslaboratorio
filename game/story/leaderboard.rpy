@@ -32,6 +32,8 @@ init -1 python:
     LEADERBOARD_URL_ARCHIVO = _url_archivo()
 
     def url_api():
+        if os.environ.get("ALCALDE_QA") and not os.environ.get("CIVITAS_API"):
+            return ""  # los recorridos de QA nunca escriben en el servidor de produccion
         return (os.environ.get("CIVITAS_API") or LEADERBOARD_URL or LEADERBOARD_URL_ARCHIVO or "").rstrip("/")
 
     def leaderboard_activo():

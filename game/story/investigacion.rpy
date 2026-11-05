@@ -108,6 +108,7 @@ init -1 python:
         "contencion": ("crisis_contenida", "crisis_desbordada"),
         "rastreador": ("rastreo_exitoso", "rastro_perdido"),
         "viralizacion": ("viral_frenado", "viral_desbordado"),
+        "ritmo": ("duelo_ganado", "duelo_perdido"),
     }
     ACUSACIONES = ("@investigador.nova", "@ciudadano", "@sol.y.limon")
 
