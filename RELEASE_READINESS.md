@@ -3,7 +3,7 @@
 - **Rama:** `qa/auditoria-final` (sale de `main` `a789ef6`, que es lo publicado hoy).
 - **SDK:** Ren'Py 8.5.3.
 - **Fecha:** 2026-11-05.
-- **Estado:** cambios locales sin commit ni push. Producción no se tocó.
+- **Estado: publicada** con autorización. `main` `aae3248`; web en `gh-pages` `bb1cc1c` (arranca y precarga voces e imágenes). Render sigue necesitando un *Manual Deploy* de `main` para `/static/qr.png`.
 - **Veredicto:** **GO condicionado** (ver §9).
 
 ## 1. Baseline (antes de tocar nada)
@@ -139,11 +139,11 @@ No quedan P0/P1 conocidos. Los flujos obligatorios funcionan en el motor y las s
 
 ## 10. Artefactos de build
 
-No se generó una build nueva en esta auditoría. La última publicada es `game.zip` 10,7 MB. El cambio a JPG de los fondos de menú quita unos 3,0 MB de la descarga inicial. Medirlo en la próxima build.
+Build web publicada: `game.zip` **7.766.681 B** (antes 10,7 MB), sha256 `dd5f5748878399cf…`. No contiene partidas, QA, `docs/`, `tools/`, `tests/`, `leaderboard/` ni `.md`.
 
 ## 11. Git y despliegue
 
-- **Cambios de esta auditoría:** en la rama `qa/auditoria-final`, sin commit. Esperan tu autorización para commit, merge a `main` y publicación.
+- **Cambios de esta auditoría:** commit `178e4db` en `qa/auditoria-final`, fusionado en `main` (`aae3248`) y publicado en `gh-pages` (`bb1cc1c`).
 - **Para publicar** (cuando lo apruebes): commit en la rama, merge a `main`, *Manual Deploy* en Render, build web (`DESPLIEGUE.md` §3–4) y copia a `gh-pages`.
 - **Rollback:**
   - Web: revertir el último commit de `gh-pages`.
