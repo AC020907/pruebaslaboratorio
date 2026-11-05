@@ -38,11 +38,12 @@ init python:
             list(mem()["pistas"]), inv.PISTAS_CLAVE, indicadores_ciudad(), final=final)
 
     NOMBRE_MINIJUEGO = {"moderador": "Moderación Express", "contencion": "Caza-Rumores",
-                        "rastreador": "Rastreador", "viralizacion": "La Gran Viralización"}
+                        "rastreador": "Rastreador", "viralizacion": "La Gran Viralización",
+                        "ritmo": "Duelo de Frecuencias"}
 
     def lineas_minijuegos():
         lineas = []
-        for clave in ("moderador", "contencion", "rastreador", "viralizacion"):
+        for clave in ("moderador", "contencion", "rastreador", "ritmo", "viralizacion"):
             r = store.registro_minijuegos.get(clave)
             if r:
                 nota = r.get("calificacion") or ("S" if r.get("perfecto") else ("A" if r["exito"] else "D"))

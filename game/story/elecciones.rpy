@@ -24,6 +24,7 @@ label elecciones:
     call eventos_momento(inv.DOMINGO)
     call giro_nova_tardio
     call nueva_publicacion
+    call duelo_transmision
 
     call domingo_ataque
     call revision_expediente
@@ -120,4 +121,40 @@ label domingo_ataque(base=None, reintento=True):
         call evento_gran_viralizacion(ajustes=ayuda_viral)
     $ resultado_viral = _return
     $ completar_mision("dom_elecciones")
+    return
+
+
+## Duelo de Frecuencias: NOVA secuestra la transmision oficial del domingo. Ganarlo limpia la senal
+## (la Gran Viralizacion sera mas facil); perderlo no bloquea nada, solo deja mas interferencia.
+label duelo_transmision(modo="historia"):
+    scene bg operaciones with negro
+    show screen tarjeta_lugar("DOMINGO  -  10:15 A.M.", "Transmisión oficial de la alcaldía")
+    $ musica("nova", fadein=0.4)
+    $ aliado_duelo = aliado_domingo()
+    $ aliado_duelo = aliado_duelo if aliado_duelo in ("claudia", "martina", "rodrigo", "tomas") else "claudia"
+    show claudia seria at escena("claudia", 0.72) with suave
+    c seria "Estamos al aire. Diez mil personas viendo el mensaje del alcalde antes de las urnas."
+    $ interferencia()
+    $ sfx("glitch")
+    show nova feliz at escena("nova", 0.28) with Dissolve(0.08)
+    n feliz "{cps=40}Qué bonita transmisión. ¿Les molesta si la acompaño con mi propia frecuencia?{/cps}"
+    c sorprendida "¡Está metiendo ruido en la señal! Cada frase suya tapa la nuestra."
+    c seria "Si respondemos al ritmo exacto, la señal limpia gana. Alcalde, tome los controles."
+    hide claudia
+    hide nova
+    with suave
+    call minijuego_ritmo(modo=modo, aliado=aliado_duelo)
+    $ resultado_duelo_final = _return
+    scene bg operaciones with negro
+    if resultado_duelo_final["exito"]:
+        show claudia feliz at escena("claudia") with suave
+        $ reaccionar("claudia", "salto")
+        c feliz "¡Señal limpia! La gente escuchó el mensaje completo, sin cortes."
+        c "NOVA va a atacar igual antes de las urnas, pero ahora llega con menos fuerza."
+        $ renpy.notify("Duelo ganado: el rumor necesitará más reposts para hacerse viral.")
+    else:
+        show claudia seria at escena("claudia") with suave
+        c seria "Se cortó a ratos. La mitad de la gente vio más ruido que mensaje."
+        c "No importa. Lo que viene ahora es lo que cuenta."
+    hide claudia with suave
     return

@@ -103,6 +103,7 @@ label modo_feria:
     scene bg alcaldia at paneo with negro
     show screen tarjeta_lugar("DOMINGO  -  8:00 A.M.", "Frente a la Alcaldía")
     call domingo_tomas
+    call duelo_transmision(modo="feria")
     call domingo_ataque(base=FERIA_VIRAL, reintento=False)
     call revision_expediente
 

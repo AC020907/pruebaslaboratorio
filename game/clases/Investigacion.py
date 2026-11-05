@@ -47,6 +47,8 @@ HECHOS = (
     "uso_audio_tomas", "ignoro_audio_tomas", "defendio_tomas",
     "visita_claudia", "visita_martina", "visita_rodrigo", "visita_tomas",
     "alianza_tomas", "domingo_juego_limpio", "domingo_indiferente",
+    # Duelo de Frecuencias (minijuego ritmico del domingo)
+    "duelo_ganado", "duelo_perdido",
 )
 
 CATEGORIAS_PISTA = ["publicacion", "captura", "documento", "testimonio", "conexion"]

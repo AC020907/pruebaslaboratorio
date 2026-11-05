@@ -4,7 +4,7 @@ Puntuacion Civica (0..1000): recompensa decisiones informadas, investigacion y r
 Componentes y maximos:
     verificacion  300  respuestas a las publicaciones del telefono (banco AVL), ponderadas por riesgo
     decisiones    250  calidad de las decisiones narrativas clave
-    minijuegos    200  calificacion de los cuatro minijuegos
+    minijuegos    200  calificacion de los cinco minijuegos (incluye el Duelo de Frecuencias)
     investigacion 150  evidencias del expediente
     ciudad        100  estado final de los indicadores
 
@@ -21,7 +21,8 @@ VALOR_ACCION = {
     (True, "verificar_no"): 1.0, (True, "ignorar"): 0.4, (True, "compartir"): 0.0, (True, "verificar_si"): 0.0,
 }
 
-MINIJUEGOS = ("moderador", "contencion", "rastreador", "viralizacion")
+# El maximo del componente sigue siendo 200: el Duelo de Frecuencias reparte el peso entre cinco retos.
+MINIJUEGOS = ("moderador", "contencion", "rastreador", "viralizacion", "ritmo")
 VALOR_NOTA = {"S": 1.0, "A": 0.85, "B": 0.7, "C": 0.5, "D": 0.3}
 VALOR_FALLO = 0.15
 

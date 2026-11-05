@@ -553,7 +553,7 @@ screen main_menu():
         spacing -6
         for i, (etiqueta, accion, imagen) in enumerate([
                 (_("Nueva partida"), Start(), "gui/boton_menu_idle.png"),
-                (_("Modo Feria (10 min)"), Start("modo_feria"), "gui/boton_menu_feria.png"),
+                (_("Modo Feria (12 min)"), Start("modo_feria"), "gui/boton_menu_feria.png"),
                 (_("Cargar partida"), ShowMenu("load"), "gui/boton_menu_idle.png"),
                 (_("Opciones"), ShowMenu("preferences"), "gui/boton_menu_idle.png"),
                 (_("Créditos"), ShowMenu("about"), "gui/boton_menu_idle.png"),
