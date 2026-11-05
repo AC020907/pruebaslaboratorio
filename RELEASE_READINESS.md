@@ -1,4 +1,158 @@
-# Release candidate: Civitas con Duelo de Frecuencias
+# Release readiness: auditoría final, pulido visual y certificación jugable
+
+- **Rama:** `qa/auditoria-final` (sale de `main` `a789ef6`, que es lo publicado hoy).
+- **SDK:** Ren'Py 8.5.3.
+- **Fecha:** 2026-11-05.
+- **Estado:** cambios locales sin commit ni push. Producción no se tocó.
+- **Veredicto:** **GO condicionado** (ver §9).
+
+## 1. Baseline (antes de tocar nada)
+
+| Comprobación | Resultado |
+|---|---|
+| Ren'Py Lint | Sin errores |
+| `pytest tests` (lógica, finales, duelo) | 77 OK |
+| `pytest leaderboard` | 142 OK |
+| Web publicada | 200. `game.zip` 10,7 MB, de ellos 3,05 MB `main_menu.png` |
+| Backend Render | `{"ok":true,"db":"ok"}` |
+
+## 2. Cómo se auditó (motor real, no solo código)
+
+- **`tests/qa_visual.py recorrido`:** juega el guion real de cada perfil a velocidad de lectura y saca una captura por línea.
+- **`tests/qa_visual.py galeria`** (`game/qa_galeria.rpy`): fotografía por etapas:
+  - menús;
+  - escenas, teléfono, CivitasNet, expediente vacío, parcial y completo, mapa;
+  - los 5 minijuegos jugados con entradas de mando simuladas o jugador automático: victoria, derrota, error y abandono;
+  - las 5 pantallas de final con los 5 estados de envío.
+- **Verificación automática** de cada etapa: que no se bloquee, el final esperado, que cada minijuego devuelva el control, el resultado del duelo y el historial. Se cumple con salida 0.
+- **Hojas de contacto:** se generan junto a las capturas.
+- **Resoluciones:** 1920×1080, que Windows ajusta a 1739×978 en ventana (misma proporción 16:9); 1366×768; y 1600×720 con la variante táctil/móvil de Ren'Py (20:9, teléfono en horizontal).
+
+## 3. Matriz de cobertura
+
+| Etapa | 1920×1080 (1739×978) | 1366×768 | 1600×720 táctil |
+|---|---|---|---|
+| Menús, guardar/cargar, historial, ayuda, archivo, clasificación, alias | OK | OK | OK |
+| Escenas, teléfono, CivitasNet, expediente, mapa | OK | **Sin ejecutar**: la instancia no arrancó con 10 en paralelo; hay que repetirla | OK |
+| 4 minijuegos (Moderación, Caza-Rumores, Gran Viralización, Rastreador) | OK | OK | OK |
+| Duelo (perfecto con pausa) | Las 6 capturas, incluido el resultado, se tomaron, pero se agotó el límite de tiempo del QA con 10 instancias a la vez. Por separado da S 97 % | S 97,7 % | S 97,6 % |
+| 5 pantallas de final | OK | OK | OK |
+| Recorridos de los 5 perfiles (feria) | OK, 5 finales | — | — |
+
+**Pendiente de repetir (en solitario):** `python tests/qa_visual.py galeria --tam 1366x768 --etapas escenas` y `--etapas ritmo` a 1920.
+
+## 4. Hallazgos y correcciones
+
+El detalle técnico (causa raíz y corrección) está en `GAME_AUDIT.md` §12. Resumen:
+
+| P | Hallazgo | Estado |
+|---|---|---|
+| P0 | El duelo se congelaba tras Pausa → CONTINUAR | Corregido y verificado: perfecto con pausa da S, 97 % |
+| P1 | Moderación: con mando, A no salía de resultados (foco en BORRAR/APROBAR) | Corregido y verificado: los 4 minijuegos devuelven el control con A |
+| P2 | Tutorial y pausa del duelo: botones fuera del panel | Corregido |
+| P2 | Guardar, Cargar, Ayuda y confirmaciones en inglés | Corregido (`tl/spanish` del SDK). Voces verificadas |
+| P2 | Rótulo del mapa detrás de Rodrigo (Barrio Sur) | Corregido |
+| P2 | Textos sin tildes en CivitasNet, avisos y arcades | 47 líneas corregidas |
+| P3 | Notas del duelo sobre la cabecera y congeladas al abandonar | Corregido |
+| P3 | 3,8 MB de PNG opacos en la descarga web inicial | Pasados a JPG: −3,0 MB |
+| P3 | EMPEZAR del Rastreador con el estilo por defecto | Corregido |
+| P3 | No hay opción propia de tamaño de texto | Abierto. Ren'Py la ofrece en Shift+A (accesibilidad) |
+
+**Abiertos P0/P1:** ninguno conocido.
+
+## 5. Capturas antes/después
+
+Composiciones en `docs/auditoria/` (excluido de las builds):
+
+| Archivo | Qué muestra |
+|---|---|
+| `01_barrio_sur_rotulo.jpg` | Rótulo "BARRIO" detrás de Rodrigo → plano limpio |
+| `02_duelo_tras_pausa_congelado.jpg` | Notas congeladas 40 s después de reanudar → duelo en marcha |
+| `03_duelo_tutorial_desborde.jpg` | Texto y botones fuera del panel → dentro |
+| `04_duelo_pausa_desborde.jpg` | Fila de velocidades fuera del panel → dentro |
+| `05_moderador_resultado.jpg` | Tarjeta visible a través del panel y botón azul → panel limpio |
+| `06_guardar_ingles.jpg` / `07_ayuda_ingles.jpg` | "Page 1", "empty slot", ayuda en inglés → español |
+
+## 6. Comandos ejecutados y resultados
+
+```bash
+renpy.exe . lint                                   # sin errores (antes y después)
+python -m pytest -q tests                          # 77 OK
+cd leaderboard && python -m pytest -q              # 142 OK
+python tests/qa_visual.py recorrido --salida <dir>                       # 5 perfiles, 5 finales
+python tests/qa_visual.py galeria --tam 1920x1080,1366x768 --salida <dir>
+python tests/qa_visual.py galeria --tam 1600x720 --movil --salida <dir>
+python tests/qa_visual.py galeria --etapas ritmo:nada,ritmo:abandonar,dialogo:w,dialogo:nw --salida <dir>
+```
+
+- **`qa_visual.py`:** sale con 1 si alguna etapa se bloquea o da un resultado inesperado.
+- **Aislamiento:** los recorridos y la galería usan un `--savedir` aislado y apartan `game/saves`, así que nunca tocan el progreso real ni el servidor de producción.
+- **Simulación de balance** (Gran Viralización sin intervenir, `CazaRumores` puro): historia 0/15 victorias, feria 1/15.
+
+## 7. Cinco finales y cinco minijuegos
+
+**Finales**, alcanzados con renderizado real en modo feria (`qa_visual.py recorrido`):
+
+| Perfil | Final | Capturas |
+|---|---|---|
+| investigador | Fuente Abierta (secreto) | 88 |
+| prudente | Ciudad Informada | 77 |
+| impulsivo | Mandato Prestado | 84 |
+| casual | Caos Informativo | 77 |
+| dividido | Ciudad Dividida | 76 |
+
+**Final secreto:** solo lo alcanza el perfil investigador, que reúne todas las pistas. Los otros cuatro perfiles no lo desbloquean por accidente. Las pruebas de `Destinos` cubren sus condiciones.
+
+**Minijuegos**, todos jugados en el motor con mando simulado:
+
+| Minijuego | Victoria | Derrota/error | Control para continuar |
+|---|---|---|---|
+| Moderación Express | Sí (6 tarjetas) | Sí (3 vidas perdidas) | A |
+| Caza-Rumores | S con intercepción automática | — | A |
+| Rastreador | A, tras un error explicado | Error con 0 de 2 eslabones | A |
+| Gran Viralización | — | Sin intervenir: se pierde en 15 de 15 semillas de historia (simulación) | A |
+| Duelo de Frecuencias | S, 97 %, con pausa y reanudación | D (sin pulsar) y abandono desde la pausa | A |
+
+**Reintentos y siguiente visitante:** cada partida de feria crea un jugador y un alias nuevos (`story/leaderboard.rpy`, al empezar la partida). En esta sesión no se probó a mano una secuencia de varios visitantes seguidos.
+
+## 8. Estado por área
+
+| Área | Estado |
+|---|---|
+| Voces | Suenan con el idioma en español: 63 de 87 líneas del recorrido con voz (el resto es narración, que no se dobla). **No escuchadas por una persona.** |
+| Música | Sin cambios. **No escuchada por una persona.** |
+| Web | Publicada y sana. No sirve `.env`, partidas, `tools/` ni `.git`. Estos cambios **no** están publicados. |
+| Teléfono real | **No verificado.** Solo la variante táctil en PC (§3). |
+| Mando | Eventos simulados: menús, diálogo (`{w}` y `{nw}`), 5 minijuegos, pausa del duelo y resultados. **Sin hardware real.** |
+| QR | La captura de la pantalla final decodifica a `https://ac020907.github.io/pruebaslaboratorio/`. `/static/qr.png` en Render da 404 hasta un *Manual Deploy* (no afecta al juego). |
+| Backend | `/api/health?db=1` OK. `/docs` 404. Sin CORS para orígenes ajenos. 142 pruebas. Los recorridos de QA no envían nada a producción. |
+
+## 9. Veredicto: GO condicionado
+
+No quedan P0/P1 conocidos. Los flujos obligatorios funcionan en el motor y las suites pasan. **No está validado al 100 %.** Faltan:
+
+1. **Mando físico:** decisiones, los 5 minijuegos, la pausa del duelo con Start → A y la pantalla final.
+2. **Teléfono real** (iPhone Safari y Android Chrome, en horizontal): carga, sonido tras el primer toque, duelo en Fácil con toques y Rastreador táctil.
+3. **Escucha humana:** voces, música y la pista del duelo, incluida la calibración.
+4. **Partida de feria cronometrada** con personas (meta: 9–13 min).
+5. **5 sesiones** de `PROTOCOLO_PRUEBAS_JUGADORES.md`. La planilla está lista; no se inventan resultados.
+
+## 10. Artefactos de build
+
+No se generó una build nueva en esta auditoría. La última publicada es `game.zip` 10,7 MB. El cambio a JPG de los fondos de menú quita unos 3,0 MB de la descarga inicial. Medirlo en la próxima build.
+
+## 11. Git y despliegue
+
+- **Cambios de esta auditoría:** en la rama `qa/auditoria-final`, sin commit. Esperan tu autorización para commit, merge a `main` y publicación.
+- **Para publicar** (cuando lo apruebes): commit en la rama, merge a `main`, *Manual Deploy* en Render, build web (`DESPLIEGUE.md` §3–4) y copia a `gh-pages`.
+- **Rollback:**
+  - Web: revertir el último commit de `gh-pages`.
+  - Código: `git revert -m 1 <merge>`.
+  - El backend no cambia en esta auditoría (sin cambios de esquema ni de API).
+
+---
+
+# Anexo: release anterior (Duelo de Frecuencias, publicada)
 
 - **Rama:** `feature/duelo-frecuencias`, fusionada en `main` (merge `5279ad1`).
 - **Punto de retorno:** tag `rc-estable-pre-ritmo` (versión anterior).

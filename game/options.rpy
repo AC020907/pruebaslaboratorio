@@ -14,6 +14,11 @@
 
 define config.name = _("Alcalde Digital")
 
+## Interfaz del motor (guardar/cargar, ayuda, confirmaciones, fechas) en espanol: tl/spanish viene de la
+## traduccion oficial del SDK de Ren'Py. Los dialogos ya estan escritos en espanol y no cambian.
+define config.language = "spanish"
+define config.has_sync = False
+
 
 ## Determines if the title given above is shown on the main menu screen. Set
 ## this to False to hide the title.
@@ -190,6 +195,7 @@ init python:
     build.classify('game/saves.*/**', None)
     build.classify('tools/**', None)
     build.classify('tests/**', None)
+    build.classify('docs/**', None)
     build.classify('leaderboard/**', None)
     build.classify('revision_visual/**', None)
     build.classify('*.md', None)

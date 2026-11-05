@@ -27,6 +27,8 @@ init python:
     RITMO_X0 = 960 - (4 * RITMO_CARRIL_W + 3 * RITMO_GAP) // 2
     RITMO_RECEPTOR_Y = 860
     RITMO_RECORRIDO_MS = 1500
+    RITMO_NACE_Y = 150              # centro de la nota al aparecer: por debajo de la cabecera
+    RITMO_FUNDIDO_PX = 120
     COLOR_JUICIO = {"perfect": "#facc15", "good": "#5eead4", "bad": "#f4b6c2", "miss": "#8b84a8"}
     TEXTO_JUICIO = {"perfect": "¡PERFECTO!", "good": "BIEN", "bad": "JUSTO", "miss": "FALLO"}
     DIFICULTADES = {
@@ -53,6 +55,8 @@ init python:
             self.t = 0.0
             self.pulsados = {}            # carril -> tiempo de cancion del ultimo toque (brillo del receptor)
             self.notas = [Image("gui/ritmo/nota_%d.png" % k) for k in range(4)]
+            # Las notas nacen con un fundido por debajo de la cabecera (titulo y barra de senal).
+            self.notas_fundido = [[Transform(n, alpha=a / 4.0) for a in range(1, 4)] for n in self.notas]
             self.receptores = [Image("gui/ritmo/receptor_%d.png" % k) for k in range(4)]
             self.receptores_on = [Image("gui/ritmo/receptor_on_%d.png" % k) for k in range(4)]
             self.textos = {}
@@ -87,11 +91,15 @@ init python:
                 renpy.music.set_pause(False, channel="ritmo")
                 self.reloj.reanudar()
                 self.duelo.reanudar()
+                # render() solo se reprograma mientras se juega: en pausa deja de pedir cuadros, asi que
+                # al reanudar hay que pedir el primero o el duelo queda congelado.
+                renpy.redraw(self, 0)
                 renpy.restart_interaction()
 
         def abandonar(self):
             self.duelo.abortar()
             renpy.music.stop(channel="ritmo", fadeout=0.5)
+            renpy.redraw(self, 0)
             renpy.restart_interaction()
 
         def ajustar_offset(self, delta):
@@ -118,9 +126,13 @@ init python:
                 brillo = self.t - self.pulsados.get(k, -9999) < 110
                 rec = (self.receptores_on if brillo else self.receptores)[k]
                 r.blit(renpy.render(rec, 110, 110, st, at), (x + 20, RITMO_RECEPTOR_Y - 55))
-            for n in d.visibles(self.t, recorrido):
+            for n in (d.visibles(self.t, recorrido) if d.estado in (Ritmo.PLAYING, Ritmo.PAUSED) else ()):
                 y = RITMO_RECEPTOR_Y - (n["time_ms"] - self.t) / recorrido * (RITMO_RECEPTOR_Y + 60)
-                r.blit(renpy.render(self.notas[n["lane"]], 110, 110, st, at), (self.x_carril(n["lane"]) + 20, int(y) - 55))
+                if y < RITMO_NACE_Y:
+                    continue
+                nivel = int((y - RITMO_NACE_Y) / RITMO_FUNDIDO_PX * 4)
+                img = self.notas[n["lane"]] if nivel >= 3 else self.notas_fundido[n["lane"]][nivel]
+                r.blit(renpy.render(img, 110, 110, st, at), (self.x_carril(n["lane"]) + 20, int(y) - 55))
             for t_j, carril, juicio in d.ultimos:
                 edad = self.t - t_j
                 if 0 <= edad < 450:
@@ -227,7 +239,7 @@ screen duelo_pausa(vista):
     add Solid("#000000b8")
     frame:
         align (0.5, 0.5)
-        xsize 760
+        xsize 1040
         background Frame("gui/frame.png", 30, 30)
         padding (48, 36)
         has vbox
@@ -238,13 +250,13 @@ screen duelo_pausa(vista):
         hbox:
             xalign 0.5
             spacing 16
-            textbutton "-10 ms" style "boton_vn" text_style "boton_vn_text" action Function(vista.ajustar_offset, -10)
-            textbutton "+10 ms" style "boton_vn" text_style "boton_vn_text" action Function(vista.ajustar_offset, 10)
+            textbutton "-10 ms" style "boton_vn_compacto" text_style "boton_vn_text" action Function(vista.ajustar_offset, -10)
+            textbutton "+10 ms" style "boton_vn_compacto" text_style "boton_vn_text" action Function(vista.ajustar_offset, 10)
         hbox:
             xalign 0.5
             spacing 16
             for v in (0.75, 1.0, 1.25):
-                textbutton ("» %s «" % v if persistent.ritmo_velocidad == v else "Velocidad %s" % v) style "boton_vn" text_style "boton_vn_text" action SetField(persistent, "ritmo_velocidad", v)
+                textbutton ("» %s «" % v if persistent.ritmo_velocidad == v else "Velocidad %s" % v) style "boton_vn_compacto" text_style "boton_vn_text" action SetField(persistent, "ritmo_velocidad", v)
         textbutton "CONTINUAR" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.reanudar) default_focus True
         textbutton "Abandonar el duelo" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.abandonar)
     key "civ_pausa" action Function(vista.reanudar)
@@ -300,9 +312,9 @@ screen duelo_tutorial(modo):
         hbox:
             xalign 0.5
             spacing 20
-            textbutton "Normal" style "boton_vn" text_style "boton_vn_text" action Return("normal") default_focus (not renpy.variant("touch"))
-            textbutton "Fácil" style "boton_vn" text_style "boton_vn_text" action Return("facil") default_focus renpy.variant("touch")
-            textbutton "Asistido" style "boton_vn" text_style "boton_vn_text" action Return("asistido")
+            textbutton "Normal" style "boton_vn_compacto" text_style "boton_vn_text" action Return("normal") default_focus (not renpy.variant("touch"))
+            textbutton "Fácil" style "boton_vn_compacto" text_style "boton_vn_text" action Return("facil") default_focus renpy.variant("touch")
+            textbutton "Asistido" style "boton_vn_compacto" text_style "boton_vn_text" action Return("asistido")
         text "Asistido: menos notas y más margen para acertar. El duelo cuenta igual para la historia." size 16 italic True color "#8b84a8" xalign 0.5
 
 

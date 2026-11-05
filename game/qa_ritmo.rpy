@@ -21,6 +21,9 @@ init python:
             qar_obs["ultimo_frame"] = ahora
             if pos is None:
                 qar_obs["pos_none"] += 1
+            muestras = qar_obs.setdefault("muestras", [])
+            if not muestras or ahora - muestras[-1][0] > 0.25:
+                muestras.append((round(ahora, 2), pos, round(self.t), self.duelo.estado))
             rv = original(self, width, height, st, at)
             d = self.duelo
             if d.estado == "playing" and perfil != "nada":

@@ -36,14 +36,18 @@ init -10 python:
 
     def qa_pad_tick(dt=0.1):
         qa_pad_obs["t"] = qa_pad_obs.get("t", 0.0) + dt
-        if qa_pad_obs["t"] > 170:
+        if qa_pad_obs["t"] > store.qa_pad_limite:
             qa_pad_obs["vigilante"] = "tiempo agotado en etapa %s" % qa_pad_obs.get("etapa")
             qa_pad_volcar()
             _qa_os._exit(4)
         store.qa_pad_espera -= dt
         while qa_pad_cola and store.qa_pad_espera <= 0:
             espera, control, estado = qa_pad_cola.pop(0)
-            if control:
+            if callable(control):
+                control()
+            elif control and control.startswith("foto:"):
+                qa_gal_foto(control[5:])
+            elif control:
                 qa_pad_evento(control, estado)
             store.qa_pad_espera = espera
         qa_pad_observar()
@@ -80,6 +84,7 @@ init -10 python:
         return [(espera, control, "press") for _i in range(veces)]
 
 default qa_pad_espera = 0.0
+default qa_pad_limite = 170
 
 screen qa_pad_inyector():
     zorder 999
@@ -97,6 +102,10 @@ init python:
                 qa_pad_obs["vigilante_hilo"] = "bloqueado"
                 qa_pad_obs["pantallas"] = sorted(str(t) for t in renpy.exports.get_showing_tags("screens"))
                 qa_pad_obs["cola_restante"] = len(qa_pad_cola)
+                try:
+                    qa_pad_obs["foco"] = qa_foco_nombre()
+                except Exception as e:
+                    qa_pad_obs["foco"] = repr(e)
                 ctxs = renpy.game.contexts
                 qa_pad_obs["contextos"] = len(ctxs)
                 qa_pad_obs["nodos"] = [str(getattr(c, "current", None)) for c in ctxs]

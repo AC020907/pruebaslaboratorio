@@ -449,11 +449,9 @@ screen puzzle_rastreo_ui(p, rumor):
                 text "Tienes %d s y %d comprobaciones. Hay cuentas señuelo." % (int(p.tiempo_total), p.comprobaciones) size 22 bold True color "#c0392b" xalign 0.5
                 null height 6
                 textbutton "EMPEZAR":
-                    style "grafo_button"
-                    text_style "grafo_button_text"
+                    style "boton_vn"
+                    text_style "boton_vn_text"
                     xalign 0.5
-                    xsize 360
-                    text_xalign 0.5
                     default_focus True
                     action Function(p.empezar)
 
