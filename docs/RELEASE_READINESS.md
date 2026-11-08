@@ -4,9 +4,9 @@
 - **Fecha:** 2026-11-07.
 - **SDK:** Ren'Py 8.5.3.
 - **Estado: publicada** (2026-11-08):
-  - **Código:** `main` `7c4c909`.
-  - **Web:** `gh-pages` `86b5329`, `game.zip` de 7.902.237 B. Probada en el navegador: arranca y la Arena muestra el aviso de solo escritorio.
-  - **Escritorio Windows:** `DigitalMayor-2.0-win.zip`, 85.419.622 B, SHA-256 `197a0d9073564f3e0613d7e914799838fbf9d4f47c67f150ba3271b1b2e30385`.
+  - **Código:** `main` `f1014ce`.
+  - **Web:** `gh-pages` `2921599`, `game.zip` de 7.936.162 B. Probada en el navegador: arranca y la Arena muestra el aviso de solo escritorio.
+  - **Escritorio Windows:** `DigitalMayor-2.0-win.zip`, 85.425.464 B, SHA-256 `a4a629c7cac5d1db545d3a31ef109a77af2c52044ef0ce431216aefe27bb2da7`.
   - **Verificación del paquete:** lint del paquete sin errores; el ejecutable arranca; partida de Arena completa (3 rondas, 4 clientes TCP) sobre el Python embebido del paquete, con el mismo resultado en todos.
 - **Veredicto:** **GO condicionado** para la entrega final (16–20 nov). No queda ningún defecto bloqueante conocido. Faltan las pruebas físicas y con personas de §5.
 
