@@ -75,6 +75,13 @@ init -5 python:
         if c is None:
             return
         cambios = c.procesar()
+        if AS.empezar_pendiente and c.estado and c.estado.get("fase") == "lobby":
+            jugadores, faltan = arena_sala_info()
+            if len(jugadores) >= AR.MIN_JUGADORES and not faltan:
+                AS.empezar_pendiente = False
+                c.enviar("empezar")
+        elif AS.empezar_pendiente and c.estado and c.estado.get("fase") != "lobby":
+            AS.empezar_pendiente = False
         if c.grafo is not AS.grafo_fuente:
             arena_preparar_grafo()
         if c.ronda and c.ronda["ronda"] != AS.ronda_vista:
@@ -103,11 +110,33 @@ init -5 python:
         store.arena_mensaje = ""
         renpy.restart_interaction()
 
+    def arena_sala_info():
+        """(jugadores, faltan_listos) de la sala, para explicar por que aun no se puede empezar."""
+        est = (AS.cliente.estado if AS.cliente else None) or {"jugadores": [], "listos": []}
+        jugadores = est["jugadores"]
+        faltan = [j["nombre"] for j in jugadores if j["id"] != est.get("anfitrion") and j["id"] not in est["listos"]]
+        return jugadores, faltan
+
+    def arena_empezar():
+        """Si el anfitrion esta solo, completa la sala con jugadores automaticos y empieza cuando esten listos."""
+        jugadores, faltan = arena_sala_info()
+        if len(jugadores) < AR.MIN_JUGADORES and AS.servidor:
+            for _ in range(AR.MAX_JUGADORES - len(jugadores)):
+                arena_agregar_bot()
+            AS.empezar_pendiente = True
+            store.arena_mensaje = ""
+            AS.cliente.error = None
+        elif faltan:
+            AS.empezar_pendiente = True
+        else:
+            AS.cliente.enviar("empezar")
+        renpy.restart_interaction()
+
     def arena_agregar_bot():
         if not AS.servidor:
             return
         ocupados = {j["rol"] for j in (AS.cliente.estado or {}).get("jugadores", [])}
-        libres = [r for r in AR.ROLES if r not in ocupados]
+        libres = [r for r in AR.ROLES if r not in ocupados and r not in [b.rol for b in AS.bots]]
         if libres:
             AS.bots.append(BotArena("127.0.0.1", AS.servidor.puerto, libres[0], semilla=len(AS.bots)).iniciar())
 
@@ -406,14 +435,29 @@ screen arena_sala(c):
             for k in range(4 - len(est["jugadores"])):
                 text "Puesto libre" size 22 color "#8b84a8"
             null height 6
+            $ jugadores_sala, faltan_sala = arena_sala_info()
+            if AS.empezar_pendiente:
+                text "Preparando la partida: esperando a que todos estén listos…" size 26 bold True color "#2f9e8f"
+            elif len(jugadores_sala) < AR.MIN_JUGADORES:
+                text ("Esperando jugadores: falta al menos 1 para empezar. Pide a los demás que se unan con la IP de arriba, o juega con jugadores automáticos." if AS.servidor else "Esperando a más jugadores…") size 24 bold True color "#c58a1b"
+            elif faltan_sala:
+                text "Esperando a que marquen «Estoy listo»: %s" % ", ".join(faltan_sala) size 24 bold True color "#c58a1b"
+            elif c.soy_anfitrion():
+                text "Todo listo: pulsa «Empezar»." size 24 bold True color "#2f9e8f"
             text "Se necesitan de 2 a 4 jugadores. Con 2 o 3, los roles que falten no juegan, pero los 4 candidatos siguen en la elección." style "arena_nota"
             hbox:
                 spacing 20
                 xalign 0.5
                 if c.soy_anfitrion():
-                    textbutton "Empezar" style "boton_vn" text_style "boton_vn_text" action Function(c.enviar, "empezar") default_focus True
+                    textbutton ("Jugar con jugadores automáticos" if len(jugadores_sala) < AR.MIN_JUGADORES and AS.servidor else "Empezar"):
+                        style "boton_vn_compacto"
+                        text_style "boton_vn_text"
+                        xsize 460
+                        ysize 86
+                        action Function(arena_empezar)
+                        default_focus True
                     if AS.servidor and len(est["jugadores"]) < 4:
-                        textbutton "Añadir jugador automático" style "boton_vn" text_style "boton_vn_text" action Function(arena_agregar_bot)
+                        textbutton "Añadir jugador automático" style "boton_vn_compacto" text_style "boton_vn_text" xsize 420 ysize 86 action Function(arena_agregar_bot)
                 elif yo:
                     textbutton ("Listo (pulsa para cancelar)" if yo["id"] in est["listos"] else "Estoy listo") style "boton_vn" text_style "boton_vn_text" action Function(c.enviar, "listo", listo=yo["id"] not in est["listos"]) default_focus True
                 textbutton "Salir" style "boton_vn" text_style "boton_vn_text" action Return(False)

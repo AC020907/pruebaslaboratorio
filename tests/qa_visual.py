@@ -149,6 +149,8 @@ def verificar(nombre, d):
     if nombre.startswith("bot_"):
         return None if d.get("termino") else "el bot no llego al final: %s" % d.get("cerrado")
     g = d.get("galeria", {})
+    if g.get("etapa") == "arena_solo":
+        return None
     if g.get("etapa") == "arena":
         finales = [e for e in g.get("eventos", []) if e[0] == "final"]
         return None if finales else "la Arena no llego a la eleccion"

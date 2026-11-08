@@ -4,6 +4,7 @@ servidor = None
 clave = None
 cliente = None
 bots = []
+empezar_pendiente = False   # el anfitrion pidio empezar y faltan bots por estar listos
 ruta = []              # ruta elegida dentro del arbol de la ronda actual
 ronda_vista = None     # numero de ronda que la interfaz ya anuncio
 resultado_visto = None

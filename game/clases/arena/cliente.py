@@ -146,6 +146,7 @@ class ClienteArena(object):
             if self.estado.get("restante") is not None:
                 self.restante_hasta = time.monotonic() + self.estado["restante"]
         elif tipo == "ronda":
+            self.error = None   # un aviso del lobby ya no aplica cuando la partida empezo
             self.ronda, self.arbol = msg, msg["arbol"]
             self.resultado = None
             self.restante_hasta = time.monotonic() + msg["segundos"]

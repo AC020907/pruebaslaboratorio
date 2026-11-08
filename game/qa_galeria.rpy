@@ -101,6 +101,8 @@ label qa_galeria:
         jump qa_gal_ritmo
     if etapa_gal == "finales":
         jump qa_gal_finales
+    if etapa_gal == "arena_solo":
+        jump qa_gal_arena_solo
     if etapa_gal in ("arena", "arena_cliente"):
         jump qa_gal_arena
     if etapa_gal == "dialogo":
@@ -454,4 +456,31 @@ label qa_gal_arena:
     call qa_foto(pref_qa + "96_ayuda_indicadores", 1.0)
     $ arena_salir()
     $ qa_gal_volcar(etapa="arena", ok=True)
+    $ renpy.quit()
+
+
+## ---------------- Arena: anfitrion solo pulsa Empezar (reproduce lo que vio el usuario) ----------------
+init python:
+    def qa_solo_empezar():
+        AS.cliente.enviar("empezar")
+
+    def qa_solo_fin():
+        arena_salir()
+        qa_gal_volcar(etapa="arena_solo", ok=True)
+        renpy.quit()
+
+    def qa_solo_estado():
+        c = AS.cliente
+        c.procesar()
+        qa_gal["eventos"].append(("estado", (c.estado or {}).get("fase"), len((c.estado or {}).get("jugadores", [])), c.error))
+
+label qa_gal_arena_solo:
+    $ qa_pad_limite = 300
+    $ ok_qa = arena_crear("Ana", "ciudadano")
+    $ qa_pad_programar([(2.0, "foto:s00_solo_antes", None), (0.1, arena_empezar, None), (0.8, "foto:s01_preparando", None),
+                        (0.1, qa_solo_estado, None), (8.0, "foto:s02_partida_iniciada", None), (0.1, qa_solo_estado, None),
+                        (0.5, qa_solo_fin, None)])
+    call screen arena_partida
+    $ arena_salir()
+    $ qa_gal_volcar(etapa="arena_solo", ok=True)
     $ renpy.quit()
