@@ -7,9 +7,11 @@ init -5 python:
     from clases.arena import reglas as AR
     from clases.arena import protocolo as AP
     from clases.arena import sesion as AS
-    from clases.arena.servidor import ServidorArena
-    from clases.arena.cliente import ClienteArena
-    from clases.arena.bot import BotArena
+    # Sockets e hilos solo en escritorio: en la web la Arena muestra un aviso y estos modulos no se cargan.
+    if not renpy.emscripten:
+        from clases.arena.servidor import ServidorArena
+        from clases.arena.cliente import ClienteArena
+        from clases.arena.bot import BotArena
     from clases.GrafoSocial import GrafoSocial as _GrafoArena
 
     ARENA_RONDAS = 5
