@@ -1,0 +1,14 @@
+"""Objetos vivos de la Arena en la interfaz (sockets, hilos). Viven aqui y no en el store de Ren'Py para
+que nunca entren en una partida guardada ni en el rollback."""
+servidor = None
+clave = None
+cliente = None
+bots = []
+ruta = []              # ruta elegida dentro del arbol de la ronda actual
+ronda_vista = None     # numero de ronda que la interfaz ya anuncio
+resultado_visto = None
+final_visto = False
+aviso_tiempo = None
+grafo_fuente = None
+grafo = None           # GrafoSocial reconstruido desde el servidor (para dibujar)
+posiciones = {}

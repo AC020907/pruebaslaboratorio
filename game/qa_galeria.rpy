@@ -101,6 +101,8 @@ label qa_galeria:
         jump qa_gal_ritmo
     if etapa_gal == "finales":
         jump qa_gal_finales
+    if etapa_gal in ("arena", "arena_cliente"):
+        jump qa_gal_arena
     if etapa_gal == "dialogo":
         jump qa_gal_dialogo
     $ renpy.quit()
@@ -341,4 +343,115 @@ label qa_gal_dialogo:
     $ qa_gal["diag"] = {"_history": _history, "contextos": len(renpy.game.contexts), "history_length": config.history_length,
                         "label_cb": str(config.history_callbacks)[:200]}
     $ qa_gal_volcar(etapa="dialogo", ok=True)
+    $ renpy.quit()
+
+
+## ---------------- Arena Civitas en red (anfitrion o cliente) ----------------
+## ALCALDE_QA_ETAPA=arena (crea la sala) | arena_cliente (se une a 127.0.0.1). El resto de la sala la
+## completan otros procesos (otro Ren'Py y tests/arena_bot.py), lanzados por tests/qa_visual.py.
+init python:
+    qa_ar = {"fotos_ronda": set(), "fotos_res": set(), "ultimo": 0.0, "final": False}
+
+    def elegir_ruta_qa(arbol):
+        from clases.arena.bot import elegir_ruta
+        import random as _r
+        return elegir_ruta(arbol, "responsable", _r.Random(0))
+
+    def qa_arena_auto():
+        import time as _t
+        c = AS.cliente
+        if c is None:
+            return None
+        ahora = _t.time()
+        pref = "a_%s_" % ("host" if AS.servidor else "cliente")
+        est = c.estado or {}
+        if not est or est.get("fase") == "lobby":
+            if not AS.servidor and est and c.jugador_id not in est.get("listos", []) and ahora - qa_ar["ultimo"] > 1:
+                c.enviar("listo", listo=True)
+                qa_ar["ultimo"] = ahora
+            n = len(est.get("jugadores", []))
+            if AS.servidor and n >= 4 and len(est.get("listos", [])) >= 3 and "sala" not in qa_ar["fotos_ronda"]:
+                qa_ar["fotos_ronda"].add("sala")
+                qa_gal_foto(pref + "02_sala_completa")
+                c.enviar("empezar")
+            elif not AS.servidor and n >= 2 and "sala" not in qa_ar["fotos_ronda"]:
+                qa_ar["fotos_ronda"].add("sala")
+                qa_gal_foto(pref + "02_sala")
+            return None
+        if c.final:
+            if not qa_ar["final"]:
+                qa_ar["final"] = ahora
+            elif ahora - qa_ar["final"] > 1.5 and "final" not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add("final")
+                qa_gal_foto(pref + "90_eleccion_final")
+                qa_gal["eventos"].append(("final", c.final["ganador"], c.final["votos"], c.final["ciudad"]["indice"]))
+                return False
+            return None
+        if c.ronda and not c.ya_decidi():
+            n = c.ronda["ronda"]
+            if n not in qa_ar["fotos_ronda"]:
+                qa_ar["fotos_ronda"].add(n)
+                qa_ar["ultimo"] = ahora
+                qa_ar["ruta_pendiente"] = None
+                return None
+            if ahora - qa_ar["ultimo"] > 1.6 and ("p%d" % n) not in qa_ar["fotos_ronda"]:
+                qa_ar["fotos_ronda"].add("p%d" % n)
+                qa_gal_foto(pref + "%02d_ronda" % (10 + n * 10))
+                ruta = elegir_ruta_qa(c.arbol)
+                qa_ar["ruta_pendiente"] = ruta[1:]
+                qa_ar["ultimo"] = ahora
+                arena_elegir(ruta[0])            # se navega el arbol como una persona: primero la rama...
+            elif qa_ar.get("ruta_pendiente") and ahora - qa_ar["ultimo"] > 1.2:
+                if ("v%d" % n) not in qa_ar["fotos_ronda"]:
+                    qa_ar["fotos_ronda"].add("v%d" % n)
+                    qa_gal_foto(pref + "%02d_verificar" % (11 + n * 10))
+                arena_elegir(qa_ar["ruta_pendiente"].pop(0))   # ...y luego la respuesta
+            return None
+        if c.resultado:
+            n = c.resultado["ronda"]
+            if n not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add(n)
+                qa_ar["ultimo"] = ahora
+            elif ahora - qa_ar["ultimo"] > 1.5 and ("f%d" % n) not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add("f%d" % n)
+                qa_gal_foto(pref + "%02d_resultado" % (15 + n * 10))
+                qa_gal["eventos"].append(("resultado", n, c.resultado["n_alcanzados"], c.resultado["publicacion"]["tipo"]))
+                if AS.servidor:
+                    c.enviar("continuar")
+        return None
+
+screen qa_arena_auto():
+    zorder 1001
+    timer 0.25 repeat True action Function(qa_arena_auto)
+
+label qa_gal_arena:
+    $ qa_pad_limite = 900
+    $ qa_pad_vigilante_hilo(400)
+    $ anfitrion_qa = etapa_gal == "arena"
+    $ persistent.avisos_sonido = not anfitrion_qa
+    $ pref_qa = "a_%s_" % ("host" if anfitrion_qa else "cliente")
+    show screen arena_inicio
+    call qa_foto(pref_qa + "01_inicio", 1.4)
+    hide screen arena_inicio
+    if anfitrion_qa:
+        $ ok_qa = arena_crear("Ana", "ciudadano")
+    else:
+        $ ok_qa = None
+        $ intentos_qa = 0
+        while ok_qa is not True and intentos_qa < 60:
+            $ ok_qa = arena_conectar("127.0.0.1", "Beto", "periodista")
+            if ok_qa is not True:
+                $ qa_call_screen_original("qa_espera", 0.5)
+            $ intentos_qa += 1
+    $ qa_gal["eventos"].append(("conectado", ok_qa is True))
+    show screen qa_arena_auto
+    call screen arena_partida
+    hide screen qa_arena_auto
+    $ renpy.show_screen("ayuda_civitas", pestana="arena")
+    call qa_foto(pref_qa + "95_ayuda_arena", 1.0)
+    $ renpy.hide_screen("ayuda_civitas")
+    $ renpy.show_screen("ayuda_civitas", pestana="indicadores")
+    call qa_foto(pref_qa + "96_ayuda_indicadores", 1.0)
+    $ arena_salir()
+    $ qa_gal_volcar(etapa="arena", ok=True)
     $ renpy.quit()
