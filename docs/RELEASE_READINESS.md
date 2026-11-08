@@ -3,7 +3,11 @@
 - **Rama:** `feature/arena-rubrica`, que sale de `main` `8608dc2` (versión publicada el 2026-11-05).
 - **Fecha:** 2026-11-07.
 - **SDK:** Ren'Py 8.5.3.
-- **Estado:** commit local en la rama. **Sin push, sin merge a `main` y sin publicación web:** requieren autorización.
+- **Estado: publicada** (2026-11-08):
+  - **Código:** `main` `7c4c909`.
+  - **Web:** `gh-pages` `86b5329`, `game.zip` de 7.902.237 B. Probada en el navegador: arranca y la Arena muestra el aviso de solo escritorio.
+  - **Escritorio Windows:** `DigitalMayor-2.0-win.zip`, 85.419.622 B, SHA-256 `197a0d9073564f3e0613d7e914799838fbf9d4f47c67f150ba3271b1b2e30385`.
+  - **Verificación del paquete:** lint del paquete sin errores; el ejecutable arranca; partida de Arena completa (3 rondas, 4 clientes TCP) sobre el Python embebido del paquete, con el mismo resultado en todos.
 - **Veredicto:** **GO condicionado** para la entrega final (16–20 nov). No queda ningún defecto bloqueante conocido. Faltan las pruebas físicas y con personas de §5.
 
 ## 1. Qué se añadió
