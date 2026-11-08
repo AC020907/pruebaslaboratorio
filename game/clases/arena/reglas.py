@@ -30,7 +30,7 @@ DESCRIPCION_ROL = {
 }
 MIN_JUGADORES, MAX_JUGADORES = 2, 4
 
-CANDIDATOS = (("vega", "Tomás Vega"), ("ortega", "Juan Ortega"), ("prado", "Lucía Prado"), ("ruiz", "Elena Ruiz"))
+CANDIDATOS = (("vega", "Tomás Vega"), ("ortega", "Juan Ortega"), ("prado", "Inés Prado"), ("ruiz", "Elena Ruiz"))
 NOMBRE_CANDIDATO = dict(CANDIDATOS)
 
 INDICADORES = ("info_verificada", "confianza", "convivencia", "bienestar", "participacion",
@@ -85,16 +85,16 @@ PUBLICACIONES = (
      "zona": "barrio", "candidato": None, "sentido": None,
      "fuente": "El acueducto publicó la muestra 14: el agua es potable. El rumor nació de una tubería rota.",
      "pista": "Usa mayúsculas y pide compartir 'antes de que lo borren'."},
-    {"id": "prado_robo", "texto": "Lucía Prado tiene una casa pagada con dinero público.", "tipo": "falsa",
+    {"id": "prado_robo", "texto": "Inés Prado tiene una casa pagada con dinero público.", "tipo": "falsa",
      "autor": "@nova_libre", "zona": "plaza", "candidato": "prado", "sentido": "ataque",
-     "fuente": "La escritura de la casa es de 2009, antes de que Lucía Prado entrara a la política.",
+     "fuente": "La escritura de la casa es de 2009, antes de que Inés Prado entrara a la política.",
      "pista": "La captura no muestra el enlace original."},
     {"id": "horario", "texto": "La Registraduría amplía el horario de votación hasta las 6 p.m.", "tipo": "verdadera",
      "autor": "@registraduria", "zona": "alcaldia", "candidato": None, "sentido": None,
      "fuente": "Resolución publicada en la web oficial de la Registraduría, con número y fecha.",
      "pista": "Enlaza la resolución oficial."},
-    {"id": "transporte", "texto": "Lucía Prado presenta su plan de transporte con cifras y presupuesto.",
-     "tipo": "verdadera", "autor": "@lucia.prado", "zona": "plaza", "candidato": "prado", "sentido": "apoyo",
+    {"id": "transporte", "texto": "Inés Prado presenta su plan de transporte con cifras y presupuesto.",
+     "tipo": "verdadera", "autor": "@ines.prado", "zona": "plaza", "candidato": "prado", "sentido": "apoyo",
      "fuente": "El documento completo está publicado y lo revisó un centro de estudios independiente.",
      "pista": "Trae el documento completo, no una frase suelta."},
     {"id": "debate", "texto": "El debate de candidatos será el jueves en la plaza y se transmite en vivo.",

@@ -42,6 +42,7 @@ label elecciones:
 
 ## Tomas en la manana de la eleccion: cambia segun lo que paso con el audio y el sabado.
 label domingo_tomas:
+    "Cuatro nombres en el tarjetón: tú, Tomás Vega, Juan Ortega y Elena Ruiz. Ciudad Nova vota hasta las cuatro de la tarde."
     if hay("uso_audio_tomas"):
         show tomas enojada at escena("tomas") with suave
         $ reaccionar("tomas", "temblor")

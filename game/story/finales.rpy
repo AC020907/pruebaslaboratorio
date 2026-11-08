@@ -50,6 +50,10 @@ init python:
                 lineas.append((NOMBRE_MINIJUEGO[clave], nota, r["exito"]))
         return lineas
 
+    def escrutinio_partida(final):
+        from clases.Eleccion import escrutinio_historia
+        return escrutinio_historia(final, indicadores_ciudad(), jugador.get_reputacion(), mem().get("semilla", 0))
+
     def finales_descubiertos():
         return [f for f in destinos.FINALES if f in persistent.finales_vistos]
 
@@ -79,6 +83,10 @@ label finales:
         call final_caos_escena
 
     call epilogos(final_actual)
+
+    ## Escrutinio: los cuatro candidatos y por que salio este resultado (rubrica §12).
+    $ escrutinio_final = escrutinio_partida(final_actual)
+    call screen escrutinio_historia(escrutinio_final)
 
     $ ocultar_avisos_juego()
     if final_nuevo:
@@ -299,3 +307,34 @@ screen pantalla_resultados(final_actual, resultado, final_nuevo=False):
                 text_style "boton_vn_text"
                 action Return()
                 default_focus True
+
+
+screen escrutinio_historia(e):
+    modal True
+    zorder 60
+    add Solid("#120d1ce6")
+    key "civ_accion" action Return()
+    $ maximo = max(1, max(c["votos"] for c in e["candidatos"]))
+    frame:
+        background Frame("gui/frame.png", 30, 30)
+        padding (50, 36)
+        align (0.5, 0.5)
+        xsize 1300
+        vbox:
+            spacing 14
+            text "ESCRUTINIO  ·  ELECCIONES DE CIUDAD NOVA" size 36 bold True color "#8c2f4b"
+            if e["impugnado"]:
+                text "Resultado impugnado: cada bando tiene sus propias cifras." size 30 bold True color "#c0392b"
+            else:
+                text "Gana %s" % e["ganador_nombre"] size 34 bold True color "#2b2440"
+            for c in e["candidatos"]:
+                hbox:
+                    spacing 14
+                    text c["nombre"] size 24 bold (c["id"] == e["ganador"]) color "#2b2440" min_width 260 yalign 0.5
+                    bar value StaticValue(c["votos"], maximo) xsize 560 ysize 22 yalign 0.5 left_bar Solid("#8c2f4b" if c["id"] == e["ganador"] else "#a7a5f2") right_bar Solid("#ece6f5")
+                    text "{:,}".format(c["votos"]).replace(",", ".") + " votos" size 22 color "#2b2440" yalign 0.5
+            text "Abstención: %s personas" % "{:,}".format(e["abstencion"]).replace(",", ".") size 20 italic True color "#5b4f72"
+            text "¿Por qué este resultado?" size 26 bold True color "#2b2440"
+            for linea in e["explicacion"]:
+                text "· " + linea size 21 color "#2b2440"
+            textbutton "Continuar" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return() default_focus True

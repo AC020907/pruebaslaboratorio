@@ -75,14 +75,14 @@ screen ayuda_arena():
     text "2. Los demás eligen «Unirse», escriben esa IP, un nombre y un rol libre. Hacen falta de 2 a 4 jugadores; cada rol solo puede elegirlo uno." style "ayuda_p"
     text "3. Cuando todos marcan «Listo», el anfitrión pulsa «Empezar». Hay 5 rondas. En cada una aparece una publicación y todos deciden a la vez, contra el reloj." style "ayuda_p"
     text "4. El servidor junta las decisiones, propaga la publicación por el grafo social de Ciudad Nova, cambia los indicadores y reparte puntos. Verás quién la recibió, quién quedó protegido y por qué." style "ayuda_p"
-    text "5. Al terminar se vota alcalde entre Tomás Vega, Juan Ortega, Lucía Prado y Elena Ruiz. El resultado explica qué decisiones movieron los votos." style "ayuda_p"
+    text "5. Al terminar se vota alcalde entre Tomás Vega, Juan Ortega, Inés Prado y Elena Ruiz. El resultado explica qué decisiones movieron los votos." style "ayuda_p"
     text "Si alguien pierde la conexión durante la partida, su puesto se guarda y la ronda sigue sin él; con «Reconectar» vuelve a su mismo puesto. El anfitrión puede pausar una ronda y añadir jugadores automáticos si falta gente." style "ayuda_p"
 
 screen ayuda_personajes():
     text "Roles de la Arena" style "ayuda_h"
     for r in AR.ROLES:
         text "%s: %s" % (AR.NOMBRE_ROL[r], AR.DESCRIPCION_ROL[r]) style "ayuda_p"
-    text "El influencer gana y pierde el doble de puntos porque sus decisiones llegan más lejos. El periodista ve la fuente real al verificar; los demás solo una pista. El candidato defiende a Lucía Prado." style "ayuda_p"
+    text "El influencer gana y pierde el doble de puntos porque sus decisiones llegan más lejos. El periodista ve la fuente real al verificar; los demás solo una pista. El candidato defiende a Inés Prado." style "ayuda_p"
     text "Personajes de la historia" style "ayuda_h"
     text "Tú: alcalde de Ciudad Nova durante la semana electoral." style "ayuda_p"
     text "Claudia Reyes: periodista de Noticias Nova; te ayuda a investigar el origen de los rumores." style "ayuda_p"
