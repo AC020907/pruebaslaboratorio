@@ -70,7 +70,7 @@ def hojas(salida, por_hoja=20, ancho=384):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("tipo", choices=("recorrido", "galeria", "hojas"))
+    ap.add_argument("tipo", choices=("recorrido", "galeria", "arena", "hojas"))
     ap.add_argument("--sdk", default=SDK_DEFECTO)
     ap.add_argument("--salida", required=True)
     ap.add_argument("--perfiles", default="investigador,prudente,impulsivo,casual,dividido")
@@ -90,6 +90,19 @@ def main():
             if args.movil:
                 extra["RENPY_VARIANT"] = "touch small mobile"
             sufijo = tam + ("_movil" if args.movil else "")
+            if args.tipo == "arena":
+                # 4 procesos independientes: Ren'Py anfitrion (ciudadano), Ren'Py cliente (periodista) y dos bots.
+                for etapa in ("arena", "arena_cliente"):
+                    carpeta = os.path.join(salida, "%s_%s" % (etapa, sufijo))
+                    procesos[os.path.basename(carpeta)] = lanzar(args.sdk, dict(
+                        extra, ALCALDE_QA="galeria", ALCALDE_QA_ETAPA=etapa, ALCALDE_QA_CAPTURAS=carpeta), carpeta)
+                for rol in ("influencer", "candidato"):
+                    carpeta = os.path.join(salida, "bot_%s" % rol)
+                    os.makedirs(carpeta, exist_ok=True)
+                    procesos["bot_" + rol] = (subprocess.Popen(
+                        [sys.executable, os.path.join(PROYECTO, "tests", "arena_bot.py"), "--puerto", "50777",
+                         "--rol", rol, "--salida", os.path.join(carpeta, "salida.json"), "--limite", "400"]), 500)
+                continue
             if args.tipo == "recorrido":
                 for perfil in args.perfiles.split(","):
                     carpeta = os.path.join(salida, "recorrido_%s_%s_%s" % (args.modo, perfil, sufijo))
@@ -133,7 +146,13 @@ def verificar(nombre, d):
     if nombre.startswith("recorrido_"):
         perfil = nombre.split("_")[2]
         return None if d.get("final") == ESPERADO_RECORRIDO.get(perfil) else "final %s" % d.get("final")
+    if nombre.startswith("bot_"):
+        return None if d.get("termino") else "el bot no llego al final: %s" % d.get("cerrado")
     g = d.get("galeria", {})
+    if g.get("etapa") == "arena":
+        finales = [e for e in g.get("eventos", []) if e[0] == "final"]
+        return None if finales else "la Arena no llego a la eleccion"
+
     if not g.get("ok"):
         return "la etapa no termino"
     eventos = g.get("eventos", [])

@@ -490,7 +490,7 @@ screen navigation():
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
             ## Help isn't necessary or relevant to mobile devices.
-            textbutton _("Ayuda") action ShowMenu("help")
+            textbutton _("Ayuda") action Show("ayuda_civitas")
 
         if renpy.variant("pc"):
 
@@ -556,7 +556,7 @@ screen main_menu():
                 (_("Modo Feria (12 min)"), Start("modo_feria"), "gui/boton_menu_feria.png"),
                 (_("Cargar partida"), ShowMenu("load"), "gui/boton_menu_idle.png"),
                 (_("Opciones"), ShowMenu("preferences"), "gui/boton_menu_idle.png"),
-                (_("Créditos"), ShowMenu("about"), "gui/boton_menu_idle.png"),
+                (_("Arena (2-4 jugadores)"), Start("arena"), "gui/boton_menu_idle.png"),
                 (_("Salir"), Quit(confirm=False), "gui/boton_menu_idle.png")][:5 if renpy.emscripten else 6]):
             button:
                 xysize (406, 86)
@@ -578,6 +578,20 @@ screen main_menu():
         yalign 0.93
         spacing 18
         at menu_boton_entrada(0.8)
+        textbutton _("Ayuda"):
+            style "boton_vn_compacto"
+            text_style "boton_vn_text"
+            ysize 86
+            xsize 230
+            hover_sound "assets/audio/sfx/menu_hover.ogg"
+            action Show("ayuda_civitas")
+        textbutton _("Créditos"):
+            style "boton_vn_compacto"
+            text_style "boton_vn_text"
+            ysize 86
+            xsize 230
+            hover_sound "assets/audio/sfx/menu_hover.ogg"
+            action ShowMenu("about")
         textbutton _("Archivo de Destinos"):
             style "boton_vn"
             text_style "boton_vn_text"
@@ -946,6 +960,7 @@ screen preferences():
                     label _("Accesibilidad")
                     textbutton _("Reducir movimiento") action ToggleField(persistent, "reducir_movimiento")
                     textbutton _("Controles táctiles en el mapa") action ToggleField(persistent, "controles_tactiles")
+                    textbutton _("Avisos visuales de sonido") action ToggleField(persistent, "avisos_sonido")
 
                 use ayuda_mando
 

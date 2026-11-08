@@ -56,7 +56,14 @@ init -1 python:
         "notificacion": ("notificacion.wav",),
     }
 
+    # Avisos visuales de sonido (inclusividad): el mismo evento se lee aunque no se oiga.
+    TEXTO_SONIDO = {"pista": "Pista nueva", "logro": "¡Logro!", "error": "Error", "decision": "Decisión registrada",
+                    "glitch": "Interferencia", "alarma": "¡Alarma: algo se está viralizando!",
+                    "notificacion": "Notificación de Civitas"}
+
     def sfx(nombre):
+        if persistent.avisos_sonido and nombre in TEXTO_SONIDO:
+            renpy.show_screen("aviso_sonido", texto=TEXTO_SONIDO[nombre], _tag="aviso_sonido")
         for archivo in SFX[nombre]:
             ruta = "assets/audio/sfx/" + archivo
             if renpy.loadable(ruta):
@@ -94,3 +101,19 @@ init -1 python:
         if umbral:
             ajustes["umbral_viral"] = umbral
         return ajustes or None
+
+
+default persistent.avisos_sonido = False
+
+screen aviso_sonido(texto):
+    zorder 300
+    frame at notificacion_entrada:
+        xalign 0.98
+        ypos 110
+        background Frame(Solid("#1b1426e8"), 0, 0)
+        padding (18, 10)
+        hbox:
+            spacing 10
+            text "SONIDO" size 16 bold True color "#facc15" yalign 0.5
+            text texto size 22 bold True color "#fbf6ee" yalign 0.5
+    timer 2.2 action Hide("aviso_sonido")

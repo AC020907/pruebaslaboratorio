@@ -27,8 +27,18 @@ Proyecto para la **Feria Gamer 2026**.
 - **Puntuación Cívica y clasificación online**: hasta 1000 puntos por verificar, decidir, investigar y cuidar la ciudad. Clasificación compartida entre PC y teléfono.
 - **PC, mando y teléfono**: control con ratón, teclado o gamepad, y versión web jugable en el móvil.
 - **Modo Feria** (unos 12 minutos): versión condensada con los cinco retos, pensada para exhibición.
+- **Arena Civitas (2–4 jugadores, red local)**: multijugador cliente-servidor por sockets TCP.
+  - Roles: Ciudadano, Periodista, Influencer y Candidato a alcalde.
+  - Rondas con tiempo límite; propagación de cada publicación por el grafo social.
+  - Puntuación individual, resultado de la ciudad y elección entre cuatro candidatos.
+- **AYUDA**: objetivo, reglas, roles, indicadores, botones y accesibilidad. Desde el menú principal, el menú del juego (Esc) y la Arena.
 - **Arte**: personajes con sprites transparentes y seis expresiones cada uno, fondos ilustrados y luz de escena según el lugar.
-- **Accesibilidad**: reducir movimiento, velocidad de texto, volumen separado de voz, música y efectos, música que baja cuando hablan y controles táctiles en el mapa.
+- **Accesibilidad**:
+  - subtítulos siempre visibles y **avisos visuales de sonido**;
+  - reducir movimiento y velocidad de texto;
+  - volumen separado de voz, música y efectos, y música que baja cuando hablan;
+  - controles táctiles en el mapa;
+  - formas además de colores en el Duelo.
 
 ---
 
@@ -45,6 +55,29 @@ Proyecto para la **Feria Gamer 2026**.
 En el menú principal:
 - **Nueva partida**: la historia completa.
 - **Modo Feria (12 min)**: la versión corta para exhibición.
+- **Arena (2-4 jugadores)**: el multijugador local.
+
+### Arena Civitas en la red local (sin internet)
+
+Cada jugador usa la versión de **escritorio**: los navegadores no permiten sockets TCP. Todos deben estar en la misma red (wifi o cable).
+
+1. **Anfitrión:** «Arena (2-4 jugadores)» → nombre y rol → **Crear sala**. La sala muestra la IP del equipo y el puerto (50777). Si Windows pregunta por el firewall, permite el acceso en redes privadas.
+2. **Resto de jugadores:** «Arena (2-4 jugadores)» → nombre y un rol libre → escribe la IP → **Unirse a esa sala** → **Estoy listo**.
+3. **Inicio:** el anfitrión pulsa **Empezar**. Si falta gente, puede **Añadir jugador automático**.
+
+Servidor dedicado sin interfaz (opcional; necesita Python 3):
+
+```bash
+python servidor_arena.py --rondas 5 --segundos 25
+```
+
+Demostración en un solo PC, con 4 procesos independientes: dos Ren'Py y dos bots.
+
+```bash
+python tests/qa_visual.py arena --salida demo_arena
+```
+
+La arquitectura y el protocolo están en [docs/ARQUITECTURA_MULTIJUGADOR.md](docs/ARQUITECTURA_MULTIJUGADOR.md).
 
 Para publicar la versión web, la clasificación online y el QR, sigue **[DESPLIEGUE.md](DESPLIEGUE.md)**.
 
@@ -61,6 +94,8 @@ Para publicar la versión web, la clasificación online y el QR, sigue **[DESPLI
 | Caza-Rumores / Gran Viralización | Clic sobre los rumores · Mando o flechas: mover la mira, A disparar, X onda |
 | Mapa | Flechas, WASD o cruceta · Enter o A para entrar · En el teléfono, flechas táctiles |
 | Mando (general) | A aceptar · B menú · Start pausa |
+| Arena | Clic, o flechas + Enter / A, sobre las opciones del árbol · «« Volver» regresa · Esc: salir de la sala |
+| Ayuda | Botón «Ayuda» del menú principal, del menú del juego (Esc) o de la Arena |
 
 ---
 
@@ -99,7 +134,9 @@ tests/
 | **DFS inverso** | La validación de la cadena del Rastreador y el cálculo de las pistas. |
 | **Árbol AVL** | El banco de publicaciones del teléfono, que se entregan de menor a mayor riesgo. |
 | **Pila** | Los recorridos iterativos del AVL (`Clase_pila`). |
-| **Árbol N-ario** | Las opciones de cada publicación: Compartir / Verificar (Sí, No) / Ignorar. |
+| **Árbol N-ario** | Las opciones de cada publicación: Compartir / Verificar (Sí, No) / Ignorar / Reportar. En la Arena el rol inserta o elimina ramas, y el servidor valida la ruta recorriendo el árbol. |
+| **Grafo social (Arena)** | Ciudadanos, candidatos y las cuentas de los jugadores. Un BFS multifuente decide quién recibe cada publicación, cuántos y en cuántos saltos. |
+| **Grafo de la ciudad** | Colegio, Barrio, Parque, Plaza y Alcaldía. Un BFS de distancias decide dónde empieza el boca a boca. |
 | **Cola FIFO** | Los comentarios de Moderación Express. |
 
 ### Modo sustentación y laboratorio
@@ -113,10 +150,22 @@ Al ejecutar desde el lanzador de Ren'Py, pulsa **Shift+L** en el menú principal
 
 ## Pruebas
 
-Las pruebas de lógica pura cubren los catálogos, CivitasNet, el expediente, los eventos variables, el final secreto y el puzzle. No necesitan Ren'Py:
+Las pruebas no necesitan Ren'Py:
 
 ```bash
-python tests/test_civitas_logica.py
+python -m pytest -q tests
+cd leaderboard && python -m pytest -q
+```
+
+- **`tests`** (110 pruebas): lógica de la historia, finales, Duelo, y la Arena (motor y red con 2, 3 y 4 clientes reales en procesos independientes).
+- **`leaderboard`** (142 pruebas): el backend.
+
+Recorridos del guion real dentro de Ren'Py (5 perfiles y 5 finales) y capturas reales del motor:
+
+```bash
+python tests/qa_recorridos.py
+python tests/qa_visual.py galeria --salida capturas
+python tests/qa_visual.py arena --salida capturas
 ```
 
 Para revisar los scripts: en el lanzador de Ren'Py, **Check Script (Lint)**.
@@ -128,6 +177,12 @@ Para revisar los scripts: en el lanzador de Ren'Py, **Check Script (Lint)**.
 - `Guia_Alcalde_Digital.pdf` / `.docx`: guía completa del juego. Incluye una sección marcada como spoiler sobre el final secreto.
 - `GAME_AUDIT.md`: decisiones de diseño, sistemas y pendientes técnicos.
 - `PROTOCOLO_PRUEBAS_JUGADORES.md`: plantilla para probar el juego con jugadores.
+- `docs/RUBRICA_CUMPLIMIENTO.md`: cada requisito del PDF del laboratorio, con su estado y su evidencia.
+- `docs/ESTRUCTURAS_DATOS.md`: árboles y grafos (justificación, operaciones y complejidad).
+- `docs/ARQUITECTURA_MULTIJUGADOR.md`: cliente-servidor, protocolo y robustez.
+- `docs/GUIA_SUSTENTACION.md`: preguntas probables y guion de demostración de 3 a 5 minutos.
+- `docs/PLAN_DE_PRUEBAS_FERIA.md`: checklist del stand y contingencias.
+- `docs/RELEASE_READINESS.md`: estado de la versión y pendientes.
 
 ---
 

@@ -1,5 +1,7 @@
 # Release readiness: auditoría final, pulido visual y certificación jugable
 
+> **Estado actual:** ver [docs/RELEASE_READINESS.md](docs/RELEASE_READINESS.md), con la rúbrica y la Arena multijugador (2026-11-07). Este archivo conserva la auditoría del 2026-11-05.
+
 - **Rama:** `qa/auditoria-final` (sale de `main` `a789ef6`, que es lo publicado hoy).
 - **SDK:** Ren'Py 8.5.3.
 - **Fecha:** 2026-11-05.
