@@ -122,13 +122,13 @@ NOT_VOICED = {
 # stability: baja = mas expresiva; similarity: fidelidad al timbre; style: exageracion; speed: 0.7-1.2.
 ELEVEN_MODEL = "eleven_multilingual_v2"
 ELEVEN_VOCES = {
-    "c": {"voice_id": "jBlmi27XRORxjPquUeCh", "alt": "pByxw7qatlX3pUp9m0XD",
-          "stability": 0.50, "similarity": 0.80, "style": 0.20, "speed": 1.0},
+    "c": {"voice_id": "zJtOCbdQjTZt7YZtkRDP", "alt": "jBlmi27XRORxjPquUeCh",   # Natalia; "Brian" resulto voz masculina (~104 Hz)
+          "stability": 0.55, "similarity": 0.80, "style": 0.20, "speed": 0.97},
     "m": {"voice_id": "tSnfesUMPgbLTdwP0t2V", "alt": "zJtOCbdQjTZt7YZtkRDP",
           "stability": 0.35, "similarity": 0.80, "style": 0.45, "speed": 1.05},
-    "r": {"voice_id": "RyfjEHnKbtma4Srae2za", "alt": "GTY55jD77hLBRrnQOhNk",
+    "r": {"voice_id": "GTY55jD77hLBRrnQOhNk", "alt": "RyfjEHnKbtma4Srae2za",   # Ludovico (~85 Hz): se distingue de Tomas (~103 Hz)
           "stability": 0.55, "similarity": 0.80, "style": 0.20, "speed": 0.95},
-    "t": {"voice_id": "YqZLNYWZm98oKaaLZkUA", "alt": "jUzQhbFtXaz1lwDyMfJr",
+    "t": {"voice_id": "YqZLNYWZm98oKaaLZkUA", "alt": "YqZLNYWZm98oKaaLZkUA",   # el ID alternativo del archivo no existe
           "stability": 0.65, "similarity": 0.80, "style": 0.10, "speed": 0.92},
     "n": {"voice_id": "K3TeN3ZVK8WnOeJ0NYqZ", "alt": "t3eeeqhBjrUqcrPvDqUn",
           "stability": 0.85, "similarity": 0.75, "style": 0.0, "speed": 0.95},
