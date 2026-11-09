@@ -51,6 +51,19 @@ python -m pytest -q tests/test_civitas_logica.py
 - **`test_candidato_no_reporta_lo_suyo_y_puede_responder`.**
 - **`test_periodista_ve_la_fuente_y_los_demas_una_pista`.**
 
+## 1b. AVL del banco de publicaciones (modo Historia)
+
+`game/clases/ArbolAVL.py`, usado en `Publicacion.BancoPublicaciones`.
+
+- **Clave:** el nivel de riesgo de la publicación.
+- **Uso en el juego:** el teléfono entrega las publicaciones de menor a mayor riesgo. `siguiente()` toma el mínimo y lo borra, en O(log n).
+- **Balanceo:** el factor de equilibrio se mantiene en [-1, 1] mediante rotaciones simples y dobles en `insertar` y `eliminar`.
+- **Pruebas** (`tests/test_avl.py`):
+  - 100 inserciones **en orden**, el peor caso para un ABB sin balanceo: sigue balanceado y con altura ≤ 8;
+  - 200 inserciones y 120 borrados aleatorios: se balancea tras cada borrado;
+  - búsqueda, mínimo y máximo;
+  - el banco real entrega las 10 publicaciones en orden de riesgo.
+
 ## 2. Grafo social (dirigido y ponderado)
 
 **Código:** `game/clases/GrafoSocial.py`; la red de la Arena la construye `construir_grafo_social()`.

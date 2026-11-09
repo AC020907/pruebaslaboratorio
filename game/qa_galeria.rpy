@@ -314,6 +314,12 @@ label qa_gal_finales:
     while i_gal < len(destinos.FINALES):
         $ final_gal = destinos.FINALES[i_gal]
         $ estado_envio = envios_gal[i_gal]
+        $ ind_gal = {"info_verificada": 70 - i_gal * 10, "confianza": 72 - i_gal * 11, "convivencia": 60, "bienestar": 60,
+                     "desinformacion": 20 + i_gal * 14, "conflictos": 15 + i_gal * 12}
+        $ from clases.Eleccion import escrutinio_historia as _esc_gal
+        show screen escrutinio_historia(_esc_gal(final_gal, ind_gal, 70 - i_gal * 8, 1))
+        call qa_foto("f%02d_escrutinio_%s" % (i_gal + 1, final_gal), 1.6)
+        hide screen escrutinio_historia
         show screen pantalla_resultados(final_gal, resultado_qa, i_gal % 2 == 0)
         call qa_foto("f%02d_resultados_%s" % (i_gal + 1, final_gal), 2.4)
         hide screen pantalla_resultados

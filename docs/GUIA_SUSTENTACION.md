@@ -68,6 +68,15 @@ Civitas tiene dos modos con el mismo tema: Ciudad Nova vota alcalde y la red soc
 | ¿Cómo se decide la elección? | Cada ciudadano vota al candidato en quien más confía. Esa confianza la cambian las publicaciones que le llegaron (rumores sin desmentir restan; desmentidos y propuestas verificadas suman), más la reputación del jugador Candidato. La participación decide cuántos votan. |
 | ¿Qué componente inclusivo tienen y para qué? | Avisos visuales de sonido (para quien no oye o juega sin audio), subtítulos siempre visibles, reducir movimiento (mareo) y formas además de colores (daltonismo). |
 
+## 3b. Preguntas sobre los cambios recientes
+
+| Pregunta | Respuesta |
+|---|---|
+| ¿Qué pasa si verifico mal? | Resta. Reportar como falsa una noticia verdadera baja la confianza y tu reputación; dar por cierto un rumor falso sube la desinformación. Se comprueba en los dos modos (`tests/test_coherencia_educativa.py`). |
+| ¿Cómo sabe el jugador si es verdadera? | Al pulsar «Verificar» aparece lo que encuentra: la fuente, la fecha o si el documento existe. El periodista de la Arena ve la fuente real. |
+| ¿Hay elecciones en la historia? | Sí. El domingo se nombran los cuatro candidatos y, antes del resultado final, el **escrutinio** muestra votos, participación, abstención y por qué, a partir de los indicadores y tu credibilidad (`clases/Eleccion.py`). |
+| ¿Y la Arena Online? | Es una mejora para la feria: el mismo motor de reglas en el servidor de Render, jugado desde el navegador por HTTPS. El requisito de sockets (§13) lo cumple la Arena local. |
+
 ## 4. Guion de demostración (3–5 minutos)
 
 1. **(30 s) Contexto.** Menú principal: Ciudad Nova, elecciones, la red Civitas. Abrir **Ayuda → Objetivo** y **Roles**.

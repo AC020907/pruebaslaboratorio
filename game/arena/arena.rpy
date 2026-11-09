@@ -583,7 +583,7 @@ screen arena_resultado(c):
             text {"falsa": "ERA FALSA", "verdadera": "ERA VERDADERA", "opinion": "ERA UNA OPINIÓN"}[pub["tipo"]] size 30 bold True color {"falsa": "#c0392b", "verdadera": "#2f9e8f", "opinion": "#c58a1b"}[pub["tipo"]]
             text pub["texto"] size 22 bold True color "#2b2440"
             text pub["fuente"] size 18 color "#5b4f72"
-            text "Llegó a %d de %d ciudadanos en %d saltos (%.1f por salto)%s." % (res["n_alcanzados"], len(AR.CIUDADANOS), res["saltos"], res["velocidad"], ("; %d quedaron protegidos" % len(res["protegidos"])) if res["protegidos"] else "") size 20 color "#2b2440"
+            text "Llegó a %d de %d ciudadanos en %d %s (%.1f por salto)%s." % (res["n_alcanzados"], len(AR.CIUDADANOS), res["saltos"], "salto" if res["saltos"] == 1 else "saltos", res["velocidad"], ("; %d quedaron protegidos" % len(res["protegidos"])) if res["protegidos"] else "") size 20 color "#2b2440"
             if res["desmentida"]:
                 text "Rumor desmentido a tiempo." size 20 bold True color "#2f9e8f"
             if res["retirada"]:

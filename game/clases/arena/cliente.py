@@ -161,8 +161,10 @@ class ClienteArena(object):
         elif tipo == "error":
             self.error = msg.get("mensaje")
             self.pendientes.pop(msg.get("ref"), None)
-        elif tipo in ("cierre", "_desconectado"):
-            self.cerrado = msg.get("mensaje", "Se perdió la conexión con el servidor.")
+        elif tipo == "cierre":
+            self.cerrado = msg.get("mensaje", "El servidor se cerró.")
+        elif tipo == "_desconectado" and not self.cerrado:   # no tapar el motivo que dio el servidor
+            self.cerrado = "Se perdió la conexión con el servidor."
 
     # ---------- consultas para la interfaz ----------
     def restante(self):

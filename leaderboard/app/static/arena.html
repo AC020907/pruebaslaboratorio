@@ -257,7 +257,7 @@ function resultado(d){
   const tipo = {falsa:["ERA FALSA","var(--mal)"],verdadera:["ERA VERDADERA","var(--ok)"],opinion:["ERA UNA OPINIÓN","var(--aviso)"]}[p.tipo];
   return `<section class="panel"><div class="res-tipo" style="color:${tipo[1]}">${tipo[0]}</div><p><b>${esc(p.texto)}</b></p>
     <p class="suave">${esc(p.fuente)}</p>
-    <p>Llegó a <b>${r.n_alcanzados}</b> de 16 ciudadanos en <b>${r.saltos}</b> saltos${r.protegidos.length?`; <b>${r.protegidos.length}</b> quedaron protegidos por reportes`:""}.
+    <p>Llegó a <b>${r.n_alcanzados}</b> de 16 ciudadanos en <b>${r.saltos}</b> ${r.saltos === 1 ? "salto" : "saltos"}${r.protegidos.length?`; <b>${r.protegidos.length}</b> quedaron protegidos por reportes`:""}.
     ${r.desmentida?'<br><b class="pos">Rumor desmentido a tiempo.</b>':""}${r.retirada?'<br><b class="pos">Civitas retiró la publicación.</b>':""}</p>
     ${grafo(r, p)}
     <div class="leyenda"><span style="--c:#9333ea">Fuente</span><span style="--c:#dc2626">Recibió el rumor</span><span style="--c:#16a34a">Información verificada</span><span style="--c:#f97316">Opinión</span><span style="--c:#0284c7">Protegido</span></div>

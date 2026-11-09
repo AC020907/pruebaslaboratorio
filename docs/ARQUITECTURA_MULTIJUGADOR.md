@@ -112,3 +112,48 @@ python tests/qa_visual.py arena --salida <carpeta>
 **En una LAN real** (no se ha podido probar aquí con varios PCs):
 1. Ejecuta el juego de escritorio en el equipo anfitrión y elige «Arena (2-4 jugadores)» → «Crear sala». Permite el acceso cuando lo pregunte el firewall de Windows.
 2. En los demás equipos, elige «Unirse» y escribe la IP que muestra la sala.
+
+## Arena Online (mejora para la feria, no sustituye a la Arena local)
+
+**Objetivo:** jugar desde teléfonos o computadores en redes distintas, sin instalar nada.
+
+```
+ Teléfono / PC (navegador)                      Render: civitas-leaderboard (FastAPI, 1 proceso)
+ leaderboard/app/static/arena.html  ──HTTPS──▶  app/arena_online.py  (rutas /api/arena/…)
+   (página ligera: dibuja y envía                     │ salas en memoria: {código → SalaArena}
+    la ruta elegida del árbol)                        ▼
+                                                game/clases/arena/sala.py  (sala: tokens, anfitrión,
+                                                     │                      reloj, presencia, bots)
+                                                     ▼
+                                                game/clases/arena/reglas.py  ← el MISMO motor que la LAN
+```
+
+- **Un solo motor de reglas.** `SalaArena` envuelve la misma `Partida` de `reglas.py` que usa el servidor TCP. Árbol, grafo, propagación, puntos y elección son idénticos en local y online.
+- **Transporte:** HTTPS con consultas periódicas, cada teléfono pide `GET /api/arena/salas/{código}` una vez por segundo. Se eligió frente a WebSocket por estas razones:
+  - funciona detrás de cualquier proxy o wifi de feria;
+  - no necesita conexiones persistentes en el plan gratuito de Render;
+  - 1 s de latencia sobra para rondas de 25 s.
+- **Reloj perezoso:** cada petición ejecuta `tick()`. El servidor sigue siendo autoritativo con los tiempos, sin hilos extra.
+- **Servidor autoritativo:**
+  - el cliente solo envía `{token, ronda, ruta, id}`;
+  - la ruta se valida contra el árbol de ese jugador (`Partida.registrar_accion`);
+  - los campos extra, como `puntos`, se ignoran;
+  - el `id` de mensaje evita duplicados;
+  - los tokens son secretos de 24 caracteres (`secrets.token_urlsafe`);
+  - un token ajeno recibe 403.
+- **Presencia y reconexión:** quien no consulta en 20 s queda «desconectado» y su ronda no bloquea a los demás. La página guarda su token en `localStorage` y, al reabrir el enlace, vuelve a su puesto.
+- **Jugadores automáticos:** «Completar con jugadores automáticos» añade bots con la misma lógica que en la LAN (`bot.elegir_ruta`).
+- **Límites:**
+  - 300 salas como máximo, y cada una caduca tras 2 h sin actividad;
+  - limitadores propios (`arena_get` 6000/min, `arena_accion` 1200/min y `arena_crear` 120/h por IP), separados de los del leaderboard;
+  - cuerpo máximo de petición, el mismo del backend.
+- **Leaderboard intacto:** las salas no usan la base de datos y las 142 pruebas del leaderboard siguen pasando.
+- **Limitaciones del plan gratuito de Render:**
+  - **Arranque en frío:** el servicio se duerme tras 15 min sin uso, y la primera visita tarda unos 50 s.
+  - **Una instancia:** las salas viven en su memoria y se pierden si se reinicia. En la feria basta con abrir la página unos minutos antes. Para escalar habría que guardar las salas en Redis o en la base de datos, y no está hecho.
+- **Lenguajes:** el núcleo, es decir las reglas, la sala y el servidor, es Python. La página `arena.html` es HTML/JavaScript **auxiliar**: solo dibuja y envía decisiones, sin lógica de juego. La entrega académica evaluable de §13 es la Arena local en Python/Ren'Py.
+
+**Pruebas:**
+- `cd leaderboard && python -m pytest -q tests/test_arena_online.py` (11 pruebas): partidas con 2, 3 y 4 jugadores; roles únicos, sala llena y código inexistente; anfitrión y «listo»; bots; token falso y puntos falsos; ruta inválida, otra ronda e idempotencia; tiempo agotado y desconexión; pausa; página servida.
+- **Navegador (2026-11-08, local):** dos clientes en orígenes distintos (`localhost` y `127.0.0.1`) con viewport de móvil 375×812. Se probaron la creación, la unión con código, «listo», el inicio, la ronda con pista al verificar, el resultado sincronizado, la recarga con reconexión, las 5 rondas, la misma elección en ambos y el mensaje de sala inexistente. No hubo errores de consola ni del servidor.
+- **Pendiente:** dispositivos físicos y despliegue en Render (`docs/PRUEBAS_FISICAS.md` §B).

@@ -19,7 +19,7 @@ El backend está en `leaderboard/` (FastAPI). Se probó con 142 pruebas sobre SQ
 
 ### 1.2 Render (backend)
 
-*New → Web Service* → conecta GitHub → repositorio `AC020907/alcalde_digital`:
+*New → Web Service* → conecta GitHub → repositorio `AC020907/pruebaslaboratorio` (el que se despliega):
 
 | Campo | Valor |
 |---|---|
@@ -72,11 +72,11 @@ Sin ese archivo el juego funciona igual, pero guarda los récords solo en el equ
 ## 3. Build web
 
 ```bash
-"C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/renpy.exe" "C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/launcher" web_build "C:/Users/ALEJANDRO/Documents/Alcalde-Digital" --destination "C:/Users/ALEJANDRO/Documents/Alcalde-Digital-web"
+"C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/renpy.exe" "C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/launcher" web_build "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio" --destination "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio-web"
 ```
 
 ```bash
-python tools/web/postbuild.py "C:/Users/ALEJANDRO/Documents/Alcalde-Digital-web"
+python tools/web/postbuild.py "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio-web"
 ```
 
 `postbuild.py` agrega el aviso "gira el teléfono" y el archivo `.nojekyll` que necesita GitHub Pages.
@@ -86,7 +86,7 @@ python tools/web/postbuild.py "C:/Users/ALEJANDRO/Documents/Alcalde-Digital-web"
 La build se publica en una rama aparte, `gh-pages`, sin mezclarla con el código.
 
 ```bash
-cd "C:/Users/ALEJANDRO/Documents/Alcalde-Digital-web"
+cd "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio-web"
 ```
 
 ```bash
@@ -102,21 +102,21 @@ git commit -m "Version web de Alcalde Digital"
 ```
 
 ```bash
-git remote add origin https://github.com/AC020907/alcalde_digital.git
+git remote add origin https://github.com/AC020907/pruebaslaboratorio.git
 ```
 
 ```bash
 git push -u origin gh-pages
 ```
 
-En GitHub: *Settings → Pages → Branch:* `gh-pages` / `(root)`. La URL será `https://ac020907.github.io/alcalde_digital/`; ábrela y confirma que el juego carga.
+En GitHub: *Settings → Pages → Branch:* `gh-pages` / `(root)`. La URL será `https://ac020907.github.io/pruebaslaboratorio/`; ábrela y confirma que el juego carga.
 
 Para publicar una build nueva más adelante, repite el paso 3 y, desde la carpeta de la build, `git add -A`, `git commit` y `git push` (ya sin `git init` ni `remote add`).
 
 ## 5. Código QR (solo con la URL ya funcionando)
 
 ```bash
-python tools/web/generar_qr.py https://ac020907.github.io/alcalde_digital/
+python tools/web/generar_qr.py https://ac020907.github.io/pruebaslaboratorio/
 ```
 
 El script comprueba que la URL responde y que es el juego antes de generar `game/gui/qr_web.png` (pantalla final del Modo Feria) y `leaderboard/app/static/qr.png` (tabla del stand). Después repite los pasos 3 y 4, y vuelve a desplegar el servicio de Render para que la tabla muestre el QR.
@@ -134,3 +134,24 @@ El script comprueba que la URL responde y que es el juego antes de generar `game
 - [ ] Abrir la web en un **iPhone (Safari)** y un **Android (Chrome)**, en horizontal, y probar el sonido después del primer toque.
 - [ ] **Escuchar** voces y música completas (solo se verificaron numéricamente).
 - [ ] Una partida completa contra el servidor de Render, con la URL real.
+
+
+## 6. Arena Online (mejora para la feria)
+
+La Arena Online vive en el **mismo servicio de Render** que el leaderboard (`leaderboard/app/arena_online.py`). No necesita base de datos, variables nuevas ni otro servicio.
+
+1. Haz merge a `main` en `AC020907/pruebaslaboratorio` y `git push`.
+2. En Render, abre el servicio `civitas-leaderboard` y pulsa **Manual Deploy → Deploy latest commit**. El auto-deploy está desactivado.
+3. Comprueba:
+   - `https://civitas-leaderboard.onrender.com/api/health?db=1` responde `{"ok":true,"db":"ok"}`;
+   - `https://civitas-leaderboard.onrender.com/arena` muestra «Arena Civitas».
+4. Crea una sala en un teléfono y únete desde otro (`docs/PRUEBAS_FISICAS.md` §B).
+
+**Notas:**
+- Render clona el repositorio completo. El servicio arranca en `leaderboard/` e importa el motor desde `../game/clases/arena`. Si se desplegara solo `leaderboard/`, las rutas `/api/arena` responderían 503 sin afectar al leaderboard.
+- Plan gratuito: tras 15 min sin uso el servicio duerme, y la primera visita tarda unos 50 s. En la feria, abre `/arena` unos minutos antes.
+- Las salas están en memoria: si el servicio se reinicia, se pierden las partidas en curso, pero no la clasificación.
+
+**Repositorios:**
+- `AC020907/pruebaslaboratorio`: desarrollo y despliegue. Su `main` despliega Render y su `gh-pages` sirve la web.
+- `AC020907/alcalde_digital`: repositorio académico del equipo. Cada integrante sube ahí sus commits desde su propia cuenta.

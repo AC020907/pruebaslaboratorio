@@ -47,8 +47,9 @@ Proyecto para la **Feria Gamer 2026**.
 1. Descarga el **SDK de Ren'Py 8.5.x** desde <https://www.renpy.org/latest.html>.
 2. Clona este repositorio:
    ```bash
-   git clone https://github.com/AC020907/alcalde_digital.git
+   git clone https://github.com/AC020907/pruebaslaboratorio.git
    ```
+   Este es el repositorio de desarrollo y despliegue: la web, Render y las versiones de Windows salen de aquí. El repositorio académico del equipo es `AC020907/alcalde_digital`, donde cada integrante sube sus commits.
 3. Abre el lanzador de Ren'Py, en «Preferencias → Directorio de proyectos» elige la carpeta que contiene el proyecto y selecciónalo.
 4. Pulsa **Launch Project**.
 
@@ -77,7 +78,19 @@ Demostración en un solo PC, con 4 procesos independientes: dos Ren'Py y dos bot
 python tests/qa_visual.py arena --salida demo_arena
 ```
 
-La arquitectura y el protocolo están en [docs/ARQUITECTURA_MULTIJUGADOR.md](docs/ARQUITECTURA_MULTIJUGADOR.md).
+### Arena Online (teléfonos o redes distintas)
+
+Abre `https://civitas-leaderboard.onrender.com/arena` cuando esté desplegada (ver `DESPLIEGUE.md` §6). Una persona crea la sala y comparte el código o el enlace, y las demás se unen desde su teléfono o computador. Usa el mismo motor de reglas que la Arena local.
+
+Para probarla en local:
+
+```bash
+cd leaderboard && python -m uvicorn app.main:app --port 8791
+```
+
+Después abre `http://localhost:8791/arena`.
+
+La arquitectura y el protocolo están en [docs/ARQUITECTURA_MULTIJUGADOR.md](docs/ARQUITECTURA_MULTIJUGADOR.md). Las pruebas con equipos reales, en [docs/PRUEBAS_FISICAS.md](docs/PRUEBAS_FISICAS.md).
 
 Para publicar la versión web, la clasificación online y el QR, sigue **[DESPLIEGUE.md](DESPLIEGUE.md)**.
 
