@@ -2979,6 +2979,86 @@
    "out_sha1": "34caa5c09f42d7b7f644bba4ce18f0b41a51f8ec",
    "char": "c",
    "bytes": 43007
+  },
+  "duelo_transmision_03e5a23f": {
+   "lufs": -16.05,
+   "tp_db": -1.73,
+   "limited_db": 0.55,
+   "dur": 4.769,
+   "hash": "fde8cb22da08e0f59a789cc2685bc957a6843011",
+   "out_sha1": "90d65f6877b552371c1a1f10b722b5a17b3571d8",
+   "char": "c",
+   "bytes": 31599
+  },
+  "duelo_transmision_52dcfc1a": {
+   "lufs": -16.66,
+   "tp_db": -1.76,
+   "limited_db": 0.07,
+   "dur": 4.59,
+   "hash": "5e58e049c3106ba885b6cf82b8fc32fa04ca5256",
+   "out_sha1": "db44d7fbf6c4f4b25aa99e87be94e1a2eb2c882d",
+   "char": "n",
+   "bytes": 49772
+  },
+  "duelo_transmision_fc8bd5a7": {
+   "lufs": -15.63,
+   "tp_db": -1.57,
+   "limited_db": 1.69,
+   "dur": 3.233,
+   "hash": "759174abfc9f2d46de90c56729b133f2b1d71a81",
+   "out_sha1": "5e957825b800de1be9566763cfc4e06f9e84a62d",
+   "char": "c",
+   "bytes": 24528
+  },
+  "duelo_transmision_6bca841a": {
+   "lufs": -16.52,
+   "tp_db": -1.59,
+   "limited_db": 2.13,
+   "dur": 5.508,
+   "hash": "441adc011666f9fca6aee1b6ff77a5506d26e1c3",
+   "out_sha1": "2b81623373eed5c7f55dca6a135ef133af0524a1",
+   "char": "c",
+   "bytes": 36655
+  },
+  "duelo_transmision_2ca06240": {
+   "lufs": -16.3,
+   "tp_db": -1.75,
+   "limited_db": 0.88,
+   "dur": 3.782,
+   "hash": "71daf8572aff07e34badb931f328b5d8b42bfc1c",
+   "out_sha1": "8913f7cf00196809859ed3f51f7993e03339e389",
+   "char": "c",
+   "bytes": 26671
+  },
+  "duelo_transmision_28924dc7": {
+   "lufs": -16.21,
+   "tp_db": -1.55,
+   "limited_db": 0.91,
+   "dur": 4.151,
+   "hash": "7f48a7e3b35750cadc8317fe2e29029d1709d5da",
+   "out_sha1": "c2f75256a539a2c2cf299df40c45a1f22db8ae32",
+   "char": "c",
+   "bytes": 29400
+  },
+  "duelo_transmision_1f82e724": {
+   "lufs": -16.01,
+   "tp_db": -1.93,
+   "limited_db": 0.22,
+   "dur": 4.38,
+   "hash": "91ede6eb9f439387ec6e2bc14146e2cd5f0d6824",
+   "out_sha1": "3a573196b7704544168dbe5e609d332065108189",
+   "char": "c",
+   "bytes": 29759
+  },
+  "duelo_transmision_ee0edc69": {
+   "lufs": -16.35,
+   "tp_db": -1.77,
+   "limited_db": 2.78,
+   "dur": 2.634,
+   "hash": "dabfcdcb8f2f2c1e210e4d85922446be144157a3",
+   "out_sha1": "9c8f25676d5697e313ec5129f2f12f176d739058",
+   "char": "c",
+   "bytes": 18546
   }
  }
 }

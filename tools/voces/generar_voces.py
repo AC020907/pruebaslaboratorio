@@ -5,7 +5,7 @@ Engines: --motor windows (free offline OneCore TTS) or --motor elevenlabs (natur
 
 Usage:
   python tools/voces/generar_voces.py --tab tools/voces/dialogue_muestra.tab --out tools/voces/muestras
-  python tools/voces/generar_voces.py --tab dialogue.tab            # writes game/voice/{Identifier}.ogg
+  python tools/voces/generar_voces.py --tab dialogue.tab            # writes game/voice/v2/{Identifier}.ogg
 """
 import argparse
 import asyncio
@@ -235,7 +235,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--tab", required=True, type=Path, help="Ren'Py dialogue export (.tab)")
-    ap.add_argument("--out", type=Path, default=PROJECT_ROOT / "game" / "voice")
+    ap.add_argument("--out", type=Path, default=PROJECT_ROOT / "game" / "voice" / "v2")
     ap.add_argument("--only", default="", help="comma list of character variables, e.g. c,m")
     ap.add_argument("--limit", type=int, default=0, help="synthesize at most N lines")
     ap.add_argument("--force", action="store_true", help="regenerate even if unchanged")

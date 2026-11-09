@@ -5,7 +5,7 @@ saturacion, sonoridad y velocidad.
 
 No sustituye la escucha humana: un WER alto marca lineas a revisar o a grabar con actores.
 
-Uso:  python tools/voces/auditar_voces.py [--modelo RUTA_MODELO_VOSK] [--out game/voice]
+Uso:  python tools/voces/auditar_voces.py [--modelo RUTA_MODELO_VOSK] [--out game/voice/v2]
 Salida: tools/voces/auditoria_voces.csv (peor primero) y resumen por personaje en consola.
 """
 import argparse
@@ -83,7 +83,7 @@ def transcribir(modelo, mono, sr):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--modelo", default=MODELO_DEFECTO)
-    ap.add_argument("--out", default=os.path.join(RAIZ, "game", "voice"))
+    ap.add_argument("--out", default=os.path.join(RAIZ, "game", "voice", "v2"))
     ap.add_argument("--inventario", default=os.path.join(AQUI, "inventario_voces.csv"))
     args = ap.parse_args()
     SetLogLevel(-1)

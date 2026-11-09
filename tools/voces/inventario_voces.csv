@@ -1,7 +1,7 @@
 ﻿Identifier,Character,emotion,normalized_text,voiced,reason
-reaccion_red_civitas_a252c49d,,,Tu repost encendio la mecha. La publicacion se esta volviendo viral en Cívitas.,no,narrador (no se dobla)
-reaccion_red_civitas_849a14c0,,,La publicacion falsa que compartiste se expande sin control. Hay que contenerla.,no,narrador (no se dobla)
-reaccion_red_civitas_562070a2,,,Reportaste la publicacion. Aun puedes rastrear quien la origino.,no,narrador (no se dobla)
+reaccion_red_civitas_c4bf604d,,,Tu repost encendió la mecha. La publicación se está volviendo viral en Cívitas.,no,narrador (no se dobla)
+reaccion_red_civitas_45fe0e26,,,La publicación falsa que compartiste se expande sin control. Hay que contenerla.,no,narrador (no se dobla)
+reaccion_red_civitas_3d2f4736,,,Reportaste la publicación. Aún puedes rastrear quién la originó.,no,narrador (no se dobla)
 laboratorio_grafos_50dd287e,,,Maneja el carro con las flechas; F9 muestra las calles. Cierra el mapa con Esc.,no,herramienta de desarrollo (no es dialogo del juego)
 laboratorio_grafos_d799904a,,,Revisa las fichas y cierra el expediente con Esc.,no,herramienta de desarrollo (no es dialogo del juego)
 laboratorio_grafos_ec88c623,,,Resultado: [texto_resultado],no,herramienta de desarrollo (no es dialogo del juego)
@@ -9,6 +9,16 @@ nueva_publicacion_11385c56,civitas,,[sesion.actual.texto],no,interpolacion [..] 
 qa_capturas_d44ac825,c,,"En 2019, durante la inundación, yo trabajaba en el turno de noche de Noticias Nova.",no,herramienta de desarrollo (no es dialogo del juego)
 qa_capturas_0a04c3aa,c,triste,Usted es el señor de la tienda. El esposo de...,no,herramienta de desarrollo (no es dialogo del juego)
 qa_capturas_510acc12,n,,"Si lo comparte desde su cuenta, mañana nadie se acuerda del agua. El domingo gana usted.",no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_menus_d7b8d281,c,,Alcalde. ¿Ya vio Civitas?,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_menus_66bf4d8a,c,seria,Una cuenta dice que el agua de Ciudad Nova está envenenada. Cuarenta mil reposts.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_menus_19558986,c,,"Claudia Reyes, de Noticias Nova. Esta semana trabajo con usted: alguien está fabricando miedo y quiero saber quién.",no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_escenas_d78f069c,r,enojada,¡Alcalde! Todo el barrio dice que mañana cierran el hospital.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_escenas_b955e7a3,n,feliz,Todas las cuentas despiertan al mismo tiempo.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_dialogo_37013090,c,,Una cuenta dice que el agua está envenenada. Cuarenta mil reposts. En una hora.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_dialogo_94cd6713,c,,Línea que se cierra sola.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_dialogo_04623168,,,Línea de narración: A debe avanzar.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_dialogo_70fbcdf7,c,,Línea de Claudia: A debe avanzar.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_mando_menus_679ee90e,,,QA: esta línea debe avanzar con A.,no,herramienta de desarrollo (no es dialogo del juego)
 acto1_f0928c64,,,La plaza está más llena que de costumbre. Medio Ciudad Nova mira su teléfono al mismo tiempo.,no,narrador (no se dobla)
 acto1_53b15aa0,,,"En la esquina, alguien reparte botellas de agua con una calcomanía de campaña.",no,narrador (no se dobla)
 acto1_33acdde9,t,seria,"Alcalde. Buenos días, si es que lo son.",yes,ok
@@ -189,6 +199,7 @@ elecciones_85512bc4,c,seria,"Todas las pantallas están encendidas. Si Nova atac
 elecciones_d097ae55,c,,Y mire esto: Martina amaneció promocionando a Resonancia. Con la etiqueta de los rumores.,yes,ok
 elecciones_9a701a92,,,Las urnas cierran.,no,narrador (no se dobla)
 elecciones_c15f5b09,,,Ciudad Nova cuenta sus votos... y también sus mentiras.,no,narrador (no se dobla)
+domingo_tomas_323afeac,,,"Cuatro nombres en el tarjetón: tú, Tomás Vega, Juan Ortega y Elena Ruiz. Ciudad Nova vota hasta las cuatro de la tarde.",no,narrador (no se dobla)
 domingo_tomas_a1fb5dc1,t,enojada,Mi hija de doce años escuchó ese audio en el colegio. Le preguntó a su profesora si su papá era un ladrón.,yes,ok
 domingo_tomas_b603691f,t,seria,Usted sabía que era falso. Todos lo sabían. Y lo compartió igual.,yes,ok
 domingo_tomas_a25e1130,t,,Hoy probablemente gane. Felicitaciones. Lo que no va a poder es mirarme a la cara en el debate de dentro de cuatro años.,yes,ok
@@ -209,6 +220,14 @@ domingo_ataque_ce1367ba,c,,Tengo las pruebas listas. ¡Frénelo y yo publico tod
 domingo_ataque_e5246f22,m,,"¡Alcalde! Estoy en vivo con cien mil personas. ¡Lo que usted frene, yo lo desmiento al instante!",yes,ok
 domingo_ataque_5fda676d,r,,¡En el barrio nadie reenvía nada! Lucía y los de Primero Pregunto están respondiendo cada cadena.,yes,ok
 domingo_ataque_d5842b6f,,,El video de Martina para Resonancia sale justo ahora. Sus seguidores repiten la etiqueta de los rumores sin saberlo.,no,narrador (no se dobla)
+duelo_transmision_03e5a23f,c,seria,Estamos al aire. Diez mil personas viendo el mensaje del alcalde antes de las urnas.,yes,ok
+duelo_transmision_52dcfc1a,n,feliz,Qué bonita transmisión. ¿Les molesta si la acompaño con mi propia frecuencia?,yes,ok
+duelo_transmision_fc8bd5a7,c,sorprendida,¡Está metiendo ruido en la señal! Cada frase suya tapa la nuestra.,yes,ok
+duelo_transmision_6bca841a,c,seria,"Si respondemos al ritmo exacto, la señal limpia gana. Alcalde, tome los controles.",yes,ok
+duelo_transmision_2ca06240,c,feliz,"¡Señal limpia! La gente escuchó el mensaje completo, sin cortes.",yes,ok
+duelo_transmision_28924dc7,c,,"Nova va a atacar igual antes de las urnas, pero ahora llega con menos fuerza.",yes,ok
+duelo_transmision_1f82e724,c,seria,Se cortó a ratos. La mitad de la gente vio más ruido que mensaje.,yes,ok
+duelo_transmision_ee0edc69,c,,No importa. Lo que viene ahora es lo que cuenta.,yes,ok
 evento_cuenta_secundaria_9a4aba14,,,Una cuenta con diez mil seguidores se suma al rumor del agua: mi tía trabaja en el Acueducto.,no,narrador (no se dobla)
 evento_cuenta_secundaria_45937914,c,seria,Una tía sin nombre no es una fuente. Pero la gente le cree porque arroba eco urbano lo dice.,yes,ok
 evento_filtracion_martina_14819da4,m,sorprendida,Espere. Alguien me acaba de mandar esto por privado: el memo del Acueducto.,yes,ok
