@@ -31,6 +31,12 @@ init python:
     RITMO_FUNDIDO_PX = 120
     COLOR_JUICIO = {"perfect": "#facc15", "good": "#5eead4", "bad": "#f4b6c2", "miss": "#8b84a8"}
     TEXTO_JUICIO = {"perfect": "¡PERFECTO!", "good": "BIEN", "bad": "JUSTO", "miss": "FALLO"}
+    # Modo competitivo de la Arena: nombres de juicio de juego de ritmo (mismas ventanas que Normal).
+    TEXTO_JUICIO_COMPETITIVO = {"perfect": "PERFECT", "good": "GREAT", "bad": "GOOD", "miss": "MISS"}
+    duelo_competitivo = False
+
+    def texto_juicio(j):
+        return (TEXTO_JUICIO_COMPETITIVO if duelo_competitivo else TEXTO_JUICIO)[j]
     DIFICULTADES = {
         "normal": {"chart": "normal", "ventanas": None, "umbral": Ritmo.UMBRAL_EXITO},
         "facil": {"chart": "facil", "ventanas": None, "umbral": Ritmo.UMBRAL_EXITO},
@@ -136,7 +142,7 @@ init python:
             for t_j, carril, juicio in d.ultimos:
                 edad = self.t - t_j
                 if 0 <= edad < 450:
-                    txt = renpy.render(self.texto(TEXTO_JUICIO[juicio], 30, COLOR_JUICIO[juicio]), 400, 60, st, at)
+                    txt = renpy.render(self.texto(texto_juicio(juicio), 30, COLOR_JUICIO[juicio]), 400, 60, st, at)
                     w, _h = txt.get_size()
                     subida = 0 if persistent.reducir_movimiento else int(edad / 12)
                     r.blit(txt, (self.x_carril(carril) + RITMO_CARRIL_W // 2 - w // 2, RITMO_RECEPTOR_Y - 120 - subida))
@@ -277,7 +283,7 @@ screen duelo_resultados(vista):
         text ("¡SEÑAL LIMPIA!" if res["exito"] else ("DUELO ABANDONADO" if res["abandonado"] else "NOVA SATURÓ LA SEÑAL")) size 46 bold True color ("#2f9e8f" if res["exito"] else "#c0392b") xalign 0.5
         text res["calificacion"] size 120 bold True color "#5b5bd6" xalign 0.5
         text ("Precisión %d%%   ·   Mejor combo x%d" % (int(res["precision"] * 100), res["max_combo"])) size 24 color "#2b2440" xalign 0.5
-        text ("Perfecto %d   Bien %d   Justo %d   Fallo %d" % (d.conteo["perfect"], d.conteo["good"], d.conteo["bad"], d.conteo["miss"])) size 20 color "#5b4f72" xalign 0.5
+        text ("%s %d   %s %d   %s %d   %s %d" % (texto_juicio("perfect").strip("¡!").capitalize(), d.conteo["perfect"], texto_juicio("good").capitalize(), d.conteo["good"], texto_juicio("bad").capitalize(), d.conteo["bad"], texto_juicio("miss").capitalize(), d.conteo["miss"])) size 20 color "#5b4f72" xalign 0.5
         textbutton "CONTINUAR" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return(res) default_focus True
     key "civ_accion" action Return(res)
     key "game_menu" action Return(res)
@@ -318,7 +324,7 @@ screen duelo_tutorial(modo):
         text "Asistido: menos notas y más margen para acertar. El duelo cuenta igual para la historia." size 16 italic True color "#8b84a8" xalign 0.5
 
 
-label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, **kwargs):
+label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, dificultad=None, **kwargs):
     $ hud_estaba_visible = renpy.get_screen("hud_ciudad") is not None
     $ ocultar_avisos_juego()
     hide screen hud_ciudad
@@ -326,8 +332,11 @@ label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, **kwargs):
     $ quick_menu = False
     window hide
     $ renpy.block_rollback()
-    call screen duelo_tutorial(modo)
-    $ dificultad_duelo = _return
+    if dificultad is None:
+        call screen duelo_tutorial(modo)
+        $ dificultad_duelo = _return
+    else:
+        $ dificultad_duelo = dificultad   # Arena: todos el mismo chart, sin elegir
     $ vista_duelo = VistaDuelo(modo, dificultad_duelo)
     call screen duelo_pantalla(vista_duelo, aliado)
     $ resultado_duelo = dict(_return, dificultad=dificultad_duelo)

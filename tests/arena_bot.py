@@ -16,6 +16,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), ".."
 
 from clases.arena.bot import elegir_ruta  # noqa: E402,F401
 from clases.arena.cliente import ClienteArena  # noqa: E402
+from clases.arena.torneo import payload_bot  # noqa: E402
 
 
 def main():
@@ -29,7 +30,7 @@ def main():
     ap.add_argument("--semilla", type=int, default=1)
     ap.add_argument("--limite", type=float, default=240)
     args = ap.parse_args()
-    rng = random.Random(args.semilla)
+    rng = random.Random("%s|%s" % (args.semilla, args.rol))
     import time
     c = ClienteArena(args.host, args.puerto)
     fin = time.monotonic() + 90
@@ -63,6 +64,9 @@ def _jugar(c, politica, rng, rondas_jugadas):
         rondas_jugadas.append(c.ronda["ronda"])
         if politica != "callado":
             c.decidir(elegir_ruta(c.arbol, politica, rng))
+    if c.prueba and ("p", c.prueba["indice"]) not in rondas_jugadas and politica != "callado":
+        rondas_jugadas.append(("p", c.prueba["indice"]))
+        c.entregar_prueba(payload_bot(c.prueba, {"responsable": .75, "azar": .5}.get(politica, .3), rng))
     return False
 
 

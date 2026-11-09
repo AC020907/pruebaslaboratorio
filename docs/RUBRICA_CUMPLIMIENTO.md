@@ -1,7 +1,7 @@
 # Matriz de cumplimiento: rúbrica «LABORATORIO — ALCALDE DIGITAL»
 
 - **Fuente:** `LABORATORIO 1 202630 (1).pdf` (15 páginas), leída completa.
-- **Estado del código:** rama `fix/rubrica-online`, 2026-11-08.
+- **Estado del código:** rama `feature/arena-torneo` (sale de `fix/rubrica-online`), 2026-11-08.
 
 **Estados:**
 - **Probado:** cumple y fue probado.
@@ -14,7 +14,7 @@
 
 | Clave | Comando | Resultado |
 |---|---|---|
-| [T] | `python -m pytest -q tests` | 131 pruebas |
+| [T] | `python -m pytest -q tests` | 149 pruebas (18 del torneo) |
 | [B] | `cd leaderboard && python -m pytest -q` | 153 pruebas: 142 del leaderboard y 11 de la Arena Online |
 | [R] | `python tests/qa_recorridos.py` | 10/10: los 5 finales en historia y en feria |
 | [V] | `python tests/qa_visual.py galeria …` y `… arena …` | Capturas reales del motor |
@@ -39,6 +39,7 @@
 | 11 / pp.8–9 | Puntuación individual y resultado de la ciudad, logros, retroalimentación | `Jugador`, `_valorar`, `_logros`, `resultado_ciudad`; Puntuación Cívica | [T] | Capturas finales | Igual que §2 en la historia | Corregido | Probado |
 | 12 / p.9 | Elección final ligada al comportamiento | Arena: `elegir_alcalde`; historia: `Eleccion.escrutinio_historia` + pantalla `escrutinio_historia` | [T] `test_rumores_cambian_el_ganador`, `test_las_decisiones_cambian_participacion_y_ganador` | Capturas | La historia no tenía recuento de votos | Escrutinio coherente con cada final, con explicación causal | Probado |
 | 13 / pp.9–10 | Multijugador local cliente-servidor por sockets; el servidor sincroniza estado, jugadores, publicaciones, relaciones, eventos, puntos, turnos e información compartida | `clases/arena/servidor.py`, `cliente.py`, `protocolo.py`; `servidor_arena.py` | [T] `test_arena_red.py` (13): 2/3/4 en hilos y en procesos, simultaneidad, tiempo, pausa, duplicados, malformados, reconexión, anfitrión, **cierre** | [V] 2 Ren'Py + 2 bots | El cierre del servidor se mostraba como «se perdió la conexión» | Se conserva el motivo que envía el servidor (con prueba) | Probado (localhost, procesos independientes) · Física (varios PCs) |
+| 13 (extra) | Torneo de la Arena: Consejo Cívico + 5 minijuegos como pruebas, puntuados por el servidor, con consecuencias sobre los indicadores compartidos | `clases/arena/torneo.py`, `servidor.py`, `arena/arena_torneo.rpy` | [T] `test_arena_torneo.py` (18): 2/3/4 jugadores en todas las fases, validadores, desconexión, duplicados, fuera de orden; [V] torneo Feria con 2 Ren'Py + 2 bots | `docs/ARENA_TORNEO.md`, `ARENA_MINIJUEGOS.md`, `ARENA_RITMO_MULTIJUGADOR.md` | El tiempo real de los minijuegos se mide en el cliente | Validación por rejuego o coherencia; documentado como limitación | Probado (localhost) · Física (partida humana completa) |
 | 13 (extra) | Arena Online 2–4 por navegador | `leaderboard/app/arena_online.py`, `clases/arena/sala.py`, `static/arena.html` | [B] `test_arena_online.py` (11); partida en el navegador con 2 clientes | `docs/ARQUITECTURA_MULTIJUGADOR.md` | — | — | Probado (local) · Sin probar en Render (falta el despliegue) |
 | 14 / p.10 | Interfaz gráfica con todos los elementos | `arena.rpy`, `screens.rpy`, `arena.html` | [V] | Capturas a 1920, 1366, 1600×720 táctil y móvil 375×812 | — | — | Probado |
 | 15 / pp.10–11 | Componente inclusivo y la dificultad que atiende | Avisos visuales de sonido (`sfx`), subtítulos, reducir movimiento, formas además de colores | [V] cliente con avisos | Captura «SONIDO ¡Logro!» | — | — | Probado |

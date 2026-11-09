@@ -59,16 +59,24 @@ class TestPuntuacion(unittest.TestCase):
         a = s["ajustes"]
         p = PuzzleEvidencias(crear_red_civitas(), s["semilla"], eslabones=a["eslabones"], senuelos=a["senuelos"],
                              tiempo=a["tiempo"])
-        bien = [list(p.solucion), p.opciones_conclusion[0]]
+        bien = [list(p.solucion), p.tipo_origen()]
         r = T.puntuar(s, {"intentos": [bien], "segundos": 30.0, "pistas": 0})
         self.assertTrue(r["detalle"]["origen_encontrado"])
         self.assertGreater(r["normalizado"], 800)
         # Decir "lo encontre" sin una cadena correcta no da la victoria: el servidor la comprueba.
-        falso = T.puntuar(s, {"intentos": [[list(reversed(p.solucion)), p.opciones_conclusion[-1]]],
+        otra = next(c for c in p.opciones_conclusion if c != p.tipo_origen())
+        falso = T.puntuar(s, {"intentos": [[list(reversed(p.solucion)), otra]],
                               "segundos": 10.0, "exito": True})
         self.assertFalse(falso["detalle"]["origen_encontrado"])
         with self.assertRaises(T.ResultadoInvalido):
             T.puntuar(s, {"intentos": [bien], "segundos": 9999})
+
+    def test_bot_experto_encuentra_el_origen_en_todas_las_semillas(self):
+        for semilla in range(40):
+            for modo in ("completo", "feria"):
+                s = spec("rastreador", modo, semilla)
+                r = T.puntuar(s, T.payload_bot(s, 1.0, random.Random(0)))
+                self.assertTrue(r["detalle"]["origen_encontrado"], (modo, semilla))
 
     def test_arcade_incoherente_rechazado(self):
         s = spec("viralizacion")

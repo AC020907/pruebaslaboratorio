@@ -1,4 +1,21 @@
-# Release readiness: corrección de pendientes, Arena Online y validación final
+# Release readiness: corrección de pendientes, Arena Online, torneo y validación final
+
+## 0. Torneo de la Arena (rama `feature/arena-torneo`; recuperación: tag `checkpoint-pre-torneo`)
+
+| Comando (2026-11-08) | Resultado |
+|---|---|
+| `python -m pytest -q tests` | **149 OK** (131 anteriores + 18 del torneo) |
+| `renpy.exe . lint` | Sin errores |
+| `python tests/qa_recorridos.py` | **10/10**: los 5 finales en historia y en feria (regresión tras tocar Moderación, Rastreador y Duelo) |
+| `python tests/qa_visual.py arena --tam 1920x1080` | OK: 2 Ren'Py + 2 bots por procesos. Torneo Feria de punta a punta (2 rondas, 5 pruebas, 5 resúmenes y final); ambos clientes con el mismo campeón y la misma elección |
+
+**Qué es:** Consejo Cívico → 5 pruebas → elección. Detalle en `docs/ARENA_TORNEO.md`. QA también a 1366×768 (OK). Evidencias: `docs/auditoria/torneo_*.jpg`.
+
+**Pendiente:**
+- Una partida humana completa del torneo (los minijuegos los entregó un bot en la QA).
+- Probar en LAN física.
+- Conectar el torneo a la Arena Online: decisión pendiente, porque los minijuegos no corren en el navegador.
+
 
 - **Rama:** `fix/rubrica-online`, que sale de `main` `d3c0a5b` (versión publicada el 2026-11-08). El punto de recuperación es el tag `checkpoint-pre-online`.
 - **Fecha:** 2026-11-08. **SDK:** Ren'Py 8.5.3.

@@ -24,8 +24,11 @@ from clases.PuzzleEvidencias import PuzzleEvidencias
 from clases.RedCivitas import crear_red_civitas, ORIGEN_RUMOR, CANDIDATOS_FOCO
 from clases.Ritmo import VALOR_JUICIO, validar_chart
 from clases.moderacion_datos import publicaciones_moderacion
+from clases.arena.reglas import NOMBRE_INDICADOR
 
 PRUEBAS = ("moderador", "contencion", "rastreador", "viralizacion", "ritmo")   # el Duelo cierra el torneo
+NOMBRE_CORTO = {"moderador": "Moderación", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
+                "viralizacion": "Viralización", "ritmo": "Duelo"}
 NOMBRE_PRUEBA = {"moderador": "Moderación Express", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
                  "viralizacion": "La Gran Viralización", "ritmo": "Duelo de Frecuencias"}
 MAX_PRUEBA = 1000
@@ -325,8 +328,9 @@ class TorneoArena(object):
         tabla = self.clasificacion()
         for h in self.historial:
             if h["delta_ciudad"]:
-                eleccion["explicacion"].append("%s: la media del grupo fue %d/100 → %s." % (
-                    h["nombre"], h["media"], ", ".join("%s %+d" % (k, v) for k, v in h["delta_ciudad"].items())))
+                eleccion["explicacion"].append("%s: la media del grupo fue %d/100, así que %s." % (
+                    h["nombre"], h["media"], ", ".join("%s %+d" % (NOMBRE_INDICADOR[k].lower(), v)
+                                                      for k, v in h["delta_ciudad"].items())))
         eleccion["torneo"] = {"campeon": tabla[0]["id"], "campeon_nombre": tabla[0]["nombre"], "clasificacion": tabla,
                               "pruebas": [{"clave": h["clave"], "nombre": h["nombre"], "ganador_nombre": h["ganador_nombre"]}
                                           for h in self.historial],
@@ -361,8 +365,8 @@ def payload_bot(spec, nivel, rng):
         cfg = spec["ajustes"]
         p = PuzzleEvidencias(crear_red_civitas(), spec["semilla"], eslabones=cfg["eslabones"],
                              senuelos=cfg["senuelos"], tiempo=cfg["tiempo"])
-        ok = [list(p.solucion), p.opciones_conclusion[0]]
-        malo = [list(reversed(p.solucion)), p.opciones_conclusion[-1]]
+        ok = [list(p.solucion), p.tipo_origen()]
+        malo = [list(reversed(p.solucion)), next(c for c in p.opciones_conclusion if c != p.tipo_origen())]
         r = rng.random()
         intentos = [malo, malo] if r > nivel else [malo, ok] if r > (1 + nivel) / 2 else [ok]
         return {"intentos": intentos, "pistas": 0 if nivel > .6 else 1,

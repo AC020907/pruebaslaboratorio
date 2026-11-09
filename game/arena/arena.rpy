@@ -35,8 +35,9 @@ init -5 python:
         try:
             import uuid as _uuid
             AS.clave = _uuid.uuid4().hex
-            AS.servidor = ServidorArena(puerto=AP.PUERTO, rondas=ARENA_RONDAS, segundos=ARENA_SEGUNDOS,
-                                        clave_anfitrion=AS.clave)
+            torneo = None if AS.modo == "clasica" else AS.modo
+            AS.servidor = ServidorArena(puerto=AP.PUERTO, rondas=None if torneo else ARENA_RONDAS,
+                                        segundos=ARENA_SEGUNDOS, clave_anfitrion=AS.clave, torneo=torneo)
             AS.servidor.iniciar()
         except OSError:
             AS.servidor = None
@@ -60,6 +61,7 @@ init -5 python:
             AS.cliente = None
             return arena_error(texto)
         AS.ruta, AS.ronda_vista, AS.resultado_visto, AS.final_visto = [], None, None, False
+        AS.prueba_jugada, AS.resumen_visto = None, None
         arena_preparar_grafo()
         store.arena_mensaje = ""
         return True
@@ -96,6 +98,9 @@ init -5 python:
             AS.resultado_visto = c.resultado["ronda"]
             mio = arena_mi_resultado()
             sfx("logro" if mio and mio["logros_nuevos"] else ("pista" if mio and mio["puntos"] > 0 else "error"))
+        if c.resumen and c.resumen["indice"] != AS.resumen_visto:
+            AS.resumen_visto = c.resumen["indice"]
+            sfx("logro" if c.resumen["ganador"] == c.jugador_id else "pagina")
         if c.final and not AS.final_visto:
             AS.final_visto = True
             sfx("logro")
@@ -103,7 +108,7 @@ init -5 python:
         if c.ronda and restante is not None and restante <= 5 and AS.aviso_tiempo is None and not c.ya_decidi():
             AS.aviso_tiempo = True
             sfx("alarma")
-        if cambios or (c.ronda and not c.ya_decidi()):
+        if cambios or (c.ronda and not c.ya_decidi()) or c.prueba:
             renpy.restart_interaction()
 
     def arena_reconectar():
@@ -269,7 +274,13 @@ label arena:
         return
     call screen arena_inicio
     if _return:
-        call screen arena_partida
+        $ arena_seguir = True
+        while arena_seguir:
+            call screen arena_partida
+            if _return == "prueba":
+                call arena_jugar_prueba
+            else:
+                $ arena_seguir = False
     $ arena_salir()
     $ _game_menu_screen = "save"
     return
@@ -315,6 +326,12 @@ screen arena_inicio():
                     action SetScreenVariable("editando", "nombre")
                     input value ScreenVariableInputValue("nombre") length 20 style "arena_input" changed None:
                         default (editando == "nombre")
+            hbox:
+                spacing 14
+                text "Modo:" style "arena_texto" yalign 0.5
+                for m, etiqueta in ARENA_MODOS:
+                    textbutton etiqueta style "arena_modo" text_style "arena_modo_texto" selected (AS.modo == m) action [SetField(AS, "modo", m), Function(sfx, "pagina")]
+            text ARENA_DESCRIPCION_MODO[AS.modo] style "arena_nota"
             text "Elige tu rol (no se puede repetir en la sala):" style "arena_texto"
             hbox:
                 spacing 14
@@ -375,8 +392,14 @@ screen arena_partida():
         null
     elif c.cerrado and not c.final:
         use arena_aviso("Conexión perdida", c.cerrado, puede_reconectar=(AS.servidor is None and c.token is not None))
+    elif c.final and c.final.get("torneo"):
+        use arena_final_torneo(c)
     elif c.final:
         use arena_final(c)
+    elif c.prueba:
+        use arena_prueba(c)
+    elif c.resumen:
+        use arena_resumen_prueba(c)
     elif c.estado is None or c.estado["fase"] == "lobby":
         use arena_sala(c)
     else:
@@ -457,6 +480,8 @@ screen arena_sala(c):
                 text "Esperando a que marquen «Estoy listo»: %s" % ", ".join(faltan_sala) size 24 bold True color "#c58a1b"
             elif c.soy_anfitrion():
                 text "Todo listo: pulsa «Empezar»." size 24 bold True color "#2f9e8f"
+            if est.get("modo_torneo"):
+                text "Torneo %s: Consejo Cívico (%d rondas) + 5 pruebas: %s. Al final, la elección." % ("Feria" if est["modo_torneo"] == "feria" else "completo", est["total_rondas"], " · ".join(ARENA_NOMBRE_PRUEBA[k] for k in ARENA_PRUEBAS)) style "arena_nota"
             text "Se necesitan de 2 a 4 jugadores. Con 2 o 3, los roles que falten no juegan, pero los 4 candidatos siguen en la elección." style "arena_nota"
             hbox:
                 spacing 20
