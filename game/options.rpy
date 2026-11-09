@@ -198,6 +198,8 @@ init python:
     build.classify('docs/**', None)
     build.classify('leaderboard/**', None)
     build.classify('revision_visual/**', None)
+    build.classify('demo_arena/**', None)
+    build.classify('qa_*/**', None)
     build.classify('*.md', None)
     build.classify('Guia_*', None)
     build.classify('dialogue*.tab', None)
