@@ -295,7 +295,7 @@ screen arena_solo_escritorio():
         vbox:
             spacing 18
             text "ARENA CIVITAS" style "arena_titulo"
-            text "En el navegador la Arena se juega online: cada persona abre la Arena en su teléfono o computador, una crea la sala y comparte el código. La Arena de red local (sockets TCP) está en la versión de escritorio." style "arena_texto"
+            text "En el navegador la Arena se juega online: cada persona abre la Arena en su teléfono o computador, una crea la sala y comparte el código. La gran final es el Duelo de Frecuencias: pulsa «Entrar al duelo» para activar el sonido y toca los 4 carriles al ritmo. La Arena de red local (sockets TCP) y el torneo con los 5 minijuegos están en la versión de escritorio." style "arena_texto"
             if arena_url_online():
                 textbutton "Abrir Arena Online" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action OpenURL(arena_url_online()) default_focus True
                 text arena_url_online() style "arena_nota" xalign 0.5
