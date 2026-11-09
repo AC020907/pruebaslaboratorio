@@ -79,8 +79,9 @@ screen ayuda_arena():
     text "Torneo: Consejo Cívico + 5 pruebas" style "ayuda_h"
     text "En «Torneo completo» (5 rondas) o «Torneo Feria» (2 rondas y pruebas más cortas), al acabar el Consejo cada uno juega en su equipo los minijuegos de la historia, con la misma semilla para todos: Moderación Express, Caza-Rumores, Rastreador, La Gran Viralización y, como final, el Duelo de Frecuencias (PERFECT, GREAT, GOOD, MISS)." style "ayuda_p"
     text "Cada prueba vale de 0 a 1000 y el Consejo de 0 a 2000; el servidor recalcula todo a partir de tus decisiones. La media del grupo en cada prueba mejora o empeora Ciudad Nova antes de votar: el campeón del torneo y el resultado de la ciudad son cosas distintas. Si no entregas a tiempo o te desconectas, esa prueba cuenta 0." style "ayuda_p"
-    text "Arena Online (teléfonos o computadores en redes distintas): solo el Consejo Cívico; el torneo de minijuegos es de la versión de escritorio." style "ayuda_h"
+    text "Arena Online (teléfonos o computadores en redes distintas)" style "ayuda_h"
     text "1. Abre la Arena Online (botón en el menú de la Arena, o en la versión web). 2. Una persona pulsa «Crear sala» y comparte el código de 5 letras o el enlace de invitación. 3. Las demás escriben el código, eligen un rol libre y pulsan «Estoy listo». 4. Si alguien recarga la página o pierde la señal, al volver a abrir el enlace sigue en su puesto." style "ayuda_p"
+    text "Gran final online: antes de la última ronda del Consejo se juega el Duelo de Frecuencias de verdad (4 carriles, música, PERFECT/GREAT/GOOD/MISS). El servidor da la salida a la vez; cada teléfono toca la canción y juzga con su reloj de audio. Hay que pulsar «Entrar al duelo» para activar el sonido. Los otros cuatro minijuegos del torneo son de la versión de escritorio." style "ayuda_p"
     text "Si alguien pierde la conexión durante la partida, su puesto se guarda y la ronda sigue sin él; con «Reconectar» vuelve a su mismo puesto. El anfitrión puede pausar una ronda y añadir jugadores automáticos si falta gente." style "ayuda_p"
 
 screen ayuda_personajes():

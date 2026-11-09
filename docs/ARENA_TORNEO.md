@@ -89,5 +89,5 @@ El servidor (`ServidorArena(torneo="completo"|"feria")`) controla todas las fase
 ## Limitaciones conocidas (honestas)
 
 - **Tiempo real medido en el cliente:** el servidor rejuega las decisiones (Moderación, Rastreador), valida la coherencia (Caza-Rumores y Viralización) y recalcula el Duelo nota a nota. Sin embargo, el **momento** de cada pulsación lo mide el equipo del jugador. Un cliente modificado podría declarar mejores juicios de ritmo o una viralidad menor. Para un laboratorio en LAN se considera aceptable.
-- **Arena Online:** el navegador no puede ejecutar los minijuegos de Ren'Py. La página `/arena` sigue con el Consejo Cívico. `torneo.py` es Python puro y sin red, así que `SalaArena` puede incorporarlo cuando haya minijuegos web. Por ahora no está conectado: es una decisión pendiente.
+- **Arena Online:** incluye el **Duelo de Frecuencias** como gran final (motor rítmico real en el navegador; ver `ARENA_RITMO_MULTIJUGADOR.md` §Online). Los otros cuatro minijuegos siguen siendo solo de escritorio: no tienen versión web.
 - **QA automática:** en la QA, los clientes Ren'Py entregan decisiones de bot. Los minijuegos con ajustes de torneo son los mismos labels que usa la Historia, pero falta jugar a mano una partida completa del torneo: ver `docs/PRUEBAS_FISICAS.md`.

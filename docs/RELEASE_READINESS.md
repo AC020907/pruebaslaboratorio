@@ -1,5 +1,18 @@
 # Release readiness: corrección de pendientes, Arena Online, torneo y validación final
 
+## 00. Duelo de Frecuencias en la Arena Online (rama `feature/arena-online-duelo`; recuperación: tag `checkpoint-pre-duelo-online`)
+
+| Comando (2026-11-09) | Resultado |
+|---|---|
+| `python -m pytest -q tests` | **151 OK**, con 2 de equivalencia JS/Python (27 subtests: 30, 60 y 144 Hz, latencia simulada) |
+| `cd leaderboard && python -m pytest -q` | **163 OK** (10 nuevas del duelo online) |
+| `python tests/e2e_duelo_online.py --jugadores 2,3,4` | OK con Chrome real (PC y móvil táctil), latencia de 0 a 400 ms, recarga y desconexión a mitad de canción. Puntos del navegador iguales a los del servidor; final idéntica en todos |
+| `renpy.exe . lint` | Sin errores |
+
+Detalle en `docs/ARENA_RITMO_MULTIJUGADOR.md` §Online. Evidencias: `docs/auditoria/online_duelo_*.jpg`.
+
+**Pendiente:** probar en teléfonos reales (iPhone/Safari y Android), con auriculares Bluetooth.
+
 ## 0. Torneo de la Arena (rama `feature/arena-torneo`; recuperación: tag `checkpoint-pre-torneo`)
 
 | Comando (2026-11-08) | Resultado |

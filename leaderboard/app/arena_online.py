@@ -10,12 +10,17 @@ Endpoints (todas las respuestas JSON; el cliente solo envia decisiones, nunca pu
   POST /api/arena/salas/{codigo}/unir      {nombre, rol}            -> une a un jugador
   GET  /api/arena/salas/{codigo}?token=..&grafo=0|1                 -> vista del jugador (tambien hace de reloj)
   POST /api/arena/salas/{codigo}/{accion}  {token, ...}             -> listo | empezar | bots | accion | pausa | continuar
+  POST /api/arena/salas/{codigo}/duelo     {token, juicios, desvios} -> resultado del Duelo de Frecuencias (se valida)
+  POST /api/arena/salas/{codigo}/progreso  {token, ...}             -> marcador en vivo del duelo (no puntua)
+  GET  /api/arena/ritmo/{modo}                                      -> chart, ventanas y valores (fuente: game/)
 """
 import os
 import secrets
 import sys
 import threading
 import time
+
+from typing import Optional
 
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, Field
@@ -27,9 +32,10 @@ if _GAME not in sys.path:
 try:
     from clases.arena.sala import SalaArena, ErrorSala   # noqa: E402
     from clases.arena.reglas import ROLES                 # noqa: E402
+    from clases.arena import duelo_online as DO           # noqa: E402
     DISPONIBLE = True
 except ImportError:   # p. ej. si se despliega solo la carpeta leaderboard/
-    SalaArena = ErrorSala = None
+    SalaArena = ErrorSala = DO = None
     ROLES = ()
     DISPONIBLE = False
 
@@ -41,6 +47,26 @@ CADUCIDAD_S = 2 * 3600
 class Unirse(BaseModel):
     nombre: str = Field("", max_length=20)
     rol: str = Field(..., max_length=20)
+    duelo: bool = True
+    modo_duelo: str = Field("feria", max_length=12)
+
+
+class EntregaDuelo(BaseModel):
+    token: str = Field(..., min_length=10, max_length=64)
+    id: str = Field("", max_length=64)
+    dificultad: str = Field("normal", max_length=12)
+    juicios: list[str] = Field(..., max_length=400)
+    desvios: list[Optional[float]] = Field(..., max_length=400)
+    calibracion_ms: float = 0
+    latencia_ms: Optional[float] = None
+
+
+class Progreso(BaseModel):
+    token: str = Field(..., min_length=10, max_length=64)
+    juzgadas: int = 0
+    puntos: int = 0
+    combo: int = 0
+    precision: float = 0
 
 
 class Orden(BaseModel):
@@ -63,7 +89,7 @@ class ArenaOnline(object):
         for codigo in [c for c, s in self.salas.items() if ahora - s.ultima_actividad > CADUCIDAD_S]:
             del self.salas[codigo]
 
-    def crear(self):
+    def crear(self, duelo=True, modo_duelo="feria"):
         with self.lock:
             self._purgar()
             if len(self.salas) >= MAX_SALAS:
@@ -72,7 +98,7 @@ class ArenaOnline(object):
                 codigo = "".join(secrets.choice(ALFABETO) for _ in range(5))
                 if codigo not in self.salas:
                     break
-            self.salas[codigo] = SalaArena(codigo, reloj=self.reloj)
+            self.salas[codigo] = SalaArena(codigo, reloj=self.reloj, duelo=duelo, modo_duelo=modo_duelo)
             return self.salas[codigo]
 
     def sala(self, codigo):
@@ -109,7 +135,9 @@ def crear_router(api_error, rate_limit, client_ip):
         rate_limit("arena_crear", client_ip(request))
         if body.rol not in ROLES:
             raise api_error(400, "rol", "Rol desconocido.")
-        s = arena.crear()
+        if body.modo_duelo not in ("feria", "historia"):
+            raise api_error(400, "modo", "Modo de duelo desconocido.")
+        s = arena.crear(body.duelo, body.modo_duelo)
         if s is None:
             raise api_error(503, "sin_salas", "El servidor tiene demasiadas salas abiertas. Prueba en unos minutos.")
         jid, token = ejecutar(s.unir, body.nombre, body.rol)
@@ -128,6 +156,30 @@ def crear_router(api_error, rate_limit, client_ip):
     def vista(codigo: str, token: str, grafo: int = 0):
         s = buscar(codigo)
         return ejecutar(s.vista, token, bool(grafo))
+
+    @router.get("/ritmo/{modo}")
+    def ritmo(modo: str):
+        requerir()
+        if modo not in ("feria", "historia"):
+            raise api_error(404, "modo", "Modo de duelo desconocido.")
+        return DO.config_cliente(modo)
+
+    @router.post("/salas/{codigo}/duelo")
+    def duelo(codigo: str, body: EntregaDuelo, request: Request):
+        rate_limit("arena_accion", client_ip(request))
+        s = buscar(codigo)
+        desvios = [None if d is None else int(round(d)) for d in body.desvios]
+        datos = {"dificultad": body.dificultad, "juicios": body.juicios, "desvios": desvios,
+                 "calibracion_ms": body.calibracion_ms, "latencia_ms": body.latencia_ms}
+        res = ejecutar(s.entregar_duelo, body.token, datos, body.id or None)
+        return {"ok": True, "resultado": res, "version": s.version}
+
+    @router.post("/salas/{codigo}/progreso")
+    def progreso(codigo: str, body: Progreso, request: Request):
+        rate_limit("arena_accion", client_ip(request))
+        s = buscar(codigo)
+        ejecutar(s.progreso_duelo, body.token, body.juzgadas, body.puntos, body.combo, body.precision)
+        return {"ok": True}
 
     @router.post("/salas/{codigo}/{orden}")
     def ordenar(codigo: str, orden: str, body: Orden, request: Request):
