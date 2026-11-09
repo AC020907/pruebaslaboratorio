@@ -240,6 +240,14 @@ class TestArenaRed(unittest.TestCase):
         mio = [x for x in clientes[0].resultado["acciones"] if x["jugador"] == jid][0]
         self.assertEqual(mio["accion"], "ignorar")
 
+    def test_cierre_ordenado_del_servidor(self):
+        clientes = self.partida_con(2)
+        self.srv.detener()
+        for c in clientes:
+            self.assertTrue(c.esperar(lambda c: c.cerrado, 5))
+        self.assertIn("cerr", clientes[0].cerrado.lower())
+        self.srv = None
+
     def test_un_jugador_se_cae_y_la_ronda_no_se_bloquea(self):
         clientes = self.partida_con(2)
         for c in clientes:

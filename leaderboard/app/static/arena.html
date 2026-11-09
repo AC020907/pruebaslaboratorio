@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arena Civitas</title>
+<style>
+:root{--bg:#f6f1ea;--panel:#fffaf3;--fg:#2b2440;--suave:#6b6080;--borde:#e3d8cb;--acento:#8c2f4b;--acento2:#5b5bd6;
+--ok:#2f9e8f;--mal:#c0392b;--aviso:#c58a1b;--ciu:#2f9e8f;--per:#5b5bd6;--inf:#d6457a;--can:#c58a1b;--sombra:0 2px 10px #2b244014}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#151020;--panel:#1f1830;--fg:#f1ecfa;--suave:#b3a8c9;
+--borde:#3a3150;--acento:#f08aa8;--acento2:#a7a5f2;--ok:#5eead4;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}}
+:root[data-theme=dark]{--bg:#151020;--panel:#1f1830;--fg:#f1ecfa;--suave:#b3a8c9;--borde:#3a3150;--acento:#f08aa8;
+--acento2:#a7a5f2;--ok:#5eead4;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:760px;margin:0 auto;padding:16px 16px 40px}
+h1{font-size:1.6rem;margin:.2em 0;color:var(--acento);text-wrap:balance}
+h2{font-size:1.15rem;margin:1em 0 .4em}
+p{margin:.4em 0}
+.panel{background:var(--panel);border:1px solid var(--borde);border-radius:14px;padding:16px;box-shadow:var(--sombra);margin:12px 0}
+.suave{color:var(--suave);font-size:.92rem}
+label{display:block;font-weight:600;margin:.6em 0 .2em}
+input{width:100%;font:inherit;padding:12px;border-radius:10px;border:1px solid var(--borde);background:var(--bg);color:var(--fg)}
+input.codigo{text-transform:uppercase;letter-spacing:.3em;font-size:1.3rem;text-align:center}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:14px 16px;min-height:48px;cursor:pointer;
+background:var(--acento2);color:#fff;width:100%}
+button.sec{background:transparent;color:var(--fg);border:1.5px solid var(--borde)}
+button:disabled{opacity:.5;cursor:default}
+.fila{display:flex;gap:10px;flex-wrap:wrap}.fila>*{flex:1 1 180px;min-width:0}
+.roles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media (max-width:420px){.roles{grid-template-columns:1fr}}
+.rol{text-align:left;background:var(--bg);color:var(--fg);border:2px solid var(--borde);font-weight:400;padding:12px}
+.rol b{display:block;font-size:1.05rem}
+.rol[aria-pressed=true]{border-color:currentColor;background:var(--panel)}
+.c-ciudadano{color:var(--ciu)}.c-periodista{color:var(--per)}.c-influencer{color:var(--inf)}.c-candidato{color:var(--can)}
+.rol span{color:var(--fg);font-size:.9rem}
+.error{color:var(--mal);font-weight:600;min-height:1.4em}
+.codigo-grande{font-size:2.2rem;letter-spacing:.25em;font-weight:800;text-align:center;color:var(--acento)}
+ul.jug{list-style:none;padding:0;margin:0}
+ul.jug li{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--borde)}
+.punto{width:12px;height:12px;border-radius:50%;flex:none}
+.etq{font-size:.82rem;padding:2px 8px;border-radius:99px;border:1px solid var(--borde);white-space:nowrap}
+.indicadores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 14px;font-size:.85rem}
+.ind{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px}
+.barra{grid-column:1/-1;height:6px;background:var(--borde);border-radius:6px;overflow:hidden}
+.barra i{display:block;height:100%;background:var(--ok)}.barra.neg i{background:var(--mal)}
+.delta{font-weight:700}.delta.bien{color:var(--ok)}.delta.mal{color:var(--mal)}
+.pub{border-left:5px solid var(--acento);padding:10px 14px;background:var(--bg);border-radius:8px}
+.pub .autor{font-weight:700;color:var(--suave)}
+.pub .texto{font-size:1.25rem;font-weight:700;margin:.2em 0}
+.reloj{height:10px;background:var(--borde);border-radius:8px;overflow:hidden;margin:6px 0}
+.reloj i{display:block;height:100%;background:var(--acento2);transition:width .9s linear}
+.reloj.urgente i{background:var(--mal)}
+.opciones{display:grid;gap:10px;margin-top:8px}
+.opciones button{background:var(--panel);color:var(--fg);border:1.5px solid var(--borde);text-align:left}
+.opciones button:hover,.opciones button:focus-visible{border-color:var(--acento2)}
+.tag{font-weight:800;letter-spacing:.04em;font-size:.82rem;text-transform:uppercase;color:var(--mal)}
+.res-tipo{font-size:1.4rem;font-weight:800}
+.acc{display:flex;justify-content:space-between;gap:10px;padding:6px 0;border-bottom:1px solid var(--borde);font-size:.92rem}
+.acc b{white-space:nowrap}.pos{color:var(--ok)}.neg{color:var(--mal)}
+svg{width:100%;height:auto;display:block}
+.leyenda{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.82rem;color:var(--suave)}
+.leyenda span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;background:var(--c)}
+.votos .v{display:grid;grid-template-columns:8.5em 1fr 3em;gap:8px;align-items:center;margin:6px 0;font-size:.95rem}
+.votos .v div{height:16px;background:var(--borde);border-radius:6px;overflow:hidden}.votos .v div i{display:block;height:100%;background:var(--acento2)}
+.votos .v.gana div i{background:var(--acento)}
+.aviso{background:var(--bg);border:1px dashed var(--borde);border-radius:10px;padding:10px;font-size:.92rem}
+.oculto{display:none!important}
+</style>
+</head>
+<body>
+<main>
+  <h1>Arena Civitas</h1>
+  <p class="suave">Multijugador de Ciudad Nova para 2–4 jugadores, cada uno en su teléfono o computador.</p>
+  <div id="vistas"></div>
+  <p class="error" id="error" role="alert"></p>
+</main>
+<script>
+"use strict";
+const API = "/api/arena";
+const ROLES = [
+  ["ciudadano","Ciudadano","Alerta vecinal: cuando reporta, protege a toda su zona."],
+  ["periodista","Periodista","Al verificar ve la fuente real; su desmentido protege a quienes la siguen."],
+  ["influencer","Influencer","Lo que comparte llega el doble de lejos: aciertos y errores pesan x2."],
+  ["candidato","Candidato a alcalde","Si un rumor es sobre su campaña, responde con datos; no puede reportar críticas propias."]];
+const COLOR = {ciudadano:"var(--ciu)",periodista:"var(--per)",influencer:"var(--inf)",candidato:"var(--can)"};
+const IND = {info_verificada:"Información verificada",confianza:"Confianza",convivencia:"Convivencia",bienestar:"Bienestar digital",
+  participacion:"Participación",desinformacion:"Desinformación",conflictos:"Conflictos",rumores:"Rumores"};
+const NEG = ["desinformacion","conflictos","rumores"];
+const ZONAS = {colegio:[500,80],barrio:[500,250],parque:[250,420],plaza:[750,420],alcaldia:[750,600]};
+const CALLES = [["colegio","barrio"],["barrio","parque"],["barrio","plaza"],["plaza","alcaldia"]];
+const ACCION = {compartir:"compartió sin verificar",compartir_verificada:"verificó y compartió con la fuente",ignorar:"la ignoró",
+  reportar:"la reportó",reportar_falsa:"la verificó y la reportó como falsa",responder:"respondió con datos",sin_respuesta:"no alcanzó a decidir"};
+
+let S = {codigo:null, token:null, rol:"ciudadano", ruta:[], estado:null, grafo:null, version:-1, ronda:null, timer:null, fallos:0};
+const $ = s => document.querySelector(s);
+const esc = t => String(t ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+function guardar(){ try{ localStorage.setItem("arena_"+S.codigo, S.token); localStorage.setItem("arena_ultima", S.codigo);}catch(e){} }
+function leer(c){ try{ return localStorage.getItem("arena_"+c); }catch(e){ return null; } }
+function error(m){ $("#error").textContent = m || ""; }
+
+async function llamar(metodo, ruta, cuerpo){
+  const r = await fetch(API + ruta, {method:metodo, headers: cuerpo ? {"Content-Type":"application/json"} : {},
+    body: cuerpo ? JSON.stringify(cuerpo) : undefined});
+  let d = {}; try { d = await r.json(); } catch(e) {}
+  if (!r.ok) { const e = new Error(d.detail || "Error de conexión ("+r.status+")"); e.status = r.status; e.codigo = d.error; throw e; }
+  return d;
+}
+async function orden(nombre, datos){
+  try { await llamar("POST", `/salas/${S.codigo}/${nombre}`, Object.assign({token:S.token}, datos||{})); error(""); await refrescar(); }
+  catch(e){ error(e.message); }
+}
+
+/* ---------- inicio ---------- */
+function pintarInicio(){
+  const url = new URL(location.href); const sala = (url.searchParams.get("sala")||"").toUpperCase();
+  $("#vistas").innerHTML = `
+  <section class="panel">
+    <label for="nombre">Tu nombre</label><input id="nombre" maxlength="20" autocomplete="nickname" placeholder="Ej. Ana">
+    <h2>Elige tu rol</h2><p class="suave">Cada rol solo puede elegirlo una persona por sala.</p>
+    <div class="roles">${ROLES.map(([id,n,d]) => `<button class="rol c-${id}" data-rol="${id}" aria-pressed="${id===S.rol}"><b>${n}</b><span>${d}</span></button>`).join("")}</div>
+  </section>
+  <section class="panel">
+    <h2>Unirse a una sala</h2>
+    <label for="codigo">Código de la sala</label><input id="codigo" class="codigo" maxlength="5" value="${esc(sala)}" placeholder="ABCDE" autocapitalize="characters">
+    <div class="fila" style="margin-top:10px"><button id="btnUnir">Unirse</button></div>
+  </section>
+  <section class="panel">
+    <h2>…o crear una nueva</h2>
+    <p class="suave">Te damos un código para compartir. Si estás solo, podrás completar la sala con jugadores automáticos.</p>
+    <button id="btnCrear" class="sec">Crear sala</button>
+  </section>`;
+  document.querySelectorAll(".rol").forEach(b => b.onclick = () => { S.rol = b.dataset.rol;
+    document.querySelectorAll(".rol").forEach(x => x.setAttribute("aria-pressed", x.dataset.rol===S.rol)); });
+  $("#btnCrear").onclick = () => entrar(null);
+  $("#btnUnir").onclick = () => entrar($("#codigo").value.trim().toUpperCase());
+}
+async function entrar(codigo){
+  const nombre = $("#nombre").value.trim();
+  if (codigo !== null && !/^[A-Z0-9]{5}$/.test(codigo)) return error("El código tiene 5 letras o números.");
+  try {
+    const d = codigo ? await llamar("POST", `/salas/${codigo}/unir`, {nombre, rol:S.rol}) : await llamar("POST", "/salas", {nombre, rol:S.rol});
+    S.codigo = d.codigo; S.token = d.token; guardar(); error("");
+    history.replaceState(null, "", "?sala=" + S.codigo);
+    iniciarSondeo();
+  } catch(e){
+    error(e.codigo === "rol" ? "Ese rol ya está ocupado en la sala: elige otro." :
+          e.codigo === "llena" ? "La sala está llena (4 jugadores)." :
+          e.codigo === "empezada" ? "Esa partida ya empezó." :
+          e.codigo === "sala_no_existe" ? "No existe ninguna sala con ese código (o ya terminó)." : e.message);
+  }
+}
+
+/* ---------- sondeo (el servidor manda; aqui solo se dibuja) ---------- */
+function iniciarSondeo(){ clearInterval(S.timer); refrescar(); S.timer = setInterval(refrescar, 1000); }
+async function refrescar(){
+  if (!S.codigo) return;
+  try {
+    const d = await llamar("GET", `/salas/${S.codigo}?token=${encodeURIComponent(S.token)}&grafo=${S.grafo ? 0 : 1}`);
+    if (d.grafo) S.grafo = d.grafo;
+    S.fallos = 0;
+    const cambio = d.version !== S.version || d.fase !== (S.estado && S.estado.fase);
+    S.estado = d;
+    if (d.fase === "ronda" && S.ronda !== d.ronda) { S.ronda = d.ronda; S.ruta = []; }
+    if (cambio) { S.version = d.version; pintar(); } else { pintarReloj(); }
+  } catch(e){
+    if (e.status === 403 || e.status === 404) { clearInterval(S.timer); try{ localStorage.removeItem("arena_"+S.codigo);}catch(x){}
+      S.codigo = null; pintarInicio(); return error(e.status === 404 ? "La sala ya no existe." : "Ya no perteneces a esa sala."); }
+    if (++S.fallos >= 3) error("Sin conexión con el servidor. Reintentando…");
+  }
+}
+
+function pintar(){
+  const d = S.estado; if (!d) return;
+  if (d.fase === "lobby") return pintarSala(d);
+  if (d.fase === "final") return pintarFinal(d);
+  $("#vistas").innerHTML = cabecera(d) + (d.fase === "ronda" ? ronda(d) : resultado(d)) + marcador(d);
+  enlazar();
+}
+function cabecera(d){
+  const delta = (d.fase !== "ronda" && d.resultado) ? d.resultado.delta_indicadores : {};
+  return `<section class="panel"><div class="fila" style="align-items:center"><b>Sala ${esc(d.codigo)} · Ronda ${d.ronda} de ${d.total_rondas}</b></div>
+  <div class="indicadores">${Object.keys(IND).map(k => { const v = d.indicadores[k], x = delta[k] || 0, neg = NEG.includes(k);
+    return `<div class="ind"><span>${IND[k]}</span><span>${v}${x ? ` <span class="delta ${(x>0)!==neg?"bien":"mal"}">${x>0?"+":""}${x}</span>` : ""}</span>
+    <div class="barra ${neg?"neg":""}"><i style="width:${v}%"></i></div></div>`; }).join("")}</div></section>`;
+}
+function marcador(d){
+  return `<section class="panel"><h2>Jugadores</h2><ul class="jug">${d.jugadores.map(j => `<li>
+    <span class="punto" style="background:${j.conectado?COLOR[j.rol]:"var(--borde)"}"></span>
+    <span style="flex:1;min-width:0"><b>${esc(j.nombre)}</b> <span class="suave">${j.rol_nombre}</span></span>
+    <span class="etq">${j.puntos} pts · rep ${j.reputacion}</span>${d.decidieron.includes(j.id)?'<span class="etq">decidió</span>':""}</li>`).join("")}</ul></section>`;
+}
+
+/* ---------- sala ---------- */
+function pintarSala(d){
+  const soyAnf = d.yo === d.anfitrion, n = d.jugadores.length;
+  const faltan = d.jugadores.filter(j => j.id !== d.anfitrion && !d.listos.includes(j.id)).map(j => j.nombre);
+  const yoListo = d.listos.includes(d.yo);
+  const enlace = location.origin + location.pathname + "?sala=" + d.codigo;
+  let estado = n < 2 ? "Falta al menos 1 jugador para empezar." : faltan.length ? "Esperando a: " + faltan.join(", ") : (soyAnf ? "Todo listo: pulsa Empezar." : "Esperando a que el anfitrión empiece.");
+  $("#vistas").innerHTML = `<section class="panel"><p class="suave">Código de la sala</p><div class="codigo-grande">${esc(d.codigo)}</div>
+    <div class="fila"><button class="sec" id="copiar">Copiar enlace de invitación</button></div>
+    <p class="suave" id="enlace" style="word-break:break-all">${esc(enlace)}</p></section>
+  <section class="panel"><h2>Sala (${n}/4)</h2><ul class="jug">${d.jugadores.map(j => `<li><span class="punto" style="background:${COLOR[j.rol]}"></span>
+    <span style="flex:1;min-width:0"><b>${esc(j.nombre)}</b> <span class="suave">${j.rol_nombre}</span></span>
+    <span class="etq">${j.id===d.anfitrion?"Anfitrión":(d.listos.includes(j.id)?"Listo":"Esperando")}</span></li>`).join("")}</ul>
+    <p class="aviso" style="margin-top:12px"><b>${esc(estado)}</b></p>
+    <div class="fila" style="margin-top:12px">
+      ${soyAnf ? `<button id="empezar" ${n<2||faltan.length?"disabled":""}>Empezar</button>${n<4?'<button class="sec" id="bots">Completar con jugadores automáticos</button>':""}`
+               : `<button id="listo">${yoListo?"Listo ✓ (pulsa para cancelar)":"Estoy listo"}</button>`}
+    </div></section>`;
+  $("#copiar").onclick = async () => { try { await navigator.clipboard.writeText(enlace); $("#copiar").textContent = "Enlace copiado"; }
+    catch(e){ const r = document.createRange(); r.selectNodeContents($("#enlace")); getSelection().removeAllRanges(); getSelection().addRange(r); } };
+  if (soyAnf){ $("#empezar").onclick = () => orden("empezar"); if ($("#bots")) $("#bots").onclick = () => orden("bots"); }
+  else $("#listo").onclick = () => orden("listo", {listo: !yoListo});
+}
+
+/* ---------- ronda: arbol de decisiones ---------- */
+function nodoActual(){ let n = S.estado.arbol; for (const i of S.ruta) n = n && n.hijos[i]; return n; }
+function ronda(d){
+  const r = d.ronda_info, p = r.publicacion, n = nodoActual();
+  const ops = d.ya_decidiste || !n ? `<p class="aviso">Decisión enviada. Esperando al resto de la sala…</p>` :
+    `<p><b>${esc(n.texto)}</b></p><div class="opciones">${n.hijos.map((h,i) => `<button data-op="${i}">${esc(h.hijos.length ? h.etiqueta[0].toUpperCase()+h.etiqueta.slice(1) : h.texto)}</button>`).join("")}</div>
+     ${S.ruta.length ? '<button class="sec" id="volver" style="margin-top:10px">« Volver a las opciones</button>' : ""}`;
+  const yo = d.jugadores.find(j => j.id === d.yo);
+  return `<section class="panel"><p class="tag">${esc(r.evento)}</p>
+    <div class="pub"><div class="autor">${esc(p.autor)}</div><div class="texto">${esc(p.texto)}</div>
+    <div class="suave">Zona: ${esc(p.zona_nombre)}${p.candidato?" · Sobre: "+esc(p.candidato):""}</div></div>
+    <p id="txtReloj" style="margin:.6em 0 0"></p><div class="reloj" id="reloj"><i></i></div>
+    ${ops}
+    ${yo ? `<p class="suave">Tu rol: <b class="c-${yo.rol}">${yo.rol_nombre}</b>. ${ROLES.find(x=>x[0]===yo.rol)[2]}</p>` : ""}
+    ${d.yo===d.anfitrion ? `<button class="sec" id="pausa">${d.pausado?"Reanudar":"Pausar ronda"}</button>` : ""}</section>`;
+}
+function pintarReloj(){
+  const d = S.estado; if (!d || d.fase !== "ronda" || !$("#reloj")) return;
+  const total = d.ronda_info.segundos, r = d.restante ?? 0;
+  $("#txtReloj").innerHTML = d.pausado ? "<b>En pausa</b>" : `<b>Tiempo restante: ${Math.ceil(r)} s</b>`;
+  $("#reloj i").style.width = Math.max(0, Math.min(100, r/total*100)) + "%";
+  $("#reloj").classList.toggle("urgente", r <= 5);
+}
+function enlazar(){
+  document.querySelectorAll("[data-op]").forEach(b => b.onclick = async () => {
+    const i = +b.dataset.op, h = nodoActual().hijos[i];
+    if (h.hijos.length) { S.ruta.push(i); return pintar(); }
+    document.querySelectorAll("[data-op]").forEach(x => x.disabled = true);
+    await orden("accion", {ronda: S.estado.ronda, ruta: S.ruta.concat(i), id: S.codigo + "-" + S.estado.ronda + "-" + Date.now()});
+  });
+  if ($("#volver")) $("#volver").onclick = () => { S.ruta.pop(); pintar(); };
+  if ($("#pausa")) $("#pausa").onclick = () => orden("pausa", {pausar: !S.estado.pausado});
+  if ($("#seguir")) $("#seguir").onclick = () => orden("continuar");
+  pintarReloj();
+}
+
+/* ---------- resultado: propagacion por el grafo ---------- */
+function resultado(d){
+  const r = d.resultado, p = r.publicacion, mio = r.acciones.find(a => a.jugador === d.yo);
+  const tipo = {falsa:["ERA FALSA","var(--mal)"],verdadera:["ERA VERDADERA","var(--ok)"],opinion:["ERA UNA OPINIÓN","var(--aviso)"]}[p.tipo];
+  return `<section class="panel"><div class="res-tipo" style="color:${tipo[1]}">${tipo[0]}</div><p><b>${esc(p.texto)}</b></p>
+    <p class="suave">${esc(p.fuente)}</p>
+    <p>Llegó a <b>${r.n_alcanzados}</b> de 16 ciudadanos en <b>${r.saltos}</b> ${r.saltos === 1 ? "salto" : "saltos"}${r.protegidos.length?`; <b>${r.protegidos.length}</b> quedaron protegidos por reportes`:""}.
+    ${r.desmentida?'<br><b class="pos">Rumor desmentido a tiempo.</b>':""}${r.retirada?'<br><b class="pos">Civitas retiró la publicación.</b>':""}</p>
+    ${grafo(r, p)}
+    <div class="leyenda"><span style="--c:#9333ea">Fuente</span><span style="--c:#dc2626">Recibió el rumor</span><span style="--c:#16a34a">Información verificada</span><span style="--c:#f97316">Opinión</span><span style="--c:#0284c7">Protegido</span></div>
+    <h2>Qué hizo cada uno</h2>${r.acciones.map(a => `<div class="acc"><span><b>${esc(a.nombre)}</b> ${ACCION[a.accion]}</span><b class="${a.puntos>0?"pos":"neg"}">${a.puntos>0?"+":""}${a.puntos}</b></div>`).join("")}
+    ${mio ? `<p class="aviso" style="margin-top:12px"><b>${esc(mio.nota)}</b>${mio.logros_nuevos.map(l => `<br>¡Logro: ${esc(l)}!`).join("")}</p>` : ""}
+    ${d.yo===d.anfitrion ? '<button id="seguir" style="margin-top:12px">Siguiente ronda ›</button>' : '<p class="suave">La siguiente ronda empieza en unos segundos.</p>'}</section>`;
+}
+function grafo(r, p){
+  if (!S.grafo) return "";
+  const pos = {}, porZona = {};
+  S.grafo.nodos.filter(n => n.tipo === "ciudadano").forEach(n => (porZona[n.zona] = porZona[n.zona] || []).push(n));
+  for (const [z, ns] of Object.entries(porZona)) ns.forEach((n, k) => { const a = 2*Math.PI*k/ns.length - Math.PI/2;
+    pos[n.id] = [ZONAS[z][0] + 95*Math.cos(a), ZONAS[z][1] + 62*Math.sin(a)]; });
+  const color = n => r.niveles[0] && r.niveles[0].includes(n) ? "#9333ea" : r.protegidos.includes(n) ? "#0284c7" :
+    r.alcanzados.includes(n) ? ({falsa:"#dc2626",verdadera:"#16a34a",opinion:"#f97316"}[p.tipo]) : "#64748b";
+  let s = `<svg viewBox="80 20 840 650" role="img" aria-label="Propagación de la publicación entre los ciudadanos de Ciudad Nova"><defs>
+    <marker id="fl" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#16a34a"/></marker></defs>`;
+  CALLES.forEach(([a,b]) => s += `<line x1="${ZONAS[a][0]}" y1="${ZONAS[a][1]}" x2="${ZONAS[b][0]}" y2="${ZONAS[b][1]}" stroke="currentColor" stroke-opacity=".15" stroke-width="22" stroke-linecap="round"/>`);
+  for (const [z,[x,y]] of Object.entries(ZONAS)) s += `<text x="${x}" y="${y+5}" text-anchor="middle" font-size="22" font-weight="800" fill="currentColor" fill-opacity="${z===p.zona?1:.35}">${z==="alcaldia"?"ALCALDÍA":z.toUpperCase()}</text>`;
+  for (const [h, pa] of Object.entries(r.padres)) if (pos[h] && pos[pa]) {
+    const [x1,y1] = pos[pa], [x2,y2] = pos[h], dx = x2-x1, dy = y2-y1, l = Math.hypot(dx,dy) || 1;
+    s += `<line x1="${x1+dx/l*16}" y1="${y1+dy/l*16}" x2="${x2-dx/l*18}" y2="${y2-dy/l*18}" stroke="#16a34a" stroke-width="3" marker-end="url(#fl)"/>`; }
+  S.grafo.nodos.filter(n => pos[n.id]).forEach(n => { const [x,y] = pos[n.id];
+    s += `<circle cx="${x}" cy="${y}" r="15" fill="${color(n.id)}" stroke="#fff" stroke-width="2"/><text x="${x}" y="${y+33}" text-anchor="middle" font-size="16" fill="currentColor">${esc(n.nombre)}</text>`; });
+  return s + "</svg>";
+}
+
+/* ---------- final: eleccion ---------- */
+function pintarFinal(d){
+  clearInterval(S.timer);
+  const f = d.final, total = Math.max(1, ...Object.values(f.votos));
+  const nombres = {vega:"Tomás Vega",ortega:"Juan Ortega",prado:"Inés Prado",ruiz:"Elena Ruiz"};
+  $("#vistas").innerHTML = `<section class="panel"><h2>Elección de alcalde</h2><p style="font-size:1.4rem;font-weight:800;color:var(--acento)">Gana ${esc(f.ganador_nombre)}</p>
+    <div class="votos">${Object.keys(nombres).map(c => `<div class="v ${c===f.ganador?"gana":""}"><span>${nombres[c]}</span><div><i style="width:${f.votos[c]/total*100}%"></i></div><b>${f.votos[c]}</b></div>`).join("")}</div>
+    <p class="suave">Abstención: ${f.abstencion} ciudadanos</p><h2>¿Por qué ganó?</h2><ul>${f.explicacion.map(e => `<li>${esc(e)}</li>`).join("")}</ul></section>
+  <section class="panel"><h2>Resultado de la ciudad</h2><p style="font-size:1.2rem;font-weight:800;color:var(--ok)">${esc(f.ciudad.titulo)} (${f.ciudad.indice}/100)</p><p>${esc(f.ciudad.texto)}</p></section>
+  <section class="panel"><h2>Clasificación de la sala</h2><ol>${f.ranking.map(j => `<li><b class="c-${j.rol}">${esc(j.nombre)}</b> (${j.rol_nombre}): ${j.puntos} puntos, reputación ${j.reputacion}${j.logros.length?`<br><span class="suave">Logros: ${j.logros.map(esc).join(", ")}</span>`:""}</li>`).join("")}</ol>
+    <div class="fila"><button id="otra">Jugar otra partida</button></div></section>
+  <section class="panel"><h2>Clasificación de Civitas (modo Historia)</h2><div id="global" class="suave">Cargando…</div></section>`;
+  $("#otra").onclick = () => { history.replaceState(null, "", location.pathname); S = Object.assign(S, {codigo:null, token:null, estado:null, version:-1, ronda:null}); pintarInicio(); };
+  fetch("/api/leaderboard?mode=historia&limit=5").then(r => r.json()).then(d => {
+    const top = d.top || d.entries || d;
+    $("#global").innerHTML = Array.isArray(top) && top.length ? "<ol>" + top.map(e => `<li>${esc(e.alias)}: ${e.score} (${esc(e.final_title||"")})</li>`).join("") + "</ol>" : "Aún no hay partidas verificadas.";
+  }).catch(() => $("#global").textContent = "No se pudo cargar la clasificación.");
+}
+
+/* ---------- arranque: reconexion automatica ---------- */
+(function(){
+  const sala = (new URL(location.href).searchParams.get("sala") || "").toUpperCase();
+  const token = sala && leer(sala);
+  if (sala && token) { S.codigo = sala; S.token = token; iniciarSondeo(); } else pintarInicio();
+})();
+</script>
+</body>
+</html>

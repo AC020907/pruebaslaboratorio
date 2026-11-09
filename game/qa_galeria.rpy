@@ -314,6 +314,12 @@ label qa_gal_finales:
     while i_gal < len(destinos.FINALES):
         $ final_gal = destinos.FINALES[i_gal]
         $ estado_envio = envios_gal[i_gal]
+        $ ind_gal = {"info_verificada": 70 - i_gal * 10, "confianza": 72 - i_gal * 11, "convivencia": 60, "bienestar": 60,
+                     "desinformacion": 20 + i_gal * 14, "conflictos": 15 + i_gal * 12}
+        $ from clases.Eleccion import escrutinio_historia as _esc_gal
+        show screen escrutinio_historia(_esc_gal(final_gal, ind_gal, 70 - i_gal * 8, 1))
+        call qa_foto("f%02d_escrutinio_%s" % (i_gal + 1, final_gal), 1.6)
+        hide screen escrutinio_historia
         show screen pantalla_resultados(final_gal, resultado_qa, i_gal % 2 == 0)
         call qa_foto("f%02d_resultados_%s" % (i_gal + 1, final_gal), 2.4)
         hide screen pantalla_resultados
@@ -352,6 +358,10 @@ label qa_gal_dialogo:
 ## ALCALDE_QA_ETAPA=arena (crea la sala) | arena_cliente (se une a 127.0.0.1). El resto de la sala la
 ## completan otros procesos (otro Ren'Py y tests/arena_bot.py), lanzados por tests/qa_visual.py.
 init python:
+    def qa_gal_modo_arena():
+        import os as _o
+        return _o.environ.get("ALCALDE_QA_ARENA_MODO", "feria")
+
     qa_ar = {"fotos_ronda": set(), "fotos_res": set(), "ultimo": 0.0, "final": False}
 
     def elegir_ruta_qa(arbol):
@@ -380,13 +390,40 @@ init python:
                 qa_ar["fotos_ronda"].add("sala")
                 qa_gal_foto(pref + "02_sala")
             return None
+        if c.prueba and AS.prueba_jugada != c.prueba["indice"]:
+            k = "prueba%d" % c.prueba["indice"]
+            if k not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add(k)
+                qa_ar["ultimo"] = ahora
+            elif ahora - qa_ar["ultimo"] > 1.5:
+                qa_gal_foto(pref + "%02d_prueba_%s" % (60 + c.prueba["indice"] * 4, c.prueba["clave"]))
+                return "prueba"
+            return None
+        if c.prueba and c.mi_resultado and ("espera%d" % c.prueba["indice"]) not in qa_ar["fotos_res"]:
+            qa_ar["fotos_res"].add("espera%d" % c.prueba["indice"])
+            qa_gal_foto(pref + "%02d_espera_%s" % (61 + c.prueba["indice"] * 4, c.prueba["clave"]))
+            return None
+        if c.resumen and not c.final:
+            k = "resumen%d" % c.resumen["indice"]
+            if k not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add(k)
+                qa_ar["ultimo"] = ahora
+            elif ahora - qa_ar["ultimo"] > 1.5 and ("f" + k) not in qa_ar["fotos_res"]:
+                qa_ar["fotos_res"].add("f" + k)
+                qa_gal_foto(pref + "%02d_resumen_%s" % (62 + c.resumen["indice"] * 4, c.resumen["clave"]))
+                qa_gal["eventos"].append(("resumen", c.resumen["clave"], c.resumen["ganador"],
+                                          {j: r["normalizado"] for j, r in c.resumen["resultados"].items()}))
+                if AS.servidor:
+                    c.enviar("continuar")
+            return None
         if c.final:
             if not qa_ar["final"]:
                 qa_ar["final"] = ahora
             elif ahora - qa_ar["final"] > 1.5 and "final" not in qa_ar["fotos_res"]:
                 qa_ar["fotos_res"].add("final")
                 qa_gal_foto(pref + "90_eleccion_final")
-                qa_gal["eventos"].append(("final", c.final["ganador"], c.final["votos"], c.final["ciudad"]["indice"]))
+                qa_gal["eventos"].append(("final", c.final["ganador"], c.final["votos"], c.final["ciudad"]["indice"],
+                                          (c.final.get("torneo") or {}).get("campeon")))
                 return False
             return None
         if c.ronda and not c.ya_decidi():
@@ -430,6 +467,8 @@ label qa_gal_arena:
     $ qa_pad_limite = 900
     $ qa_pad_vigilante_hilo(400)
     $ anfitrion_qa = etapa_gal == "arena"
+    $ qa_arena_torneo_auto = True   # las pruebas se entregan con decisiones de bot (el servidor las puntua igual)
+    $ AS.modo = qa_gal_modo_arena()
     $ persistent.avisos_sonido = not anfitrion_qa
     $ pref_qa = "a_%s_" % ("host" if anfitrion_qa else "cliente")
     show screen arena_inicio
@@ -447,7 +486,13 @@ label qa_gal_arena:
             $ intentos_qa += 1
     $ qa_gal["eventos"].append(("conectado", ok_qa is True))
     show screen qa_arena_auto
-    call screen arena_partida
+    $ arena_seguir = True
+    while arena_seguir:
+        call screen arena_partida
+        if _return == "prueba":
+            call arena_jugar_prueba
+        else:
+            $ arena_seguir = False
     hide screen qa_arena_auto
     $ renpy.show_screen("ayuda_civitas", pestana="arena")
     call qa_foto(pref_qa + "95_ayuda_arena", 1.0)

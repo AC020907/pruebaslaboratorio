@@ -32,6 +32,9 @@ class ClienteArena(object):
         self.arbol = None
         self.resultado = None
         self.final = None
+        self.prueba = None            # spec de la prueba del torneo en curso
+        self.mi_resultado = None
+        self.resumen = None
         self.error = None
         self.cerrado = None
         self.restante_hasta = None    # instante local en que vence la ronda segun el servidor
@@ -81,7 +84,7 @@ class ClienteArena(object):
 
     def enviar(self, tipo, **datos):
         mensaje = dict(datos, tipo=tipo, id=uuid.uuid4().hex[:16])
-        if tipo == "accion":
+        if tipo in ("accion", "resultado_prueba"):
             self.pendientes[mensaje["id"]] = mensaje
         with self.lock:
             self.sock.sendall(protocolo.codificar(mensaje))
@@ -103,6 +106,11 @@ class ClienteArena(object):
         if not self.ronda:
             return None
         return self.enviar("accion", ronda=self.ronda["ronda"], ruta=list(ruta))
+
+    def entregar_prueba(self, datos):
+        if not self.prueba:
+            return None
+        return self.enviar("resultado_prueba", indice=self.prueba["indice"], datos=datos)
 
     # ---------- procesamiento ----------
     def procesar(self):
@@ -154,21 +162,36 @@ class ClienteArena(object):
             self.resultado = msg["resultado"]
             self.ronda, self.arbol = None, None
             self.pendientes.clear()
+        elif tipo == "prueba":
+            self.prueba, self.resumen, self.ronda, self.arbol, self.resultado = msg["spec"], None, None, None, None
+            if not msg.get("ya_entregaste"):
+                self.mi_resultado = None
+            if msg.get("limite") is not None:
+                self.restante_hasta = time.monotonic() + msg["limite"]
+        elif tipo == "mi_resultado":
+            self.mi_resultado = msg["resultado"]
+            self.pendientes.clear()
+        elif tipo == "resumen_prueba":
+            self.resumen, self.prueba = msg["resumen"], None
+            self.pendientes.clear()
         elif tipo == "final":
             self.final = msg["final"]
+            self.prueba = None
         elif tipo == "ack":
             self.pendientes.pop(msg.get("ref"), None)
         elif tipo == "error":
             self.error = msg.get("mensaje")
             self.pendientes.pop(msg.get("ref"), None)
-        elif tipo in ("cierre", "_desconectado"):
-            self.cerrado = msg.get("mensaje", "Se perdió la conexión con el servidor.")
+        elif tipo == "cierre":
+            self.cerrado = msg.get("mensaje", "El servidor se cerró.")
+        elif tipo == "_desconectado" and not self.cerrado:   # no tapar el motivo que dio el servidor
+            self.cerrado = "Se perdió la conexión con el servidor."
 
     # ---------- consultas para la interfaz ----------
     def restante(self):
         if self.estado and self.estado.get("pausado"):
             return self.estado.get("restante") or 0
-        if self.restante_hasta is None or self.ronda is None:
+        if self.restante_hasta is None or (self.ronda is None and self.prueba is None):
             return None
         return max(0.0, self.restante_hasta - time.monotonic())
 

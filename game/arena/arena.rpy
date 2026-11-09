@@ -21,6 +21,11 @@ init -5 python:
     ARENA_CENTRO_ZONA = {"colegio": (1290, 290), "barrio": (1290, 470), "parque": (1035, 645),
                          "plaza": (1545, 645), "alcaldia": (1545, 830)}
 
+    def arena_url_online():
+        """Pagina de la Arena Online (servidor del leaderboard). Vacia si no hay servidor configurado."""
+        base = url_api()
+        return (base + "/arena") if base else ""
+
     def arena_error(texto):
         store.arena_mensaje = texto
         renpy.restart_interaction()
@@ -30,8 +35,9 @@ init -5 python:
         try:
             import uuid as _uuid
             AS.clave = _uuid.uuid4().hex
-            AS.servidor = ServidorArena(puerto=AP.PUERTO, rondas=ARENA_RONDAS, segundos=ARENA_SEGUNDOS,
-                                        clave_anfitrion=AS.clave)
+            torneo = None if AS.modo == "clasica" else AS.modo
+            AS.servidor = ServidorArena(puerto=AP.PUERTO, rondas=None if torneo else ARENA_RONDAS,
+                                        segundos=ARENA_SEGUNDOS, clave_anfitrion=AS.clave, torneo=torneo)
             AS.servidor.iniciar()
         except OSError:
             AS.servidor = None
@@ -55,6 +61,7 @@ init -5 python:
             AS.cliente = None
             return arena_error(texto)
         AS.ruta, AS.ronda_vista, AS.resultado_visto, AS.final_visto = [], None, None, False
+        AS.prueba_jugada, AS.resumen_visto = None, None
         arena_preparar_grafo()
         store.arena_mensaje = ""
         return True
@@ -91,6 +98,9 @@ init -5 python:
             AS.resultado_visto = c.resultado["ronda"]
             mio = arena_mi_resultado()
             sfx("logro" if mio and mio["logros_nuevos"] else ("pista" if mio and mio["puntos"] > 0 else "error"))
+        if c.resumen and c.resumen["indice"] != AS.resumen_visto:
+            AS.resumen_visto = c.resumen["indice"]
+            sfx("logro" if c.resumen["ganador"] == c.jugador_id else "pagina")
         if c.final and not AS.final_visto:
             AS.final_visto = True
             sfx("logro")
@@ -98,7 +108,7 @@ init -5 python:
         if c.ronda and restante is not None and restante <= 5 and AS.aviso_tiempo is None and not c.ya_decidi():
             AS.aviso_tiempo = True
             sfx("alarma")
-        if cambios or (c.ronda and not c.ya_decidi()):
+        if cambios or (c.ronda and not c.ya_decidi()) or c.prueba:
             renpy.restart_interaction()
 
     def arena_reconectar():
@@ -264,7 +274,13 @@ label arena:
         return
     call screen arena_inicio
     if _return:
-        call screen arena_partida
+        $ arena_seguir = True
+        while arena_seguir:
+            call screen arena_partida
+            if _return == "prueba":
+                call arena_jugar_prueba
+            else:
+                $ arena_seguir = False
     $ arena_salir()
     $ _game_menu_screen = "save"
     return
@@ -279,8 +295,11 @@ screen arena_solo_escritorio():
         vbox:
             spacing 18
             text "ARENA CIVITAS" style "arena_titulo"
-            text "El modo multijugador usa sockets TCP en la red local, y los navegadores no permiten abrirlos. Juega la Arena en la versión de escritorio (Windows): un equipo crea la sala y los demás se unen con su IP." style "arena_texto"
-            textbutton "Volver" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return() default_focus True
+            text "En el navegador la Arena se juega online: cada persona abre la Arena en su teléfono o computador, una crea la sala y comparte el código. La Arena de red local (sockets TCP) está en la versión de escritorio." style "arena_texto"
+            if arena_url_online():
+                textbutton "Abrir Arena Online" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action OpenURL(arena_url_online()) default_focus True
+                text arena_url_online() style "arena_nota" xalign 0.5
+            textbutton "Volver" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return()
 
 screen arena_inicio():
     modal True
@@ -307,6 +326,12 @@ screen arena_inicio():
                     action SetScreenVariable("editando", "nombre")
                     input value ScreenVariableInputValue("nombre") length 20 style "arena_input" changed None:
                         default (editando == "nombre")
+            hbox:
+                spacing 14
+                text "Modo:" style "arena_texto" yalign 0.5
+                for m, etiqueta in ARENA_MODOS:
+                    textbutton etiqueta style "arena_modo" text_style "arena_modo_texto" selected (AS.modo == m) action [SetField(AS, "modo", m), Function(sfx, "pagina")]
+            text ARENA_DESCRIPCION_MODO[AS.modo] style "arena_nota"
             text "Elige tu rol (no se puede repetir en la sala):" style "arena_texto"
             hbox:
                 spacing 14
@@ -342,7 +367,12 @@ screen arena_inicio():
                 textbutton "Volver" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 86 action Return(False)
             if arena_mensaje:
                 text arena_mensaje style "arena_texto" color "#c0392b" xalign 0.5
-            textbutton "AYUDA: roles, reglas y cómo ganar" style "arena_link" xalign 0.5 action Show("ayuda_civitas", pestana="arena")
+            hbox:
+                xalign 0.5
+                spacing 30
+                textbutton "AYUDA: roles, reglas y cómo ganar" style "arena_link" action Show("ayuda_civitas", pestana="arena")
+                if arena_url_online():
+                    textbutton "¿Cada uno en su red o en el teléfono? Arena Online" style "arena_link" action OpenURL(arena_url_online())
 
 init python:
     def _arena_intentar(modo, nombre, rol, ip):
@@ -362,8 +392,14 @@ screen arena_partida():
         null
     elif c.cerrado and not c.final:
         use arena_aviso("Conexión perdida", c.cerrado, puede_reconectar=(AS.servidor is None and c.token is not None))
+    elif c.final and c.final.get("torneo"):
+        use arena_final_torneo(c)
     elif c.final:
         use arena_final(c)
+    elif c.prueba:
+        use arena_prueba(c)
+    elif c.resumen:
+        use arena_resumen_prueba(c)
     elif c.estado is None or c.estado["fase"] == "lobby":
         use arena_sala(c)
     else:
@@ -444,6 +480,8 @@ screen arena_sala(c):
                 text "Esperando a que marquen «Estoy listo»: %s" % ", ".join(faltan_sala) size 24 bold True color "#c58a1b"
             elif c.soy_anfitrion():
                 text "Todo listo: pulsa «Empezar»." size 24 bold True color "#2f9e8f"
+            if est.get("modo_torneo"):
+                text "Torneo %s: Consejo Cívico (%d rondas) + 5 pruebas: %s. Al final, la elección." % ("Feria" if est["modo_torneo"] == "feria" else "completo", est["total_rondas"], " · ".join(ARENA_NOMBRE_PRUEBA[k] for k in ARENA_PRUEBAS)) style "arena_nota"
             text "Se necesitan de 2 a 4 jugadores. Con 2 o 3, los roles que falten no juegan, pero los 4 candidatos siguen en la elección." style "arena_nota"
             hbox:
                 spacing 20
@@ -570,7 +608,7 @@ screen arena_resultado(c):
             text {"falsa": "ERA FALSA", "verdadera": "ERA VERDADERA", "opinion": "ERA UNA OPINIÓN"}[pub["tipo"]] size 30 bold True color {"falsa": "#c0392b", "verdadera": "#2f9e8f", "opinion": "#c58a1b"}[pub["tipo"]]
             text pub["texto"] size 22 bold True color "#2b2440"
             text pub["fuente"] size 18 color "#5b4f72"
-            text "Llegó a %d de %d ciudadanos en %d saltos (%.1f por salto)%s." % (res["n_alcanzados"], len(AR.CIUDADANOS), res["saltos"], res["velocidad"], ("; %d quedaron protegidos" % len(res["protegidos"])) if res["protegidos"] else "") size 20 color "#2b2440"
+            text "Llegó a %d de %d ciudadanos en %d %s (%.1f por salto)%s." % (res["n_alcanzados"], len(AR.CIUDADANOS), res["saltos"], "salto" if res["saltos"] == 1 else "saltos", res["velocidad"], ("; %d quedaron protegidos" % len(res["protegidos"])) if res["protegidos"] else "") size 20 color "#2b2440"
             if res["desmentida"]:
                 text "Rumor desmentido a tiempo." size 20 bold True color "#2f9e8f"
             if res["retirada"]:

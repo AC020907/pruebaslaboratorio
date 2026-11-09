@@ -16,6 +16,7 @@ from .config import Settings
 from .db import Store
 from .ratelimit import RateLimiter
 from .schemas import ENDINGS, ScoreSubmission, StartRequest, _uuid4
+from .arena_online import crear_router as crear_router_arena
 
 STATIC_DIR = Path(__file__).parent / "static"
 RUN_TTL_SECONDS = 24 * 3600
@@ -64,6 +65,11 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         "admin": (settings.rate_admin_per_hour, 3600),
         "player_scores": (settings.rate_player_scores_per_hour, 3600),
         "player_start": (settings.rate_player_start_per_hour, 3600),
+        # Arena Online: cada telefono consulta la sala ~1 vez por segundo. Cubo propio para no gastar el
+        # del leaderboard (en la feria muchos telefonos comparten una IP publica).
+        "arena_get": (6000, 60),
+        "arena_accion": (1200, 60),
+        "arena_crear": (120, 3600),
     })
     last_cleanup = [clock.utcnow()]
     app = FastAPI(title="Civitas Leaderboard", docs_url=None, redoc_url=None, openapi_url=None)
@@ -125,6 +131,8 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
             bucket = "scores"
         elif request.method == "POST" and path == "/api/runs/start":
             bucket = "start"
+        elif request.method in ("GET", "HEAD") and path.startswith("/api/arena/"):
+            bucket = "arena_get"
         elif request.method in ("GET", "HEAD"):
             bucket = "get"
         elif request.method == "DELETE" and path.startswith("/api/admin/"):
@@ -261,6 +269,14 @@ def create_app(settings: Optional[Settings] = None) -> FastAPI:
         if not store.delete_score(run_id):
             raise ApiError(404, "not_found", "Puntuacion no encontrada.")
         return {"deleted": True}
+
+    router_arena = crear_router_arena(ApiError, rate_limit, client_ip)
+    app.state.arena = router_arena.arena
+    app.include_router(router_arena)
+
+    @app.get("/arena", include_in_schema=False)
+    def arena_online():
+        return FileResponse(STATIC_DIR / "arena.html", media_type="text/html")
 
     @app.get("/", include_in_schema=False)
     def index():

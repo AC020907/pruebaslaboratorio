@@ -15,6 +15,7 @@ import uuid
 
 from clases.arena import protocolo
 from clases.arena.reglas import Partida, MIN_JUGADORES
+from clases.arena.torneo import TorneoArena, ResultadoInvalido, limite_segundos, MODOS_TORNEO
 
 MAX_MALFORMADOS = 5
 
@@ -40,7 +41,8 @@ class Sesion(object):
 
 class ServidorArena(object):
     def __init__(self, host="0.0.0.0", puerto=protocolo.PUERTO, semilla=None, rondas=5, segundos=25,
-                 pausa_resultado=8.0, reloj=time.monotonic, clave_anfitrion=None):
+                 pausa_resultado=8.0, reloj=time.monotonic, clave_anfitrion=None, torneo=None,
+                 pausa_resumen=12.0, escala_limite=1.0):
         self.host, self.puerto = host, puerto
         self.semilla = semilla if semilla is not None else int(time.time())
         self.rondas, self.segundos = rondas, segundos
@@ -50,7 +52,14 @@ class ServidorArena(object):
         # Sin clave (servidor dedicado), el anfitrion es el primero en unirse.
         self.clave_anfitrion = clave_anfitrion
         self.lock = threading.RLock()
-        self.partida = Partida(self.semilla, rondas, segundos)
+        if torneo and rondas is None:
+            rondas = MODOS_TORNEO[torneo]["rondas_civicas"]
+        self.partida = Partida(self.semilla, rondas or 5, segundos)
+        # Torneo: Consejo Civico -> 5 pruebas con los minijuegos -> eleccion. Sin torneo, la Arena clasica.
+        self.torneo = TorneoArena(self.partida, torneo) if torneo else None
+        self.partida.con_torneo = bool(torneo)
+        self.pausa_resumen = pausa_resumen
+        self.escala_limite = escala_limite   # las pruebas automaticas acortan la espera maxima
         self.sesiones = []
         self.tokens = {}              # token -> jid
         self.listos = set()
@@ -242,9 +251,28 @@ class ServidorArena(object):
     def _m_continuar(self, sesion, msg):
         if sesion.jid != self.anfitrion:
             return "Solo el anfitrión puede continuar."
-        if self.partida.fase != "resultado":
+        if self.partida.fase not in ("resultado", "resumen"):
             return "No hay un resultado que cerrar."
         self.siguiente_en = self.reloj()
+        return None
+
+    def _m_resultado_prueba(self, sesion, msg):
+        if sesion.jid is None:
+            return "Primero únete a la sala."
+        if self.torneo is None or self.partida.fase != "prueba":
+            return "No hay ninguna prueba abierta."
+        if msg["indice"] != self.torneo.indice:
+            return "Ese resultado es de otra prueba."
+        try:
+            puntuado = self.torneo.entregar(sesion.jid, msg["datos"])
+        except ResultadoInvalido as e:
+            self._log("resultado_invalido", sesion.jid, str(e))
+            return str(e)
+        self._log("entrega", sesion.jid, self.torneo.spec["clave"], puntuado["normalizado"])
+        sesion.enviar({"tipo": "mi_resultado", "seq": self._seq(), "indice": self.torneo.indice, "resultado": puntuado})
+        self._difundir_estado()
+        if self.torneo.todos_entregaron():
+            self._cerrar_prueba()
         return None
 
     def _m_salir(self, sesion, msg):
@@ -274,6 +302,11 @@ class ServidorArena(object):
                                ya_decidiste=sesion.jid in self.partida.acciones, **vista))
         elif self.partida.fase == "resultado" and self.partida.ultimo_resultado:
             sesion.enviar({"tipo": "resultado", "seq": self._seq(), "resultado": self.partida.ultimo_resultado})
+        elif self.partida.fase == "prueba" and self.torneo.spec:
+            sesion.enviar(dict(tipo="prueba", seq=self._seq(), spec=self.torneo.spec, limite=self._restante(),
+                               ya_entregaste=sesion.jid in self.torneo.entregas))
+        elif self.partida.fase == "resumen" and self.torneo.historial:
+            sesion.enviar({"tipo": "resumen_prueba", "seq": self._seq(), "resumen": self.torneo.historial[-1]})
         elif self.partida.fase == "final":
             sesion.enviar({"tipo": "final", "seq": self._seq(), "final": self.partida.eleccion})
 
@@ -296,12 +329,45 @@ class ServidorArena(object):
                     self._cerrar_ronda()
                 elif fase == "resultado" and self.siguiente_en is not None and ahora >= self.siguiente_en:
                     final = self.partida.cerrar_resultado()
-                    if final:
+                    if self.torneo and self.partida.consejo_terminado():
+                        self._abrir_prueba()
+                    elif final:
                         self._log("final", final["ganador"])
                         self._difundir({"tipo": "final", "final": final})
                         self._difundir_estado()
                     else:
                         self._abrir_ronda()
+                elif fase == "prueba" and self.limite is not None and ahora >= self.limite:
+                    self._log("prueba_tiempo_agotado", self.torneo.indice)
+                    self._cerrar_prueba()
+                elif fase == "resumen" and self.siguiente_en is not None and ahora >= self.siguiente_en:
+                    self._abrir_prueba()
+
+    # ---------- torneo de minijuegos ----------
+    def _abrir_prueba(self):
+        spec = self.torneo.abrir_siguiente()
+        if spec is None:
+            final = self.torneo.final()
+            self.partida.eleccion = final
+            self._log("final", final["ganador"], final["torneo"]["campeon"])
+            self._difundir({"tipo": "final", "final": final})
+            self._difundir_estado()
+            return
+        self.partida.fase = "prueba"
+        self.limite = self.reloj() + limite_segundos(spec) * self.escala_limite
+        self.siguiente_en = None
+        self._log("prueba", spec["clave"], spec["semilla"])
+        self._difundir({"tipo": "prueba", "spec": spec, "limite": self._restante(), "ya_entregaste": False})
+        self._difundir_estado()
+
+    def _cerrar_prueba(self):
+        resumen = self.torneo.cerrar_prueba()
+        self.partida.fase = "resumen"
+        self.limite = None
+        self.siguiente_en = self.reloj() + self.pausa_resumen
+        self._log("resumen", resumen["clave"], resumen["ganador"])
+        self._difundir({"tipo": "resumen_prueba", "resumen": resumen})
+        self._difundir_estado()
 
     # ---------- conexion ----------
     def _desconectar(self, sesion):
@@ -328,6 +394,8 @@ class ServidorArena(object):
                 self.partida.jugadores[jid].conectado = False
                 if self.partida.fase == "ronda" and self.partida.todos_decidieron():
                     self._cerrar_ronda()
+                elif self.partida.fase == "prueba" and self.torneo.todos_entregaron():
+                    self._cerrar_prueba()
             self._difundir_estado()
 
     # ---------- difusion ----------
@@ -343,13 +411,17 @@ class ServidorArena(object):
     def _difundir_estado(self):
         estado = self.partida.estado_publico()
         estado.update(anfitrion=self.anfitrion, listos=sorted(self.listos), pausado=self.restante_pausa is not None,
-                      restante=self._restante(), semilla=self.semilla)
+                      restante=self._restante(), semilla=self.semilla,
+                      modo_torneo=self.torneo.modo if self.torneo else None)
+        if self.torneo:
+            estado.update(prueba=self.torneo.indice, entregaron=sorted(self.torneo.entregas),
+                          clasificacion=self.torneo.clasificacion() if self.torneo.historial else None)
         self._difundir({"tipo": "estado", "estado": estado})
 
     def _restante(self):
         if self.restante_pausa is not None:
             return round(self.restante_pausa, 1)
-        if self.partida.fase == "ronda" and self.limite is not None:
+        if self.partida.fase in ("ronda", "prueba") and self.limite is not None:
             return round(max(0.0, self.limite - self.reloj()), 1)
         return None
 
