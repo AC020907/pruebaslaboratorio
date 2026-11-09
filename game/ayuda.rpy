@@ -76,6 +76,8 @@ screen ayuda_arena():
     text "3. Cuando todos marcan «Listo», el anfitrión pulsa «Empezar». Hay 5 rondas. En cada una aparece una publicación y todos deciden a la vez, contra el reloj." style "ayuda_p"
     text "4. El servidor junta las decisiones, propaga la publicación por el grafo social de Ciudad Nova, cambia los indicadores y reparte puntos. Verás quién la recibió, quién quedó protegido y por qué." style "ayuda_p"
     text "5. Al terminar se vota alcalde entre Tomás Vega, Juan Ortega, Inés Prado y Elena Ruiz. El resultado explica qué decisiones movieron los votos." style "ayuda_p"
+    text "Arena Online (teléfonos o computadores en redes distintas)" style "ayuda_h"
+    text "1. Abre la Arena Online (botón en el menú de la Arena, o en la versión web). 2. Una persona pulsa «Crear sala» y comparte el código de 5 letras o el enlace de invitación. 3. Las demás escriben el código, eligen un rol libre y pulsan «Estoy listo». 4. Si alguien recarga la página o pierde la señal, al volver a abrir el enlace sigue en su puesto." style "ayuda_p"
     text "Si alguien pierde la conexión durante la partida, su puesto se guarda y la ronda sigue sin él; con «Reconectar» vuelve a su mismo puesto. El anfitrión puede pausar una ronda y añadir jugadores automáticos si falta gente." style "ayuda_p"
 
 screen ayuda_personajes():

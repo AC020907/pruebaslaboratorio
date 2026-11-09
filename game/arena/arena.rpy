@@ -21,6 +21,11 @@ init -5 python:
     ARENA_CENTRO_ZONA = {"colegio": (1290, 290), "barrio": (1290, 470), "parque": (1035, 645),
                          "plaza": (1545, 645), "alcaldia": (1545, 830)}
 
+    def arena_url_online():
+        """Pagina de la Arena Online (servidor del leaderboard). Vacia si no hay servidor configurado."""
+        base = url_api()
+        return (base + "/arena") if base else ""
+
     def arena_error(texto):
         store.arena_mensaje = texto
         renpy.restart_interaction()
@@ -279,8 +284,11 @@ screen arena_solo_escritorio():
         vbox:
             spacing 18
             text "ARENA CIVITAS" style "arena_titulo"
-            text "El modo multijugador usa sockets TCP en la red local, y los navegadores no permiten abrirlos. Juega la Arena en la versión de escritorio (Windows): un equipo crea la sala y los demás se unen con su IP." style "arena_texto"
-            textbutton "Volver" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return() default_focus True
+            text "En el navegador la Arena se juega online: cada persona abre la Arena en su teléfono o computador, una crea la sala y comparte el código. La Arena de red local (sockets TCP) está en la versión de escritorio." style "arena_texto"
+            if arena_url_online():
+                textbutton "Abrir Arena Online" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action OpenURL(arena_url_online()) default_focus True
+                text arena_url_online() style "arena_nota" xalign 0.5
+            textbutton "Volver" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return()
 
 screen arena_inicio():
     modal True
@@ -342,7 +350,12 @@ screen arena_inicio():
                 textbutton "Volver" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 86 action Return(False)
             if arena_mensaje:
                 text arena_mensaje style "arena_texto" color "#c0392b" xalign 0.5
-            textbutton "AYUDA: roles, reglas y cómo ganar" style "arena_link" xalign 0.5 action Show("ayuda_civitas", pestana="arena")
+            hbox:
+                xalign 0.5
+                spacing 30
+                textbutton "AYUDA: roles, reglas y cómo ganar" style "arena_link" action Show("ayuda_civitas", pestana="arena")
+                if arena_url_online():
+                    textbutton "¿Cada uno en su red o en el teléfono? Arena Online" style "arena_link" action OpenURL(arena_url_online())
 
 init python:
     def _arena_intentar(modo, nombre, rol, ip):
