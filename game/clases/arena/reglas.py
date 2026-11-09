@@ -240,6 +240,7 @@ class Partida:
         self.usadas = []
         self.desmentidas = set()
         self.eleccion = None
+        self.con_torneo = False         # el torneo de minijuegos va entre el Consejo y la eleccion
 
     # ----- lobby -----
     def unir(self, jid, nombre, rol):
@@ -513,8 +514,11 @@ class Partida:
             dar("Siempre presente")
         return nuevos
 
+    def consejo_terminado(self):
+        return self.ronda >= self.total_rondas
+
     def cerrar_resultado(self):
-        if self.ronda >= self.total_rondas:
+        if self.consejo_terminado() and not self.con_torneo:
             return self.elegir_alcalde()
         return None
 

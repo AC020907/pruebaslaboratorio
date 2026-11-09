@@ -21,8 +21,10 @@ MENSAJES_CLIENTE = {
     "continuar": {},
     "salir": {},
     "ping": {},
+    "resultado_prueba": {"indice": (int,), "datos": (dict,)},
 }
-OBLIGATORIOS = {"hola": ("nombre", "rol"), "listo": ("listo",), "accion": ("ronda", "ruta"), "pausa": ("pausar",)}
+OBLIGATORIOS = {"hola": ("nombre", "rol"), "listo": ("listo",), "accion": ("ronda", "ruta"), "pausa": ("pausar",),
+               "resultado_prueba": ("indice", "datos")}
 
 
 class ErrorProtocolo(Exception):

@@ -9,6 +9,7 @@ import threading
 import time
 
 from clases.arena.cliente import ClienteArena
+from clases.arena.torneo import payload_bot
 
 SENALES_DE_ALERTA = ("no tiene fecha", "me lo contaron", "exageración", "mayúsculas", "no muestra",
                      "no hay ninguna", "no hay ningún", "sintético", "montaje", "insulta", "no afirma")
@@ -35,10 +36,11 @@ def elegir_ruta(arbol, politica, rng):
 
 
 class BotArena(object):
-    def __init__(self, host, puerto, rol, nombre=None, politica="responsable", semilla=0, demora=(1.5, 4.0)):
+    def __init__(self, host, puerto, rol, nombre=None, politica="responsable", semilla=0, demora=(1.5, 4.0), nivel=None):
         self.cliente = ClienteArena(host, puerto)
         self.rol, self.nombre = rol, nombre or "%s (bot)" % rol.capitalize()
         self.politica, self.rng, self.demora = politica, random.Random(semilla), demora
+        self.nivel = nivel if nivel is not None else {"responsable": .8, "azar": .5}.get(politica, .3)
         self.activo = False
 
     def iniciar(self):
@@ -63,4 +65,11 @@ class BotArena(object):
                 hechas.add(c.ronda["ronda"])
                 time.sleep(self.rng.uniform(*self.demora))   # como una persona: no contesta al instante
                 c.decidir(elegir_ruta(c.arbol, self.politica, self.rng))
+            if c.prueba and ("p", c.prueba["indice"]) not in hechas:
+                hechas.add(("p", c.prueba["indice"]))
+                time.sleep(self.rng.uniform(*self.demora))
+                try:
+                    c.entregar_prueba(payload_bot(c.prueba, self.nivel, self.rng))
+                except OSError:   # se detuvo el bot mientras "jugaba"
+                    return
             time.sleep(0.05)
