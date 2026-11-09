@@ -75,3 +75,21 @@ Copia el archivo grabado como `game/voice/{Identifier}.ogg`. La herramienta nunc
 - Solo hay 2 voces es-MX (una femenina, una masculina): las identidades se separan por tono, velocidad, timbre (EQ/saturación) y, en NOVA, efectos.
 - Anglicismos (`live`, `reposts`, `Civitas`) pueden sonar raros; hay un diccionario mínimo en `texto_es.py`.
 - Las líneas con `[interpolación]` requieren voz manual o reescribir la línea.
+
+## Voces humanas con ElevenLabs
+
+Motor opcional con voces naturales, de la biblioteca de ElevenLabs en español latinoamericano:
+- **Elección de voces:** los Voice ID y los ajustes de cada personaje (`ELEVEN_VOCES`) y la emoción del guion (`ELEVEN_EMOCION`) están en `perfiles.py`.
+- **Procesado:** no se cambia el tono ni el timbre; solo se recorta, se normaliza el volumen y se aplica el efecto robótico a NOVA.
+
+1. Crea la clave en elevenlabs.io (*API Keys*) y guárdala solo en tu equipo:
+   - Comando: `setx ELEVENLABS_API_KEY "..."`.
+   - No va al repositorio y el script nunca la imprime.
+2. Genera muestras: N líneas por personaje, variando las emociones, en una carpeta aparte:
+   `python tools/voces/generar_voces.py --tab tools/voces/dialogue.tab --motor elevenlabs --muestra 3 --out tools/voces/muestras_eleven`
+   - Para comparar con la segunda voz de cada personaje: añade `--alt --out tools/voces/muestras_eleven_alt`.
+3. Cuando te gusten, dobla el juego: `python tools/voces/generar_voces.py --tab tools/voces/dialogue.tab --motor elevenlabs`.
+   - Sustituye las voces de Windows, pero nunca las grabaciones humanas (salvo con `--overwrite-manual`).
+   - Consumo: unos 23.000 caracteres para las 298 líneas.
+
+El texto de las líneas vecinas se envía como contexto (`previous_text` y `next_text`) para que la entonación continúe entre líneas.

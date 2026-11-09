@@ -115,3 +115,37 @@ NOT_VOICED = {
     "civitas": "interfaz Civitas (no se dobla)",
     "": "narrador (no se dobla)",
 }
+
+
+# ---------- ElevenLabs (voces humanas y naturales) ----------
+# Voice IDs elegidos en la biblioteca de ElevenLabs (espanol latinoamericano). "alt" = segunda opcion para comparar.
+# stability: baja = mas expresiva; similarity: fidelidad al timbre; style: exageracion; speed: 0.7-1.2.
+ELEVEN_MODEL = "eleven_multilingual_v2"
+ELEVEN_VOCES = {
+    "c": {"voice_id": "jBlmi27XRORxjPquUeCh", "alt": "pByxw7qatlX3pUp9m0XD",
+          "stability": 0.50, "similarity": 0.80, "style": 0.20, "speed": 1.0},
+    "m": {"voice_id": "tSnfesUMPgbLTdwP0t2V", "alt": "zJtOCbdQjTZt7YZtkRDP",
+          "stability": 0.35, "similarity": 0.80, "style": 0.45, "speed": 1.05},
+    "r": {"voice_id": "RyfjEHnKbtma4Srae2za", "alt": "GTY55jD77hLBRrnQOhNk",
+          "stability": 0.55, "similarity": 0.80, "style": 0.20, "speed": 0.95},
+    "t": {"voice_id": "YqZLNYWZm98oKaaLZkUA", "alt": "jUzQhbFtXaz1lwDyMfJr",
+          "stability": 0.65, "similarity": 0.80, "style": 0.10, "speed": 0.92},
+    "n": {"voice_id": "K3TeN3ZVK8WnOeJ0NYqZ", "alt": "t3eeeqhBjrUqcrPvDqUn",
+          "stability": 0.85, "similarity": 0.75, "style": 0.0, "speed": 0.95},
+}
+# Emocion del guion -> ajuste (menos estabilidad y mas estilo = mas emocion).
+ELEVEN_EMOCION = {
+    "feliz": {"stability": -0.10, "style": 0.15, "speed": 0.03},
+    "triste": {"stability": 0.05, "style": 0.10, "speed": -0.07},
+    "enojada": {"stability": -0.15, "style": 0.25, "speed": 0.03},
+    "sorprendida": {"stability": -0.12, "style": 0.20, "speed": 0.02},
+    "seria": {"stability": 0.08, "style": 0.0, "speed": -0.03},
+}
+
+
+def perfil_eleven(char):
+    """Perfil de post-proceso para voces humanas: sin cambios de tono/timbre; solo limpieza, volumen y el efecto de NOVA."""
+    base = PROFILES[char]
+    return {"name": base["name"], "max_pause_ms": 900, "loudness_offset_db": base.get("loudness_offset_db", 0.0),
+            "emotion_scale": base["emotion_scale"], "tone_db": 0.0, "drive": 0.0, "shift": 1.0,
+            "nova_fx": base.get("nova_fx")}
