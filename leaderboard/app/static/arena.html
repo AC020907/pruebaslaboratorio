@@ -66,6 +66,18 @@ svg{width:100%;height:auto;display:block}
 .votos .v.gana div i{background:var(--acento)}
 .aviso{background:var(--bg);border:1px dashed var(--borde);border-radius:10px;padding:10px;font-size:.92rem}
 .oculto{display:none!important}
+#capaDuelo{position:fixed;inset:0;z-index:50;background:#08050f;color:#fbf6ee}
+#lienzo{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
+.duelInfo{position:absolute;left:50%;top:18%;transform:translateX(-50%);width:min(92vw,520px);pointer-events:none}
+.duelCard{pointer-events:auto;background:#1f1830ee;border:1px solid #3a3150;border-radius:16px;padding:18px;text-align:center}
+.duelCard h2{margin:.2em 0;color:#facc15;letter-spacing:.05em}.duelCard .suave{color:#c9b8d8}.duelCard.mini{padding:10px}
+.duelCard .grande{font-size:2.4rem;font-weight:900;color:#5eead4;margin:.1em 0}.duelCard .tag{color:#f4b6c2}
+.ganador h2.gana{font-size:1.6rem;color:var(--acento);animation:gana .9s ease-out}
+@keyframes gana{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.ganador h2.gana{animation:none}}
+.fduelo{display:grid;grid-template-columns:minmax(0,9em) 1fr 3em;gap:4px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--borde)}
+.fduelo .suave{grid-column:1/-1;font-size:.82rem}.fduelo.top b:first-child::after{content:" \2605";color:var(--aviso)}
+ol.torneo li{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;padding:4px 0}ol.torneo li>b:last-child{margin-left:auto}
 </style>
 </head>
 <body>
@@ -75,6 +87,7 @@ svg{width:100%;height:auto;display:block}
   <div id="vistas"></div>
   <p class="error" id="error" role="alert"></p>
 </main>
+<script src="/static/ritmo_motor.js"></script>
 <script>
 "use strict";
 const API = "/api/arena";
@@ -128,6 +141,11 @@ function pintarInicio(){
   <section class="panel">
     <h2>…o crear una nueva</h2>
     <p class="suave">Te damos un código para compartir. Si estás solo, podrás completar la sala con jugadores automáticos.</p>
+    <label class="suave" style="display:flex;gap:8px;align-items:center;font-weight:400"><input type="checkbox" id="conDuelo" checked style="width:auto">
+      <span>Gran final: <b>Duelo de Frecuencias</b> (juego de ritmo, con sonido)</span></label>
+    <label for="cancion" class="suave" style="font-weight:400">Canción del duelo</label>
+    <select id="cancion" style="width:100%;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--borde);background:var(--bg);color:var(--fg);margin-bottom:10px">
+      <option value="feria">Feria (36 s, 43 notas)</option><option value="historia">Historia (72 s, 98 notas)</option></select>
     <button id="btnCrear" class="sec">Crear sala</button>
   </section>`;
   document.querySelectorAll(".rol").forEach(b => b.onclick = () => { S.rol = b.dataset.rol;
@@ -139,7 +157,7 @@ async function entrar(codigo){
   const nombre = $("#nombre").value.trim();
   if (codigo !== null && !/^[A-Z0-9]{5}$/.test(codigo)) return error("El código tiene 5 letras o números.");
   try {
-    const d = codigo ? await llamar("POST", `/salas/${codigo}/unir`, {nombre, rol:S.rol}) : await llamar("POST", "/salas", {nombre, rol:S.rol});
+    const d = codigo ? await llamar("POST", `/salas/${codigo}/unir`, {nombre, rol:S.rol}) : await llamar("POST", "/salas", {nombre, rol:S.rol, duelo: $("#conDuelo").checked, modo_duelo: $("#cancion").value});
     S.codigo = d.codigo; S.token = d.token; guardar(); error("");
     history.replaceState(null, "", "?sala=" + S.codigo);
     iniciarSondeo();
@@ -156,13 +174,17 @@ function iniciarSondeo(){ clearInterval(S.timer); refrescar(); S.timer = setInte
 async function refrescar(){
   if (!S.codigo) return;
   try {
+    const t0 = performance.now();
     const d = await llamar("GET", `/salas/${S.codigo}?token=${encodeURIComponent(S.token)}&grafo=${S.grafo ? 0 : 1}`);
+    if (d.duelo) { D.sync.agregar(t0, performance.now(), d.duelo.inicio_en_ms); prepararDuelo(d.duelo.modo).catch(() => {}); if (D.motor) programarInicio(); }
+    else if (d.duelo_modo && d.ronda >= d.total_rondas - 2) prepararDuelo(d.duelo_modo).catch(() => {});   // precarga
     if (d.grafo) S.grafo = d.grafo;
     S.fallos = 0;
     const cambio = d.version !== S.version || d.fase !== (S.estado && S.estado.fase);
     S.estado = d;
     if (d.fase === "ronda" && S.ronda !== d.ronda) { S.ronda = d.ronda; S.ruta = []; }
-    if (cambio) { S.version = d.version; pintar(); } else { pintarReloj(); }
+    if (d.fase === "duelo") { S.version = d.version; pintarDuelo(d); }
+    else if (cambio) { S.version = d.version; pintar(); } else { pintarReloj(); }
   } catch(e){
     if (e.status === 403 || e.status === 404) { clearInterval(S.timer); try{ localStorage.removeItem("arena_"+S.codigo);}catch(x){}
       S.codigo = null; pintarInicio(); return error(e.status === 404 ? "La sala ya no existe." : "Ya no perteneces a esa sala."); }
@@ -172,14 +194,17 @@ async function refrescar(){
 
 function pintar(){
   const d = S.estado; if (!d) return;
+  if (d.fase === "duelo") return pintarDuelo(d);
+  if (D.ctx || $("#capaDuelo")) { cerrarCapaDuelo(); detenerAudioDuelo(); }
   if (d.fase === "lobby") return pintarSala(d);
   if (d.fase === "final") return pintarFinal(d);
+  if (d.fase === "duelo_resultado") return pintarResumenDuelo(d);
   $("#vistas").innerHTML = cabecera(d) + (d.fase === "ronda" ? ronda(d) : resultado(d)) + marcador(d);
   enlazar();
 }
 function cabecera(d){
-  const delta = (d.fase !== "ronda" && d.resultado) ? d.resultado.delta_indicadores : {};
-  return `<section class="panel"><div class="fila" style="align-items:center"><b>Sala ${esc(d.codigo)} · Ronda ${d.ronda} de ${d.total_rondas}</b></div>
+  const delta = (d.fase === "resultado" && d.resultado) ? d.resultado.delta_indicadores : {};
+  return `<section class="panel"><div class="fila" style="align-items:center"><b>Sala ${esc(d.codigo)} · ${d.fase === "duelo_resultado" ? "Gran final" : "Ronda " + d.ronda + " de " + d.total_rondas}</b></div>
   <div class="indicadores">${Object.keys(IND).map(k => { const v = d.indicadores[k], x = delta[k] || 0, neg = NEG.includes(k);
     return `<div class="ind"><span>${IND[k]}</span><span>${v}${x ? ` <span class="delta ${(x>0)!==neg?"bien":"mal"}">${x>0?"+":""}${x}</span>` : ""}</span>
     <div class="barra ${neg?"neg":""}"><i style="width:${v}%"></i></div></div>`; }).join("")}</div></section>`;
@@ -290,7 +315,10 @@ function pintarFinal(d){
   clearInterval(S.timer);
   const f = d.final, total = Math.max(1, ...Object.values(f.votos));
   const nombres = {vega:"Tomás Vega",ortega:"Juan Ortega",prado:"Inés Prado",ruiz:"Elena Ruiz"};
-  $("#vistas").innerHTML = `<section class="panel"><h2>Elección de alcalde</h2><p style="font-size:1.4rem;font-weight:800;color:var(--acento)">Gana ${esc(f.ganador_nombre)}</p>
+  const tor = f.torneo ? `<section class="panel ganador"><p class="tag">Campeón del torneo</p><h2 class="gana">${esc(f.torneo.campeon_nombre)}</h2>
+    <p>${esc(f.torneo.mensaje)}</p>${tablaTorneo(f.torneo.clasificacion)}
+    <p class="suave">Ganó el Duelo de Frecuencias: ${esc(f.torneo.duelo_ganador || "—")}. El campeón (puntos individuales) y el resultado de la ciudad (colectivo) son cosas distintas.</p></section>` : "";
+  $("#vistas").innerHTML = tor + `<section class="panel"><h2>Elección de alcalde</h2><p style="font-size:1.4rem;font-weight:800;color:var(--acento)">Gana ${esc(f.ganador_nombre)}</p>
     <div class="votos">${Object.keys(nombres).map(c => `<div class="v ${c===f.ganador?"gana":""}"><span>${nombres[c]}</span><div><i style="width:${f.votos[c]/total*100}%"></i></div><b>${f.votos[c]}</b></div>`).join("")}</div>
     <p class="suave">Abstención: ${f.abstencion} ciudadanos</p><h2>¿Por qué ganó?</h2><ul>${f.explicacion.map(e => `<li>${esc(e)}</li>`).join("")}</ul></section>
   <section class="panel"><h2>Resultado de la ciudad</h2><p style="font-size:1.2rem;font-weight:800;color:var(--ok)">${esc(f.ciudad.titulo)} (${f.ciudad.indice}/100)</p><p>${esc(f.ciudad.texto)}</p></section>
@@ -302,6 +330,283 @@ function pintarFinal(d){
     const top = d.top || d.entries || d;
     $("#global").innerHTML = Array.isArray(top) && top.length ? "<ol>" + top.map(e => `<li>${esc(e.alias)}: ${e.score} (${esc(e.final_title||"")})</li>`).join("") + "</ol>" : "Aún no hay partidas verificadas.";
   }).catch(() => $("#global").textContent = "No se pudo cargar la clasificación.");
+}
+
+/* ---------- Duelo de Frecuencias (gran final): motor ritmico real en el navegador ---------- */
+/* El servidor fija el inicio; cada telefono reproduce la cancion con Web Audio y juzga con el reloj de AUDIO.
+   Las reglas (chart, ventanas, valores) llegan de /api/arena/ritmo/<modo>; el motor es ritmo_motor.js. */
+const RECORRIDO_MS = 1500;                   // mismo recorrido de las notas que en Ren'Py (RITMO_RECORRIDO_MS)
+const TXT_JUICIO = {perfect:"PERFECT", good:"GREAT", bad:"GOOD", miss:"MISS"};
+const COL_JUICIO = {perfect:"#facc15", good:"#5eead4", bad:"#f4b6c2", miss:"#8b84a8"};
+const COL_CARRIL = ["#c084fc","#38bdf8","#4ade80","#fb7185"];
+const TECLAS = {KeyD:0, ArrowLeft:0, KeyF:1, ArrowDown:1, KeyJ:2, ArrowUp:2, KeyK:3, ArrowRight:3};
+const D = {cfg:null, ctx:null, buffer:null, fuente:null, inicioCtx:null, motor:null, sync:new RitmoCivitas.SyncReloj(),
+  activo:false, entrado:false, enviado:false, enviando:false, id:null, imgs:{}, pulsos:[0,0,0,0], efectos:[], juicio:null,
+  calib:0, raf:null, ultimoProg:0, finLocal:null, auto:false, modo:null, cargando:null};
+try { D.calib = +(localStorage.getItem("ritmo_calib") || 0) || 0; } catch(e) {}
+D.auto = /^(localhost|127\.0\.0\.1)$/.test(location.hostname) && new URL(location.href).searchParams.get("autoplay") === "1";
+D.autoSigma = +(new URL(location.href).searchParams.get("sigma") || 0);     // pruebas: error humano (ms) y notas olvidadas
+D.autoFallo = +(new URL(location.href).searchParams.get("fallo") || 0);
+
+function cargarImg(src){ return new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = src; }); }
+async function prepararDuelo(modo){
+  if (D.cargando && D.modo === modo) return D.cargando;
+  D.modo = modo;
+  D.cargando = (async () => {
+    D.cfg = await llamar("GET", "/ritmo/" + modo);
+    const nombres = [0,1,2,3].flatMap(k => ["nota_"+k, "receptor_"+k, "receptor_on_"+k]).concat(["nova_seria","nova_feliz","nova_enojada"]);
+    await Promise.all(nombres.map(async n => { D.imgs[n] = await cargarImg("/static/ritmo/" + n + (n.startsWith("nova") ? ".webp" : ".png")); }));
+  })();
+  return D.cargando;
+}
+/* Safari (iPhone) no decodifica OGG: se prueba AAC y, si falla, OGG. */
+async function cargarAudio(){
+  for (const url of D.cfg.audio) {
+    try { const r = await fetch(url); if (!r.ok) continue; return await D.ctx.decodeAudioData(await r.arrayBuffer()); }
+    catch(e) {}
+  }
+  throw new Error("Este navegador no pudo reproducir la canción.");
+}
+async function entrarDuelo(){
+  if (D.entrado) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  D.ctx = new AC({latencyHint:"interactive"});
+  try { await D.ctx.resume(); } catch(e) {}
+  D.entrado = true; pintarDuelo(S.estado);
+  try {
+    await prepararDuelo(S.estado.duelo_modo);
+    D.buffer = await cargarAudio();
+    D.motor = new RitmoCivitas.MotorDuelo(D.cfg.chart, D.cfg.ventanas, D.cfg.valores, D.cfg.combo_rompe);
+    D.id = S.codigo + "-duelo-" + S.token.slice(0, 8);
+    programarInicio();
+  } catch(e) { D.entrado = false; error(e.message); }
+  pintarDuelo(S.estado);
+}
+/* Convierte el inicio estimado (reloj performance.now) al reloj del audio y arranca la cancion.
+   Si se entra tarde (recarga, conexion lenta) la cancion empieza en su posicion actual: lo pasado es Miss. */
+function programarInicio(){
+  if (D.fuente || !D.buffer || D.sync.inicioLocal === null) return;
+  const faltan = (D.sync.inicioLocal - performance.now()) / 1000;
+  if (faltan > 2.5) return setTimeout(programarInicio, (faltan - 2.4) * 1000);   // se reprograma con la mejor estimacion
+  D.inicioCtx = D.ctx.currentTime + faltan;
+  D.fuente = D.ctx.createBufferSource(); D.fuente.buffer = D.buffer; D.fuente.connect(D.ctx.destination);
+  if (faltan >= 0) D.fuente.start(D.inicioCtx);
+  else if (-faltan < D.buffer.duration) D.fuente.start(0, -faltan);
+  D.motor.empezar();
+  D.finLocal = D.sync.inicioLocal + D.cfg.chart.duration_ms + 800;
+  D.activo = true;
+  if (!D.raf) D.raf = requestAnimationFrame(cuadro);
+}
+/* Tiempo de cancion: reloj de audio menos la latencia de salida del dispositivo y la calibracion del jugador. */
+function tiempoCancion(){
+  if (!D.ctx || D.inicioCtx === null) return -1e9;
+  const lat = (D.ctx.outputLatency || D.ctx.baseLatency || 0) * 1000;
+  return (D.ctx.currentTime - D.inicioCtx) * 1000 - lat - D.calib;
+}
+function pulsar(carril){
+  if (!D.activo || !D.motor) return;
+  const t = tiempoCancion();
+  D.motor.actualizar(t);
+  D.pulsos[carril] = performance.now();
+  const j = D.motor.pulsar(carril, t);
+  if (j) { D.juicio = {j, t0: performance.now()}; D.efectos.push({carril, j, t0: performance.now()}); }
+}
+function cuadro(){
+  D.raf = null;
+  const cv = document.getElementById("lienzo");
+  if (!cv || !D.motor) return;
+  const t = tiempoCancion();
+  if (D.activo) {
+    D.motor.actualizar(t);
+    if (D.auto) autojugar(t);
+    if (D.motor.estado === "results" || performance.now() > D.finLocal) terminarDuelo();
+    if (performance.now() - D.ultimoProg > 1500) { D.ultimoProg = performance.now(); enviarProgreso(); }
+  }
+  dibujar(cv, t);
+  if (D.activo || D.efectos.length) D.raf = requestAnimationFrame(cuadro);
+}
+function autojugar(t){   /* solo en localhost (?autoplay=1): pruebas automaticas por el mismo camino que un dedo */
+  for (const n of D.motor.notas) {
+    if (n.estado !== null || n.auto) continue;
+    if (n.objetivo === undefined) {
+      const g = Math.sqrt(-2 * Math.log(Math.random() || 1e-9)) * Math.cos(2 * Math.PI * Math.random());
+      n.objetivo = Math.random() < D.autoFallo ? null : n.time_ms + n.lane * 7 - 12 + g * D.autoSigma;
+    }
+    if (n.objetivo !== null && t >= n.objetivo) { n.auto = true; pulsar(n.lane); }
+  }
+}
+async function enviarProgreso(){
+  const m = D.motor;
+  try { await llamar("POST", `/salas/${S.codigo}/progreso`, {token:S.token, juzgadas:m.juzgadas(), puntos:m.puntos(), combo:m.combo, precision:m.senal()}); } catch(e) {}
+}
+async function terminarDuelo(){
+  if (D.enviado || D.enviando) return;
+  D.activo = false;
+  if (D.motor.estado !== "results") D.motor.cerrar(tiempoCancion());
+  D.enviando = true;
+  const cuerpo = Object.assign({token:S.token, id:D.id, calibracion_ms:D.calib, latencia_ms:D.sync.rtt}, D.motor.resultado());
+  for (let intento = 0; intento < 15 && !D.enviado; intento++) {
+    try { const r = await llamar("POST", `/salas/${S.codigo}/duelo`, cuerpo); D.enviado = true; D.miResultado = r.resultado; }
+    catch(e) {
+      if (e.status && e.status < 500 && e.codigo !== "rate_limited") { D.enviado = true; error("El servidor rechazó el resultado: " + e.message); }
+      else await new Promise(ok => setTimeout(ok, 2000));    // misma id: si llego dos veces, cuenta una
+    }
+  }
+  D.enviando = false;
+  pintarDuelo(S.estado);
+}
+function detenerAudioDuelo(){
+  try { if (D.fuente) D.fuente.stop(); } catch(e) {}
+  try { if (D.ctx) D.ctx.close(); } catch(e) {}
+  Object.assign(D, {ctx:null, buffer:null, fuente:null, inicioCtx:null, motor:null, activo:false, entrado:false, enviado:false,
+    enviando:false, efectos:[], juicio:null, missVistos:0, sync:new RitmoCivitas.SyncReloj()});
+}
+function expresionNova(){
+  const m = D.motor; if (!m) return "nova_seria";
+  if (m.combo >= 10) return "nova_enojada";
+  if (m.ultimos.length && m.ultimos[m.ultimos.length - 1][2] === "miss") return "nova_feliz";
+  return "nova_seria";
+}
+
+/* Dibujo: el tiempo de cancion decide donde va cada nota; los frames solo pintan (igual que en Ren'Py). */
+function dibujar(cv, t){
+  const dpr = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth, H = cv.clientHeight;
+  if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)) { cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  const g = cv.getContext("2d"); g.setTransform(dpr,0,0,dpr,0,0);
+  const m = D.motor, chart = D.cfg.chart, ahora = performance.now();
+  const beat = 60000 / chart.bpm, fase = t > 0 ? ((t - chart.offset_ms) % beat) / beat : 0;
+  const pulso = t > 0 && t < chart.duration_ms ? Math.pow(1 - fase, 3) : 0;
+  // Fondo: degradado que late con la musica.
+  const fondo = g.createLinearGradient(0, 0, 0, H);
+  fondo.addColorStop(0, `rgb(${18+pulso*30},${12+pulso*8},${30+pulso*40})`); fondo.addColorStop(1, "#08050f");
+  g.fillStyle = fondo; g.fillRect(0, 0, W, H);
+  const ancho = Math.min(W * 0.92, 520), carril = ancho / 4, x0 = (W - ancho) / 2;
+  const recY = H - Math.max(96, H * 0.16), naceY = Math.max(110, H * 0.17), tam = Math.min(carril * 0.86, 96);
+  // NOVA (rival): a la izquierda en pantallas anchas, arriba a la derecha en el telefono.
+  const nova = D.imgs[expresionNova()];
+  if (nova) {
+    const h = W > 900 ? H * 0.62 : H * 0.2, w = h * nova.width / nova.height, rebote = Math.sin(t / beat * Math.PI) * 6;
+    g.globalAlpha = W > 900 ? 0.95 : 0.5;
+    g.drawImage(nova, W > 900 ? x0 - w - 30 : W - w - 4, (W > 900 ? H - h : naceY - 20) + rebote, w, h);
+    g.globalAlpha = 1;
+  }
+  for (let k = 0; k < 4; k++) {
+    g.fillStyle = k % 2 ? "rgba(27,20,38,.55)" : "rgba(27,20,38,.7)";
+    g.fillRect(x0 + k*carril + 3, 0, carril - 6, H);
+    const brillo = Math.max(0, 1 - (ahora - D.pulsos[k]) / 160);
+    if (brillo > 0) { g.fillStyle = COL_CARRIL[k] + Math.round(brillo * 60).toString(16).padStart(2, "0"); g.fillRect(x0 + k*carril + 3, 0, carril - 6, H); }
+    const rec = D.imgs[(brillo > 0.3 ? "receptor_on_" : "receptor_") + k], cx = x0 + k*carril + carril/2, s = tam * (1 + pulso * 0.06);
+    if (rec) g.drawImage(rec, cx - s/2, recY - s/2, s, s);
+  }
+  // Notas
+  for (let i = m.siguiente; i < m.notas.length; i++) {
+    const n = m.notas[i]; if (n.estado !== null) continue;
+    const dt = n.time_ms - t; if (dt > RECORRIDO_MS) break;
+    const y = recY - dt / RECORRIDO_MS * (recY - naceY), img = D.imgs["nota_" + n.lane];
+    g.globalAlpha = Math.max(0, Math.min(1, (y - naceY + 80) / 120));
+    if (img) g.drawImage(img, x0 + n.lane*carril + carril/2 - tam/2, y - tam/2, tam, tam);
+    g.globalAlpha = 1;
+  }
+  // Efectos al acertar: onda del color del juicio sobre el receptor.
+  D.efectos = D.efectos.filter(e => ahora - e.t0 < 380);
+  for (const e of D.efectos) {
+    const p = (ahora - e.t0) / 380, cx = x0 + e.carril*carril + carril/2;
+    g.strokeStyle = COL_JUICIO[e.j]; g.globalAlpha = 1 - p; g.lineWidth = 6 * (1 - p) + 1;
+    g.beginPath(); g.arc(cx, recY, tam * (0.45 + p * 0.6), 0, 2 * Math.PI); g.stroke(); g.globalAlpha = 1;
+  }
+  // Juicio, combo, puntos y barra de precision.
+  g.textAlign = "center"; g.lineJoin = "round";
+  if (m.conteo.miss > (D.missVistos || 0)) { D.missVistos = m.conteo.miss; D.juicio = {j:"miss", t0: ahora}; }
+  if (D.juicio && ahora - D.juicio.t0 < 600) {
+    const p = (ahora - D.juicio.t0) / 600, esc = 1.25 - Math.min(0.25, p * 1.5);
+    g.font = `900 ${Math.round(34 * esc)}px system-ui,sans-serif`; g.globalAlpha = 1 - p * p;
+    g.strokeStyle = "#1b1426"; g.lineWidth = 6; g.strokeText(TXT_JUICIO[D.juicio.j], W/2, recY - tam * 1.6);
+    g.fillStyle = COL_JUICIO[D.juicio.j]; g.fillText(TXT_JUICIO[D.juicio.j], W/2, recY - tam * 1.6); g.globalAlpha = 1;
+  }
+  if (m.combo >= 3) {
+    g.font = `900 ${Math.round(26 + Math.min(14, m.combo / 4))}px system-ui,sans-serif`; g.strokeStyle = "#1b1426"; g.lineWidth = 5;
+    g.strokeText("x" + m.combo, W/2, recY - tam * 2.25); g.fillStyle = "#fbf6ee"; g.fillText("x" + m.combo, W/2, recY - tam * 2.25);
+  }
+  g.font = "800 15px system-ui,sans-serif"; g.fillStyle = "#c9b8d8"; g.textAlign = "left";
+  g.fillText("DUELO DE FRECUENCIAS", 14, 26);
+  g.font = "900 28px system-ui,sans-serif"; g.fillStyle = "#fbf6ee"; g.fillText(String(m.puntos()).padStart(4, "0"), 14, 58);
+  const senal = m.senal(), bw = Math.min(260, W - 28);
+  g.fillStyle = "#e86a7e"; g.fillRect(14, 70, bw, 10); g.fillStyle = "#5eead4"; g.fillRect(14, 70, bw * senal, 10);
+  g.font = "700 12px system-ui,sans-serif"; g.fillStyle = "#c9b8d8";
+  g.fillText(`SEÑAL ${Math.round(senal*100)}%  ·  combo máx. x${m.maxCombo}`, 14, 96);
+  // Rivales en vivo (marcador que envia cada telefono; los puntos oficiales los calcula el servidor al final).
+  const prog = (S.estado && S.estado.duelo && S.estado.duelo.progreso) || {};
+  g.textAlign = "right"; let yr = 26;
+  for (const j of (S.estado ? S.estado.jugadores : [])) {
+    if (j.id === S.estado.yo) continue;
+    const p = prog[j.id]; g.font = "700 13px system-ui,sans-serif"; g.fillStyle = "#c9b8d8";
+    g.fillText(`${j.nombre}: ${p ? p.puntos + " · x" + p.combo : "…"}`, W - 14, yr); yr += 18;
+  }
+  // Cuenta atras comun.
+  if (t < 0 && t > -4000) {
+    g.textAlign = "center"; g.font = "900 72px system-ui,sans-serif"; g.fillStyle = "#facc15";
+    g.fillText(String(Math.ceil(-t / 1000)), W/2, H * 0.45);
+  }
+}
+
+function pintarDuelo(d){
+  const cfgListo = !!D.motor, faltan = D.sync.inicioLocal !== null ? Math.ceil((D.sync.inicioLocal - performance.now()) / 1000) : null;
+  let capa = $("#capaDuelo");
+  if (!capa) {
+    $("#vistas").innerHTML = "";
+    capa = document.createElement("div"); capa.id = "capaDuelo"; document.body.appendChild(capa);
+    capa.innerHTML = `<canvas id="lienzo" aria-label="Duelo de Frecuencias: 4 carriles"></canvas>
+      <div id="duelInfo" class="duelInfo"></div>
+      <div class="zonas" aria-hidden="true"><i></i><i></i><i></i><i></i></div>`;
+    const cv = $("#lienzo");
+    cv.addEventListener("pointerdown", ev => { ev.preventDefault(); const r = cv.getBoundingClientRect();
+      const ancho = Math.min(r.width * 0.92, 520), x0 = (r.width - ancho) / 2, x = ev.clientX - r.left;
+      let k = Math.floor((x - x0) / (ancho / 4)); k = Math.max(0, Math.min(3, k)); pulsar(k); }, {passive:false});
+  }
+  const info = $("#duelInfo");
+  if (D.enviado || D.enviando) {
+    const r = D.miResultado;
+    info.innerHTML = `<div class="duelCard"><h2>${D.enviando ? "Enviando tu resultado…" : "¡Canción terminada!"}</h2>
+      ${r ? `<p class="grande">${r.normalizado} / 1000</p><p>${esc(r.resumen)}</p>
+        <p class="suave">PERFECT ${r.detalle.conteo.perfect} · GREAT ${r.detalle.conteo.good} · GOOD ${r.detalle.conteo.bad} · MISS ${r.detalle.conteo.miss}</p>` : ""}
+      <p class="suave">Esperando a los demás: ${d.duelo ? d.duelo.entregaron.length : "?"} de ${d.jugadores.length} terminaron.</p></div>`;
+  } else if (!D.entrado) {
+    info.innerHTML = `<div class="duelCard"><p class="tag">Gran final · Ronda ${d.duelo_ronda} de ${d.total_rondas}</p>
+      <h2>DUELO DE FRECUENCIAS</h2><p>NOVA secuestra la transmisión. Misma canción y mismas notas para todos: gana quien tenga más ritmo.</p>
+      <p class="suave">Toca los 4 carriles (o D F J K / flechas) cuando cada nota llegue a su receptor. PERFECT · GREAT · GOOD · MISS. El combo se rompe con GOOD o MISS.</p>
+      <button id="btnEntrar">${faltan !== null && faltan < 0 ? "¡Ya empezó! Entrar ahora" : "Entrar al duelo (activa el sonido)"}</button>
+      <p class="suave">${faltan !== null && faltan > 0 ? "Empieza en " + faltan + " s" : ""}</p></div>`;
+    $("#btnEntrar").onclick = entrarDuelo;
+  } else if (!cfgListo) {
+    info.innerHTML = `<div class="duelCard"><h2>Cargando la canción…</h2></div>`;
+  } else if (!D.activo || tiempoCancion() < 0) {
+    info.innerHTML = `<div class="duelCard mini"><p>Calibración: <b>${D.calib > 0 ? "+" : ""}${D.calib} ms</b> <span class="suave">(si las notas suenan tarde, sube)</span></p>
+      <div class="fila"><button class="sec" id="calMenos">−10 ms</button><button class="sec" id="calMas">+10 ms</button></div></div>`;
+    const cal = v => { D.calib = Math.max(-D.cfg.calibracion_max_ms, Math.min(D.cfg.calibracion_max_ms, D.calib + v));
+      try { localStorage.setItem("ritmo_calib", D.calib); } catch(e) {} pintarDuelo(S.estado); };
+    $("#calMenos").onclick = () => cal(-10); $("#calMas").onclick = () => cal(10);
+  } else info.innerHTML = "";
+  if (D.motor && !D.raf) D.raf = requestAnimationFrame(cuadro);
+}
+function cerrarCapaDuelo(){ const c = $("#capaDuelo"); if (c) c.remove(); }
+
+function pintarResumenDuelo(d){
+  cerrarCapaDuelo(); detenerAudioDuelo();
+  const r = d.duelo_resumen, filas = Object.entries(r.resultados).sort((a, b) => b[1].normalizado - a[1].normalizado);
+  const nombre = id => (d.jugadores.find(j => j.id === id) || {nombre:id}).nombre;
+  const rol = id => (d.jugadores.find(j => j.id === id) || {}).rol;
+  $("#vistas").innerHTML = cabecera(d) + `<section class="panel ganador"><p class="tag">Gran final · Duelo de Frecuencias</p>
+    <h2 class="gana">¡${esc(r.ganador_nombre)} gana el duelo!</h2>
+    ${filas.map(([id, x], i) => `<div class="fduelo ${id === r.ganador ? "top" : ""}"><b class="c-${rol(id)}">${i+1}. ${esc(nombre(id))}</b>
+      <div class="barra"><i style="width:${x.normalizado/10}%"></i></div><b>${x.normalizado}</b>
+      <span class="suave">${esc(x.resumen)}${x.detalle && x.detalle.conteo ? ` · P ${x.detalle.conteo.perfect} · Gr ${x.detalle.conteo.good} · Go ${x.detalle.conteo.bad} · M ${x.detalle.conteo.miss}` : ""}</span></div>`).join("")}
+    <p>Ciudad Nova (media del grupo ${r.media}/100): ${Object.keys(r.delta_ciudad).length ? Object.entries(r.delta_ciudad).map(([k,v]) => `${IND[k]} ${v>0?"+":""}${v}`).join(", ") : "sin cambios"}.</p>
+    <h2>Clasificación acumulada</h2>${tablaTorneo(r.clasificacion)}
+    ${d.yo === d.anfitrion ? '<button id="seguir">Última ronda del Consejo ›</button>' : '<p class="suave">La última ronda del Consejo empieza en unos segundos.</p>'}</section>` + marcador(d);
+  enlazar();
+}
+function tablaTorneo(t){
+  return `<ol class="torneo">${t.map(f => `<li><b class="c-${f.rol}">${esc(f.nombre)}</b> <span class="suave">Consejo ${f.consejo} + Duelo ${f.duelo}</span> <b>${f.total}</b></li>`).join("")}</ol>`;
 }
 
 /* ---------- arranque: reconexion automatica ---------- */

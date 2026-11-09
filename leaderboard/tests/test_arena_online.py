@@ -2,8 +2,9 @@
 import pytest
 
 
-def crear(client, rol="ciudadano", nombre="Ana"):
-    r = client.post("/api/arena/salas", json={"nombre": nombre, "rol": rol})
+def crear(client, rol="ciudadano", nombre="Ana", duelo=False):
+    # Por defecto la Arena clasica; el Duelo de Frecuencias online tiene sus propias pruebas (test_arena_duelo_online.py).
+    r = client.post("/api/arena/salas", json={"nombre": nombre, "rol": rol, "duelo": duelo})
     assert r.status_code == 200, r.text
     return r.json()
 

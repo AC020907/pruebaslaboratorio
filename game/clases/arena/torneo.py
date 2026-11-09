@@ -199,8 +199,8 @@ def puntuar_rastreador(spec, datos):
             if p.exito() else "%d de %d eslabones correctos" % (correctos, p.eslabones)}
 
 
-def puntuar_ritmo(spec, datos):
-    chart = cargar_chart(spec["modo"])
+def puntuar_ritmo(spec, datos, chart=None):
+    chart = chart or cargar_chart(spec["modo"])
     juicios = datos.get("juicios")
     if datos.get("dificultad") != "normal":
         raise ResultadoInvalido("En el torneo el Duelo es en dificultad Normal (mismo chart para todos).")
