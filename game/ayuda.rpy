@@ -67,7 +67,7 @@ screen ayuda_reglas():
     text "Azar" style "ayuda_h"
     text "Cada partida trae eventos distintos (una noticia falsa, algo que se vuelve viral, una discusión, una campaña de convivencia…). El azar decide qué aparece; tú decides qué hacer con ello." style "ayuda_p"
     text "Historia" style "ayuda_h"
-    text "Recorre Ciudad Nova en el mapa, habla con Claudia, Martina, Rodrigo y Tomás, reúne pistas en el Expediente, revisa CivitasNet y supera cinco retos: Moderación, Caza-Rumores, Rastreador, Duelo de Frecuencias y la Gran Viralización." style "ayuda_p"
+    text "Recorre Ciudad Nova en el mapa, habla con Claudia, Martina, Rodrigo y Tomás, reúne pistas en el Expediente, revisa CivitasNet y supera cinco retos distintos: Moderación Express, Caza-Rumores, Rastreador, Duelo de Frecuencias y, en la Gran Viralización del domingo, la Ruta de la Verdad: un plataformas en el que entras al sistema de NOVA a rescatar la evidencia (A/D o flechas para moverte, Espacio para saltar)." style "ayuda_p"
 
 screen ayuda_arena():
     text "Arena Civitas: multijugador local" style "ayuda_h"
@@ -77,11 +77,12 @@ screen ayuda_arena():
     text "4. El servidor junta las decisiones, propaga la publicación por el grafo social de Ciudad Nova, cambia los indicadores y reparte puntos. Verás quién la recibió, quién quedó protegido y por qué." style "ayuda_p"
     text "5. Al terminar se vota alcalde entre Tomás Vega, Juan Ortega, Inés Prado y Elena Ruiz. El resultado explica qué decisiones movieron los votos." style "ayuda_p"
     text "Torneo: Consejo Cívico + 5 pruebas" style "ayuda_h"
-    text "En «Torneo completo» (5 rondas) o «Torneo Feria» (2 rondas y pruebas más cortas), al acabar el Consejo cada uno juega en su equipo los minijuegos de la historia, con la misma semilla para todos: Moderación Express, Caza-Rumores, Rastreador, La Gran Viralización y, como final, el Duelo de Frecuencias (PERFECT, GREAT, GOOD, MISS)." style "ayuda_p"
+    text "En «Torneo completo» (5 rondas) o «Torneo Feria» (2 rondas y pruebas más cortas), al acabar el Consejo cada uno juega en su equipo los minijuegos de la historia, con la misma semilla para todos: Moderación Express, Rastreador, Caza-Rumores, Ruta de la Verdad (plataformas) y, como final, el Duelo de Frecuencias (PERFECT, GREAT, GOOD, MISS)." style "ayuda_p"
     text "Cada prueba vale de 0 a 1000 y el Consejo de 0 a 2000; el servidor recalcula todo a partir de tus decisiones. La media del grupo en cada prueba mejora o empeora Ciudad Nova antes de votar: el campeón del torneo y el resultado de la ciudad son cosas distintas. Si no entregas a tiempo o te desconectas, esa prueba cuenta 0." style "ayuda_p"
     text "Arena Online (teléfonos o computadores en redes distintas)" style "ayuda_h"
     text "1. Abre la Arena Online (botón en el menú de la Arena, o en la versión web). 2. Una persona pulsa «Crear sala» y comparte el código de 5 letras o el enlace de invitación. 3. Las demás escriben el código, eligen un rol libre y pulsan «Estoy listo». 4. Si alguien recarga la página o pierde la señal, al volver a abrir el enlace sigue en su puesto." style "ayuda_p"
-    text "Gran final online: antes de la última ronda del Consejo se juega el Duelo de Frecuencias de verdad (4 carriles, música, PERFECT/GREAT/GOOD/MISS). El servidor da la salida a la vez; cada teléfono toca la canción y juzga con su reloj de audio. Hay que pulsar «Entrar al duelo» para activar el sonido. Los otros cuatro minijuegos del torneo son de la versión de escritorio." style "ayuda_p"
+    text "La Arena Online es una historia compartida en 5 rondas. En cada una: una escena común, una pista que solo ve tu rol, un reto que juegan todos (Moderación, Rastreador, Caza-Rumores, Ruta de la Verdad y, como gran final, el Duelo de Frecuencias), los resultados y una decisión cívica sobre lo que circula en Civitas. Al final se muestran el campeón del torneo, el alcalde elegido y cómo quedó Ciudad Nova." style "ayuda_p"
+    text "El servidor da la salida a la vez y comprueba cada resultado. En el Duelo hay que pulsar «Entrar al duelo» para activar el sonido. Para el público hay una pantalla de espectadores (enlace en la sala) que no muestra las pistas privadas." style "ayuda_p"
     text "Si alguien pierde la conexión durante la partida, su puesto se guarda y la ronda sigue sin él; con «Reconectar» vuelve a su mismo puesto. El anfitrión puede pausar una ronda y añadir jugadores automáticos si falta gente." style "ayuda_p"
 
 screen ayuda_personajes():
@@ -117,7 +118,7 @@ screen ayuda_botones():
     text "Ratón y pantalla táctil" style "ayuda_h"
     text "Clic o toque: avanzar el diálogo y elegir. Rueda: historial. En la Arena, toca cada opción del árbol; «« Volver» regresa a la opción anterior." style "ayuda_p"
     text "Teclado" style "ayuda_h"
-    text "Enter o Espacio: avanzar y aceptar. Flechas: moverse entre opciones y conducir en el mapa. Esc: menú del juego (guardar, opciones, ayuda). H: pista en el Rastreador. En el Duelo: D F J K." style "ayuda_p"
+    text "Enter o Espacio: avanzar y aceptar. Flechas: moverse entre opciones y conducir en el mapa. Esc: menú del juego (guardar, opciones, ayuda). H: pista en el Rastreador. En el Duelo: D F J K. En la Ruta de la Verdad: A/D o flechas y Espacio para saltar (mantén para saltar más alto)." style "ayuda_p"
     text "Mando" style "ayuda_h"
     text "A: aceptar. B: menú / cerrar. Cruceta o palanca: moverse y elegir. X: onda (Caza-Rumores). Y: pista. LB: volver un paso. Start: pausa." style "ayuda_p"
     text "Botones de la pantalla" style "ayuda_h"

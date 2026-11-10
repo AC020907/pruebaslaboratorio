@@ -1,7 +1,7 @@
 # Matriz de cumplimiento: rúbrica «LABORATORIO — ALCALDE DIGITAL»
 
 - **Fuente:** `LABORATORIO 1 202630 (1).pdf` (15 páginas), leída completa.
-- **Estado del código:** rama `feature/arena-torneo` (sale de `fix/rubrica-online`), 2026-11-08.
+- **Estado del código:** rama `feature/plataformero-arena-narrativa`, 2026-11-10.
 
 **Estados:**
 - **Probado:** cumple y fue probado.
@@ -14,8 +14,8 @@
 
 | Clave | Comando | Resultado |
 |---|---|---|
-| [T] | `python -m pytest -q tests` | 149 pruebas (18 del torneo) |
-| [B] | `cd leaderboard && python -m pytest -q` | 153 pruebas: 142 del leaderboard y 11 de la Arena Online |
+| [T] | `python -m pytest -q tests` | 179 pruebas |
+| [B] | `cd leaderboard && python -m pytest -q` | 165 pruebas |
 | [R] | `python tests/qa_recorridos.py` | 10/10: los 5 finales en historia y en feria |
 | [V] | `python tests/qa_visual.py galeria …` y `… arena …` | Capturas reales del motor |
 | [L] | `renpy.exe . lint` | Sin errores |
@@ -40,6 +40,8 @@
 | 12 / p.9 | Elección final ligada al comportamiento | Arena: `elegir_alcalde`; historia: `Eleccion.escrutinio_historia` + pantalla `escrutinio_historia` | [T] `test_rumores_cambian_el_ganador`, `test_las_decisiones_cambian_participacion_y_ganador` | Capturas | La historia no tenía recuento de votos | Escrutinio coherente con cada final, con explicación causal | Probado |
 | 13 / pp.9–10 | Multijugador local cliente-servidor por sockets; el servidor sincroniza estado, jugadores, publicaciones, relaciones, eventos, puntos, turnos e información compartida | `clases/arena/servidor.py`, `cliente.py`, `protocolo.py`; `servidor_arena.py` | [T] `test_arena_red.py` (13): 2/3/4 en hilos y en procesos, simultaneidad, tiempo, pausa, duplicados, malformados, reconexión, anfitrión, **cierre** | [V] 2 Ren'Py + 2 bots | El cierre del servidor se mostraba como «se perdió la conexión» | Se conserva el motivo que envía el servidor (con prueba) | Probado (localhost, procesos independientes) · Física (varios PCs) |
 | 13 (extra) | Torneo de la Arena: Consejo Cívico + 5 minijuegos como pruebas, puntuados por el servidor, con consecuencias sobre los indicadores compartidos | `clases/arena/torneo.py`, `servidor.py`, `arena/arena_torneo.rpy` | [T] `test_arena_torneo.py` (18): 2/3/4 jugadores en todas las fases, validadores, desconexión, duplicados, fuera de orden; [V] torneo Feria con 2 Ren'Py + 2 bots | `docs/ARENA_TORNEO.md`, `ARENA_MINIJUEGOS.md`, `ARENA_RITMO_MULTIJUGADOR.md` | El tiempo real de los minijuegos se mide en el cliente | Validación por rejuego o coherencia; documentado como limitación | Probado (localhost) · Física (partida humana completa) |
+| 2 / p.2 (mejora) | Cinco retos con mecánicas distintas (sin arcades repetidos) | `clases/Plataformas.py`, `minijuegos/plataformas.rpy`; la Gran Viralización usa el plataformero | [T] `test_plataformas.py` (21), `test_plataformas_web.py`; [V] galería de minijuegos | `docs/PLATAFORMERO_RUTA_VERDAD.md`, `docs/auditoria/plat_*.jpg` | La Gran Viralización repetía el arcade de Caza-Rumores | Plataformero original con física determinista y rejuego en el servidor | Probado |
+| 4 y 13 (extra) | Arena Online narrativa: historia compartida, cuatro perspectivas, cinco retos que juegan todos y decisión cívica tras cada uno | `clases/arena/campana.py`, `sala.py`, `caza_web.py`, `static/arena.html`, `*_motor.js` | [B] `test_arena_campana.py` (12); [T] `test_caza_web.py`, `test_plataformas_web.py`, `test_ritmo_web.py`; E2E con Chrome 2/3/4 | `docs/ARENA_NARRATIVA_MULTIPERSPECTIVA.md`, `docs/auditoria/online_*.jpg` | La Arena Online era una ronda de preguntas | Escenas con pista privada por rol; 5 retos jugables puntuados en el servidor; las pistas privadas no se filtran | Probado (local, Chrome) · Física (teléfonos) |
 | 13 (extra) | Duelo de Frecuencias online (gran final de la Arena Online) | `static/ritmo_motor.js`, `clases/arena/duelo_online.py`, `sala.py` | [B] `test_arena_duelo_online.py` (10); [T] `test_ritmo_web.py` (equivalencia JS/Python); E2E con Chrome real 2/3/4 | `docs/ARENA_RITMO_MULTIJUGADOR.md` | Safari no reproduce OGG | Audio también en AAC | Probado (local, Chrome) · Física (teléfonos) |
 | 13 (extra) | Arena Online 2–4 por navegador | `leaderboard/app/arena_online.py`, `clases/arena/sala.py`, `static/arena.html` | [B] `test_arena_online.py` (11); partida en el navegador con 2 clientes | `docs/ARQUITECTURA_MULTIJUGADOR.md` | — | — | Probado (local) · Sin probar en Render (falta el despliegue) |
 | 14 / p.10 | Interfaz gráfica con todos los elementos | `arena.rpy`, `screens.rpy`, `arena.html` | [V] | Capturas a 1920, 1366, 1600×720 táctil y móvil 375×812 | — | — | Probado |

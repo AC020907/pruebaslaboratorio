@@ -18,9 +18,9 @@ from clases.arena.reglas import CIUDADANOS, SEGUIMIENTOS, ZONAS
 
 TICK_MS = 50
 ANCHO, ALTO = 1000, 700                      # espacio virtual del mapa (el navegador lo escala)
-CENTRO_ZONA = {"colegio": (500, 110), "barrio": (500, 300), "parque": (230, 470), "plaza": (770, 470), "alcaldia": (770, 620)}
+CENTRO_ZONA = {"colegio": (500, 110), "barrio": (500, 300), "parque": (220, 480), "plaza": (760, 440), "alcaldia": (880, 625)}
 # Desplazamientos fijos alrededor del centro de cada zona (enteros: sin trigonometria que pueda diferir).
-ANILLO = ((0, -70), (95, -10), (60, 62), (-60, 62), (-95, -10))
+ANILLO = ((0, -50), (70, -8), (44, 46), (-44, 46), (-70, -8))
 RADIO_TOQUE = 46
 TOLERANCIA_TOQUE = 60                         # holgura del servidor: un tick de movimiento + dedo
 MAX_TOQUES = 400

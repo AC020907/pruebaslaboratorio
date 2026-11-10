@@ -1,5 +1,30 @@
 # Release readiness: corrección de pendientes, Arena Online, torneo y validación final
 
+## 000. Plataformero y Arena Online narrativa (rama `feature/plataformero-arena-narrativa`; recuperación: tag `checkpoint-pre-plataformero`)
+
+**Qué cambió:**
+- **La Gran Viralización** ya no repite el arcade de Caza-Rumores: su reto es el plataformero **Ruta de la Verdad**, en Historia, Feria y torneo LAN. Detalle en `docs/PLATAFORMERO_RUTA_VERDAD.md`.
+- **La Arena Online** es una historia compartida de 5 rondas con cuatro perspectivas y pistas privadas. Los cinco retos se juegan en el navegador y todos compiten; después de cada reto vienen una decisión cívica y su consecuencia. Detalle en `docs/ARENA_NARRATIVA_MULTIPERSPECTIVA.md`.
+
+| Comando (2026-11-10) | Resultado |
+|---|---|
+| `python -m pytest -q tests` | **179 OK** (43 subtests) |
+| `cd leaderboard && python -m pytest -q` | **165 OK** |
+| `renpy.exe . lint` | Sin errores |
+| `python tests/qa_recorridos.py` | **10/10** finales en historia y feria |
+| `python tests/qa_visual.py galeria --etapas minijuegos` | OK: plataformero en el motor real (tutorial, juego, resultado) |
+| `python tests/qa_visual.py arena --tam 1920x1080` | OK: torneo LAN con 2 Ren'Py + 2 bots y las 5 pruebas (plataformas incluida, rejugada en el servidor) |
+| `python tests/e2e_arena_online.py --jugadores 2,3,4` | OK: Chrome real (PC y móvil táctil), latencia de 0–350 ms, recarga a mitad de Caza-Rumores. Campaña completa (5 escenas, 5 retos, 5 decisiones) en unos 160 s con autojuego; final idéntica en todos los navegadores |
+
+**Evidencias:** `docs/auditoria/online_*.jpg` y `plat_*.jpg`.
+
+**Duración real:** no se midió con personas. El autojuego no lee las escenas: una partida Feria con humanos tardará más (lectura de hasta 40 s por escena). Hay que medirla en `docs/PRUEBAS_FISICAS.md`.
+
+**Pendiente:**
+- Probar en teléfonos reales y con personas.
+- Merge a `main` y despliegue (requieren autorización).
+- Manual Deploy en Render.
+
 ## 00. Duelo de Frecuencias en la Arena Online (rama `feature/arena-online-duelo`; recuperación: tag `checkpoint-pre-duelo-online`)
 
 | Comando (2026-11-09) | Resultado |

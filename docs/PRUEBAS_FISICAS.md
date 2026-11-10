@@ -42,6 +42,13 @@ Requiere que el backend esté desplegado con la Arena Online (ver `DESPLIEGUE.md
 | B6 | Recargar la página en mitad de la partida | Sigue en su puesto (reconexión automática) | |
 | B7 | Intentar unirse a una sala empezada o llena | Mensaje claro («ya empezó» o «llena») | |
 | B8 | Pantalla final | Votos de los 4 candidatos, explicación y clasificación de la sala | |
+| B9 | Escenas: cada jugador lee su pista privada | Cada teléfono ve una pista distinta («Solo tú lo ves»); nadie ve la del otro | |
+| B10 | Moderación y Rastreador con el dedo | Botones Borrar/Dejar cómodos; fichas y huecos se tocan sin errores | |
+| B11 | Caza-Rumores en teléfono vertical y horizontal | Los rumores se pueden tocar; anotar fallos de puntería por tamaño | |
+| B12 | Ruta de la Verdad con botones táctiles (mover y saltar a la vez) | Se puede mantener la flecha y saltar con el otro dedo; anotar si el salto se siente tardío | |
+| B13 | Duelo en iPhone (Safari) y Android (Chrome), con y sin auriculares Bluetooth | La canción suena (AAC en iPhone); con Bluetooth ajustar calibración y anotar el valor | |
+| B14 | Medir con reloj la duración de una partida Feria con 4 personas nuevas | Anotar minutos reales (escenas + 5 retos + 5 decisiones) | |
+| B15 | Pantalla de espectadores `/arena?ver=CÓDIGO` en un PC del stand | Muestra fase, reto y clasificación; nunca las pistas privadas | |
 
 ## C. Mando, teléfono con la historia, audio
 

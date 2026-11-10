@@ -288,6 +288,28 @@ def test_desconexion_en_un_reto_y_bots_completan_la_sala(client, reloj):
     assert sala.retos[-1]["resultados"]["j1"]["normalizado"] == 0
 
 
+def test_pista_del_rastreador_usa_el_tablero_actual(client, reloj):
+    codigo, tokens = preparar(client, 2)
+    while True:
+        hasta(client, reloj, codigo, tokens, "reto")
+        v = vista(client, codigo, tokens[0])
+        if v["reto"]["clave"] == "rastreador":
+            break
+        jugar_reto(client, reloj, codigo, tokens)
+        hasta(client, reloj, codigo, tokens, "resultado")
+        post(client, codigo, "continuar", token=tokens[0])
+    avanzar(client, reloj, codigo, tokens, v["reto"]["inicio_en_ms"] / 1000.0 + 0.5)
+    p = sala_de(client, codigo).reto["estado"]
+    pista = lambda slots: post(client, codigo, "rastrear", token=tokens[0], accion="pista", slots=slots).json()["pista"]
+    pista(["", ""])
+    primera = pista(["", ""])["carta"]                       # nivel 2: revela la cuenta del primer hueco
+    puzzle = p["j1"]
+    assert primera == puzzle.solucion[0]
+    pista([primera, ""])
+    segunda = pista([primera, ""])["carta"]                  # con la primera puesta, la pista apunta al siguiente hueco
+    assert segunda == puzzle.solucion[1] != primera
+
+
 def test_sala_clasica_sigue_existiendo(client, reloj):
     r = client.post("/api/arena/salas", json={"nombre": "A", "rol": "ciudadano", "duelo": False})
     codigo, token = r.json()["codigo"], r.json()["token"]

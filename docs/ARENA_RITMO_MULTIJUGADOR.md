@@ -89,9 +89,9 @@ En la Arena Online (`/arena`) el Duelo es la **gran final**. Se juega al abrir l
 |---|---|
 | `cd leaderboard && python -m pytest -q tests/test_arena_duelo_online.py` | 10 pruebas con reloj simulado: 2, 3 y 4 clientes con el mismo inicio, puntos recalculados por el servidor, entrega tardía por latencia, desconexión, pausa rechazada, reconexión, 6 manipulaciones, duplicados, bots y configuración tomada del juego |
 | `python -m pytest -q tests/test_ritmo_web.py` | Equivalencia JS/Python a 30, 60 y 144 Hz; sincronización con latencia simulada (asimetría y picos) |
-| `python tests/e2e_duelo_online.py --jugadores 2,3,4` | Chrome real (headless) con 2, 3 y 4 navegadores aislados (PC y móvil táctil) y latencia de 0, 60, 180 y 400 ms por jugador (CDP). Ver detalle abajo |
+| `python tests/e2e_arena_online.py --jugadores 2,3,4` (antes `e2e_duelo_online.py`, sustituido por la campaña completa) | Chrome real (headless) con 2, 3 y 4 navegadores aislados (PC y móvil táctil) y latencia de 0, 60, 180 y 400 ms por jugador (CDP). Ver detalle abajo |
 
-Detalle de `e2e_duelo_online.py`:
+Detalle de la prueba del duelo (2026-11-09, antes de la campaña):
 - **Juego:** juega el Consejo con clics, entra al duelo con el botón, reproduce la canción por Web Audio y pulsa por el mismo camino que un dedo. Cada jugador tiene un error humano distinto (`?autoplay=1`, solo en localhost).
 - **Comprobaciones:** la final es idéntica en todos y los puntos del navegador coinciden con los del servidor.
 - **Casos especiales:** recarga a mitad de canción (el jugador vuelve a entrar) y desconexión a mitad de canción (recibe 0).

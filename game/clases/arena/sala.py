@@ -289,6 +289,14 @@ class SalaArena(object):
             if jid in r["res"]:
                 raise ErrorSala("regla", "Ya terminaste este reto.")
             if accion == "pista":
+                # La pista se calcula sobre el tablero que el jugador tiene AHORA en pantalla (no el ultimo comprobado).
+                if isinstance(slots, list) and len(slots) == p.eslabones:
+                    usados = set()
+                    p.slots = [None] * p.eslabones
+                    for i, carta in enumerate(slots):
+                        if carta in p.cartas and carta not in usados:
+                            p.slots[i] = carta
+                            usados.add(carta)
                 antes = p.transcurrido
                 p.pedir_pista()
                 p.gastado = getattr(p, "gastado", 0.0) + (p.transcurrido - antes)
