@@ -402,3 +402,14 @@ def bot(clave, rng, habilidad=1.0):
     while p.jugando():
         p.avanzar(piloto.mascara(p))
     return p
+
+
+def config_cliente(clave, extra_s=0):
+    """Todo lo que necesita el motor del navegador (plat_motor.js): constantes y mapa salen de este modulo."""
+    n = Nivel(clave, extra_s)
+    return {"nivel": clave, "filas": list(n.filas), "limite_ticks": n.limite_ticks, "ticks_s": TICKS_S, "sub": SUB, "tile": TILE,
+            "fragmentos": list(FRAGMENTOS),
+            "constantes": {"T": T, "ANCHO": ANCHO, "ALTO": ALTO, "V_MAX": V_MAX, "ACEL_SUELO": ACEL_SUELO, "ACEL_AIRE": ACEL_AIRE,
+                           "FRENO": FRENO, "GRAVEDAD": GRAVEDAD, "V_CAIDA_MAX": V_CAIDA_MAX, "V_SALTO": V_SALTO, "V_CORTE": V_CORTE,
+                           "COYOTE": COYOTE, "BUFFER": BUFFER, "RESPAWN_TICKS": RESPAWN_TICKS, "PARPADEO": PARPADEO,
+                           "MARGEN_PINCHO": MARGEN_PINCHO}}

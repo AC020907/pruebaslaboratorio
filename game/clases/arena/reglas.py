@@ -288,10 +288,12 @@ class Partida:
         return self.fase == "lobby" and MIN_JUGADORES <= len(self.jugadores) <= MAX_JUGADORES
 
     # ----- rondas -----
-    def nueva_ronda(self):
+    def nueva_ronda(self, evento=None):
+        """evento: clave de EVENTOS para ligar la ronda a la historia (campana online); None = al azar con la semilla."""
         self.ronda += 1
         self.fase = "ronda"
-        clave = self.rng.choice(sorted(EVENTOS))
+        azar = self.rng.choice(sorted(EVENTOS))          # se consume siempre: la semilla da la misma secuencia
+        clave = evento if evento in EVENTOS else azar
         evento = EVENTOS[clave]
         candidatas = [p for p in PUBLICACIONES if p["tipo"] in evento["tipos"] and p["id"] not in self.usadas
                       and (not evento.get("con_candidato") or p["candidato"])]
