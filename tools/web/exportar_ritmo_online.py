@@ -45,3 +45,34 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def exportar_arena():
+    """Retratos y fondos del juego para la Arena Online narrativa (misma identidad visual que la novela)."""
+    destino = os.path.join(RAIZ, "leaderboard", "app", "static", "arena")
+    os.makedirs(destino, exist_ok=True)
+    for personaje in ("claudia", "martina", "rodrigo", "tomas", "nova"):
+        for expresion in ("seria", "feliz"):
+            img = Image.open(os.path.join(SPRITES, "%s_%s.png" % (personaje, expresion))).convert("RGBA")
+            caja = img.getbbox()
+            img = img.crop(caja)
+            img = img.crop((0, 0, img.width, min(img.height, int(img.width * 1.25))))      # busto
+            img.thumbnail((420, 520))
+            img.save(os.path.join(destino, "%s_%s.webp" % (personaje, expresion)), quality=86)
+    fondos = {"operaciones": None, "viral": os.path.join(RAIZ, "game", "assets", "backgrounds", "fondo_viralizacion.jpg"),
+              "red": os.path.join(RAIZ, "game", "assets", "backgrounds", "fondo_contencion.jpg"),
+              "evidencias": os.path.join(RAIZ, "game", "assets", "backgrounds", "fondo_rastreador.jpg")}
+    for carpeta, _d, archivos in os.walk(os.path.join(RAIZ, "game")):
+        for a in archivos:
+            if a.lower().startswith("operaciones") and a.lower().endswith((".jpg", ".png", ".webp")):
+                fondos["operaciones"] = os.path.join(carpeta, a)
+    for nombre, ruta in fondos.items():
+        if ruta and os.path.exists(ruta):
+            img = Image.open(ruta).convert("RGB")
+            img.thumbnail((1280, 720))
+            img.save(os.path.join(destino, "fondo_%s.webp" % nombre), quality=72)
+    print("Arena:", sorted(os.listdir(destino)))
+
+
+if __name__ == "__main__":
+    exportar_arena()
