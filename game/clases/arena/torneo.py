@@ -18,7 +18,8 @@ import os
 import random
 
 from clases.ConfigMinijuegos import MODOS as MODOS_ARCADE
-from clases.CazaRumores import CazaRumores, focos_viralizacion
+from clases.CazaRumores import CazaRumores
+from clases import Plataformas as PL
 from clases.Moderador import ColaModeracion
 from clases.PuzzleEvidencias import PuzzleEvidencias
 from clases.RedCivitas import crear_red_civitas, ORIGEN_RUMOR, CANDIDATOS_FOCO
@@ -26,22 +27,22 @@ from clases.Ritmo import VALOR_JUICIO, validar_chart
 from clases.moderacion_datos import publicaciones_moderacion
 from clases.arena.reglas import NOMBRE_INDICADOR
 
-PRUEBAS = ("moderador", "contencion", "rastreador", "viralizacion", "ritmo")   # el Duelo cierra el torneo
+PRUEBAS = ("moderador", "rastreador", "contencion", "plataformas", "ritmo")   # el Duelo cierra el torneo
 NOMBRE_CORTO = {"moderador": "Moderación", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
-                "viralizacion": "Viralización", "ritmo": "Duelo"}
+                "plataformas": "Ruta", "ritmo": "Duelo"}
 NOMBRE_PRUEBA = {"moderador": "Moderación Express", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
-                 "viralizacion": "La Gran Viralización", "ritmo": "Duelo de Frecuencias"}
+                 "plataformas": "Ruta de la Verdad", "ritmo": "Duelo de Frecuencias"}
 MAX_PRUEBA = 1000
 MAX_CONSEJO = 2000     # 5 pruebas x 1000 + Consejo 2000 = 7000. El Consejo pesa ~29% (mas que cualquier prueba, 14%).
 
 MODOS_TORNEO = {
     "completo": {"rondas_civicas": 5, "segundos": 25, "moderador": {"cantidad": 12},
-                 "contencion": {"duracion": 40.0}, "viralizacion": {"duracion": 40.0},
+                 "contencion": {"duracion": 40.0}, "plataformas": {"nivel": "arena"},
                  "rastreador": {"eslabones": 3, "senuelos": 3, "tiempo": 120.0},
                  "ritmo": {"modo": "historia"}},
     # Feria: 2 rondas civicas (arbol, grafo, propagacion y roles siguen presentes) y retos mas cortos.
     "feria": {"rondas_civicas": 2, "segundos": 20, "moderador": {"cantidad": 8},
-              "contencion": {"duracion": 25.0}, "viralizacion": {"duracion": 25.0},
+              "contencion": {"duracion": 25.0}, "plataformas": {"nivel": "feria"},
               "rastreador": {"eslabones": 2, "senuelos": 2, "tiempo": 75.0},
               "ritmo": {"modo": "feria"}},
 }
@@ -77,12 +78,12 @@ def preparar_prueba(clave, modo_torneo, semilla, indicadores):
         spec["focos"] = random.Random("focos|%s" % semilla).sample(CANDIDATOS_FOCO, n_focos)
         spec["ajustes"] = {"duracion": cfg["duracion"]}
         spec["contexto"] = ("La desinformación quedó en %d: el rumor arranca en %d focos." % (ind["desinformacion"], n_focos))
-    elif clave == "viralizacion":
-        factor = 0.85 if ind["rumores"] >= 40 else 1.0
-        spec["ajustes"] = {"duracion": cfg["duracion"],
-                           "umbral_viral": int(MODOS_ARCADE["viral"]["umbral_viral"] * factor)}
-        spec["contexto"] = ("Hay %d rumores en circulación: la ciudad aguanta menos antes de volverse viral." % ind["rumores"]
-                            if factor < 1 else "La Gran Viralización llega a dos horas de las urnas.")
+    elif clave == "plataformas":
+        # Misma geometria y mismo tiempo para todos: el contexto del Consejo solo cambia el relato, no la dificultad.
+        nivel = PL.Nivel(cfg["nivel"])
+        spec.update(nivel=cfg["nivel"], evidencias=len(nivel.evidencias), limite_s=nivel.limite_ticks // PL.TICKS_S)
+        spec["contexto"] = ("La Gran Viralización: con %d rumores en circulación, NOVA lanza su ola. Entren a su sistema "
+                            "y rescaten la evidencia original." % ind["rumores"])
     elif clave == "rastreador":
         spec["ajustes"] = {"eslabones": cfg["eslabones"], "senuelos": cfg["senuelos"], "tiempo": cfg["tiempo"]}
         spec["contexto"] = "Reconstruye la cadena del rumor más compartido del Consejo hasta su origen."
@@ -99,8 +100,10 @@ def limite_segundos(spec):
     c = spec["clave"]
     if c == "moderador":
         return 15 + spec["cantidad"] * 5
-    if c in ("contencion", "viralizacion"):
+    if c == "contencion":
         return spec["ajustes"]["duracion"] + 45
+    if c == "plataformas":
+        return spec["limite_s"] + 45
     if c == "rastreador":
         return spec["ajustes"]["tiempo"] + 45
     return spec["duracion_ms"] / 1000.0 + 60
@@ -142,9 +145,7 @@ def puntuar_moderador(spec, datos):
 
 
 def _sim_arcade(spec):
-    modo = "contencion" if spec["clave"] == "contencion" else "viral"
-    focos = spec.get("focos") or focos_viralizacion(crear_red_civitas(), ORIGEN_RUMOR, spec["semilla"], 2)
-    return CazaRumores(crear_red_civitas(), modo, focos, spec["semilla"], spec["ajustes"])
+    return CazaRumores(crear_red_civitas(), "contencion", spec["focos"], spec["semilla"], spec["ajustes"])
 
 
 def puntuar_arcade(spec, datos):
@@ -219,7 +220,21 @@ def puntuar_ritmo(spec, datos, chart=None):
             "resumen": "Precisión %d%% · combo máximo x%d" % (int(precision * 100), mejor)}
 
 
-PUNTUAR = {"moderador": puntuar_moderador, "contencion": puntuar_arcade, "viralizacion": puntuar_arcade,
+def puntuar_plataformas(spec, datos):
+    """El cliente envia su traza de entradas; el servidor REJUEGA la carrera con el mismo motor y puntua."""
+    try:
+        p = PL.rejugar(spec["nivel"], datos.get("traza"))
+    except PL.TrazaInvalida as e:
+        raise ResultadoInvalido(str(e))
+    r = p.resumen()
+    return {"normalizado": r["score_normalized"], "precision": round(r["evidence"] / float(max(1, r["evidence_total"])), 3),
+            "detalle": r,
+            "resumen": "%s · %d/%d evidencias · %d detecciones · %d s" % (
+                "Archivo recuperado" if r["completed"] else "No llegó al archivo", r["evidence"], r["evidence_total"],
+                r["deaths"], r["elapsed_ms"] // 1000)}
+
+
+PUNTUAR = {"moderador": puntuar_moderador, "contencion": puntuar_arcade, "plataformas": puntuar_plataformas,
            "rastreador": puntuar_rastreador, "ritmo": puntuar_ritmo}
 
 
@@ -238,7 +253,7 @@ EFECTO = {   # indicador -> signo; la media del grupo (0..1) se centra en 0.5: j
     "moderador": {"convivencia": 6, "confianza": 3},
     "contencion": {"desinformacion": -8, "rumores": -4},
     "rastreador": {"info_verificada": 8, "confianza": 3},
-    "viralizacion": {"conflictos": -8, "rumores": -6},
+    "plataformas": {"conflictos": -8, "rumores": -6},
     "ritmo": {"participacion": 8, "confianza": 3},
 }
 
@@ -352,7 +367,9 @@ def payload_bot(spec, nivel, rng):
     if c == "moderador":
         pubs, _ = publicaciones_moderacion(spec["semilla"], spec["cantidad"])
         return {"decisiones": [p.es_falsa if rng.random() < nivel else not p.es_falsa for p in pubs]}
-    if c in ("contencion", "viralizacion"):
+    if c == "plataformas":
+        return {"traza": PL.bot(spec["nivel"], rng, nivel).traza}
+    if c == "contencion":
         sim = _sim_arcade(spec)
         umbral = sim.cfg["umbral_viral"]
         v = max(0.0, min(1.0, 1 - nivel + rng.uniform(-.15, .15)))

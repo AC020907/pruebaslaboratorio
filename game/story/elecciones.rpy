@@ -112,9 +112,9 @@ label domingo_ataque(base=None, reintento=True):
         "El video de Martina para Resonancia sale justo ahora. Sus seguidores repiten la etiqueta de los rumores sin saberlo."
     $ ayuda_viral = ajustes_viral(base)
     if aliado == "martina_patrocinada":
-        $ renpy.notify("El video patrocinado de Martina alimenta el rumor: esta vez será más difícil.")
+        $ renpy.notify("El video patrocinado de Martina alimenta a NOVA: tendrás menos tiempo dentro del sistema.")
     elif aliado:
-        $ renpy.notify("Gracias a %s, el rumor necesitará muchos más reposts para hacerse viral." % NOMBRE_PERSONAJE[aliado])
+        $ renpy.notify("Gracias a %s, NOVA tardará más en cerrarte la sesión." % NOMBRE_PERSONAJE[aliado])
 
     if reintento:
         call minijuego_con_reintento("evento_gran_viralizacion", ajustes=ayuda_viral)

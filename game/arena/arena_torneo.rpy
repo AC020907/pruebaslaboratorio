@@ -7,7 +7,7 @@ init -4 python:
 
     ARENA_MODOS = (("completo", "Torneo completo"), ("feria", "Torneo Feria"), ("clasica", "Solo Consejo"))
     ARENA_DESCRIPCION_MODO = {
-        "completo": "5 rondas del Consejo Cívico y después 5 pruebas: Moderación Express, Caza-Rumores, Rastreador, La Gran Viralización y el Duelo de Frecuencias como final. Unos 25 minutos.",
+        "completo": "5 rondas del Consejo Cívico y después 5 pruebas: Moderación Express, Rastreador, Caza-Rumores, Ruta de la Verdad (plataformas) y el Duelo de Frecuencias como final. Unos 25 minutos.",
         "feria": "Versión corta para la feria: 2 rondas del Consejo y las 5 pruebas con menos tiempo. Unos 12 minutos.",
         "clasica": "Solo las rondas del Consejo Cívico y la elección (la Arena original).",
     }
@@ -17,7 +17,7 @@ init -4 python:
         "moderador": "Borra bots y ataques; deja las críticas reales. Censurar a una persona real resta más que dejar pasar un bot.",
         "contencion": "Frena el rumor antes de que se vuelva viral. Cuenta cuánto se propagó y cuántos rumores interceptaste.",
         "rastreador": "Reconstruye la cadena hasta la fuente. Encontrarla vale 620; el tiempo que te sobre suma hasta 380. Las pistas y las comprobaciones extra restan.",
-        "viralizacion": "La ola grande: contenerla vale más que cualquier combo. Sin contenerla, solo cuenta cuánto frenaste.",
+        "plataformas": "Plataformas: recoge los fragmentos de evidencia y llega al archivo. Las evidencias y la meta son lo que más vale; el tiempo y las detecciones solo ajustan.",
         "ritmo": "Mismo chart para todos (Normal). Precisión 85 % y combo máximo 15 %: PERFECT 100 %, GREAT 70 %, GOOD 30 %, MISS 0 %.",
     }
 
@@ -62,9 +62,9 @@ label arena_jugar_prueba:
     elif clave_ar == "rastreador":
         call minijuego_rastreador(spec_ar["semilla"], False, spec_ar["ajustes"])
         $ datos_ar = arena_datos_rastreo(puzzle_rastreo)
-    elif clave_ar == "viralizacion":
-        call evento_gran_viralizacion(None, spec_ar["semilla"], False, spec_ar["ajustes"])
-        $ datos_ar = arena_datos_arcade(viralizacion)
+    elif clave_ar == "plataformas":
+        call minijuego_plataformas(spec_ar["nivel"], False, None, True)
+        $ datos_ar = {"traza": [list(seg) for seg in plataformas.traza]}
     else:
         call screen arena_duelo_intro(spec_ar)
         $ duelo_competitivo = True

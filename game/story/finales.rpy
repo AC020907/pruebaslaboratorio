@@ -38,7 +38,7 @@ init python:
             list(mem()["pistas"]), inv.PISTAS_CLAVE, indicadores_ciudad(), final=final)
 
     NOMBRE_MINIJUEGO = {"moderador": "Moderación Express", "contencion": "Caza-Rumores",
-                        "rastreador": "Rastreador", "viralizacion": "La Gran Viralización",
+                        "rastreador": "Rastreador", "viralizacion": "Ruta de la Verdad",
                         "ritmo": "Duelo de Frecuencias"}
 
     def lineas_minijuegos():
