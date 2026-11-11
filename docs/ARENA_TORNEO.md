@@ -6,7 +6,7 @@
 |---|---|---|
 | Lobby | 2–4 jugadores, un rol cada uno. El anfitrión elige el modo: **Torneo completo**, **Torneo Feria** o **Solo Consejo** (la Arena anterior) | `arena/arena.rpy` (`arena_inicio`, `arena_sala`) |
 | Consejo Cívico | Las rondas de siempre: árbol de decisiones por rol, propagación BFS por el grafo social, eventos con semilla e indicadores compartidos | `clases/arena/reglas.py` |
-| Torneo | 5 pruebas en este orden: Moderación Express, Caza-Rumores, Rastreador, La Gran Viralización y **Duelo de Frecuencias como final** | `clases/arena/torneo.py`, `arena/arena_torneo.rpy` |
+| Torneo | 5 pruebas en este orden: Moderación Express, Rastreador, Caza-Rumores, Ruta de la Verdad (plataformas) y **Duelo de Frecuencias como final** | `clases/arena/torneo.py`, `arena/arena_torneo.rpy` |
 | Elección | `Partida.elegir_alcalde()` con los indicadores **después** del torneo (las pruebas cambian la ciudad) | `reglas.py` + `TorneoArena.final()` |
 | Resultados | Dos conceptos distintos: **campeón del torneo** (puntos individuales) y **resultado de Ciudad Nova** (colectivo) | `arena_final_torneo` |
 
@@ -16,7 +16,8 @@
 |---|---|---|
 | Rondas del Consejo | 5 | 2 |
 | Moderación (comentarios) | 12 (+2 si los conflictos ≥ 40) | 8 (+2) |
-| Caza-Rumores / Viralización | 40 s | 25 s |
+| Caza-Rumores | 40 s | 25 s |
+| Ruta de la Verdad | nivel «arena» (80 s) | nivel «feria» (55 s) |
 | Rastreador | 3 eslabones, 3 señuelos, 120 s | 2, 2, 75 s |
 | Duelo | chart «historia», Normal | chart «feria», Normal |
 | Duración aproximada | 25 min | 12 min |
@@ -30,7 +31,7 @@ Los indicadores **no se reinician**: cada prueba se prepara a partir de lo que d
 **Del Consejo a la prueba** (`preparar_prueba`):
 - **Moderación:** conflictos ≥ 40 → llegan 2 comentarios más.
 - **Caza-Rumores:** desinformación ≥ 50 → el rumor arranca en 3 focos en vez de 2.
-- **Viralización:** rumores ≥ 40 → el umbral viral baja un 15 %.
+- **Ruta de la Verdad:** misma geometría y tiempo para todos; el Consejo solo cambia el relato (no la dificultad).
 - **Rastreador y Duelo:** el contexto narrativo cita la partida.
 
 **De la prueba a la ciudad** (`consecuencias`): la media del grupo (0–1) se centra en 0,5. Si el grupo juega bien, la ciudad mejora; si juega mal, empeora.
@@ -40,7 +41,7 @@ Los indicadores **no se reinician**: cada prueba se prepara a partir de lo que d
 | Moderación | convivencia ±6, confianza ±3 |
 | Caza-Rumores | desinformación ∓8, rumores ∓4 |
 | Rastreador | información verificada ±8, confianza ±3 |
-| Viralización | conflictos ∓8, rumores ∓6 |
+| Ruta de la Verdad | conflictos ∓8, rumores ∓6 |
 | Duelo | participación ±8, confianza ±3 |
 
 La explicación de la elección añade una línea por cada prueba que cambió la ciudad.
@@ -88,6 +89,6 @@ El servidor (`ServidorArena(torneo="completo"|"feria")`) controla todas las fase
 
 ## Limitaciones conocidas (honestas)
 
-- **Tiempo real medido en el cliente:** el servidor rejuega las decisiones (Moderación, Rastreador), valida la coherencia (Caza-Rumores y Viralización) y recalcula el Duelo nota a nota. Sin embargo, el **momento** de cada pulsación lo mide el equipo del jugador. Un cliente modificado podría declarar mejores juicios de ritmo o una viralidad menor. Para un laboratorio en LAN se considera aceptable.
-- **Arena Online:** incluye el **Duelo de Frecuencias** como gran final (motor rítmico real en el navegador; ver `ARENA_RITMO_MULTIJUGADOR.md` §Online). Los otros cuatro minijuegos siguen siendo solo de escritorio: no tienen versión web.
+- **Tiempo real medido en el cliente:** el servidor rejuega las decisiones (Moderación, Rastreador) y la carrera completa de la Ruta de la Verdad a partir de la traza de entradas, valida la coherencia (Caza-Rumores en Ren'Py) y recalcula el Duelo nota a nota. Sin embargo, el **momento** de cada pulsación lo mide el equipo del jugador. Un cliente modificado podría declarar mejores juicios de ritmo o una viralidad menor. Para un laboratorio en LAN se considera aceptable.
+- **Arena Online:** juega los cinco retos en el navegador dentro de una historia compartida (ver `ARENA_NARRATIVA_MULTIPERSPECTIVA.md`).
 - **QA automática:** en la QA, los clientes Ren'Py entregan decisiones de bot. Los minijuegos con ajustes de torneo son los mismos labels que usa la Historia, pero falta jugar a mano una partida completa del torneo: ver `docs/PRUEBAS_FISICAS.md`.

@@ -266,11 +266,14 @@ label qa_gal_minijuegos:
     call minijuego_contencion(aplicar=False, ajustes={"duracion": 20.0})
     hide screen qa_gal_mirar_fin
     $ qa_gal["eventos"].append(("contencion", _return.get("exito"), _return.get("calificacion")))
-    ## Gran Viralizacion: derrota (sin interceptar).
-    show screen qa_gal_mirar_fin("j12_viral_resultado_derrota")
-    $ qa_pad_programar(qa_gal_pasos_arcade("j09_viral", False) + qa_pad_repetir("a", 60, 1.0))
-    call evento_gran_viralizacion(aplicar=False, ajustes={"duracion": 20.0})
-    hide screen qa_gal_mirar_fin
+    ## Ruta de la Verdad (plataformero): tutorial, juego con piloto automatico y resultado.
+    $ qa_plataformas_auto = 0.9
+    $ qa_pad_programar([(1.5, "foto:j09_plataformas_tutorial", None), (0.3, "a", "press"), (1.6, "foto:j10_plataformas_cuenta", None),
+                        (3.0, "foto:j11_plataformas_juego_a", None), (3.0, "foto:j11_plataformas_juego_b", None),
+                        (3.0, "foto:j11_plataformas_juego_c", None), (9.0, "foto:j12_plataformas_resultado", None)]
+                       + qa_pad_repetir("a", 60, 1.0))
+    call evento_gran_viralizacion(aplicar=False, ajustes={"nivel": "feria"})
+    $ qa_plataformas_auto = None
     $ qa_gal["eventos"].append(("viralizacion", _return.get("exito"), _return.get("calificacion")))
     ## Rastreador: tutorial, error con explicacion y victoria.
     $ qa_pad_programar([(1.5, "foto:j13_rastreador_tutorial", None), (0.5, qa_gal_puzzle_mal, None),

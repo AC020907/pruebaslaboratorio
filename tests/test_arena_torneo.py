@@ -78,9 +78,24 @@ class TestPuntuacion(unittest.TestCase):
                 r = T.puntuar(s, T.payload_bot(s, 1.0, random.Random(0)))
                 self.assertTrue(r["detalle"]["origen_encontrado"], (modo, semilla))
 
+    def test_plataformas_se_rejuega_en_el_servidor(self):
+        from clases import Plataformas as PL
+        s = spec("plataformas")
+        bueno = PL.bot(s["nivel"], random.Random(4), 1.0)
+        r = T.puntuar(s, {"traza": bueno.traza})
+        self.assertEqual(r["normalizado"], bueno.puntuacion())
+        self.assertTrue(r["detalle"]["completed"])
+        # Enviar "puntos" no sirve de nada: solo cuenta la traza. Sin moverse, 0.
+        quieto = T.puntuar(s, {"traza": [[0, 600]], "score_normalized": 1000, "completed": True})
+        self.assertEqual(quieto["normalizado"], 0)
+        for mala in ({}, {"traza": "x"}, {"traza": [[8, 10]]}, {"traza": [[2, 10 ** 9]]}):
+            with self.assertRaises(T.ResultadoInvalido):
+                T.puntuar(s, mala)
+
     def test_arcade_incoherente_rechazado(self):
-        s = spec("viralizacion")
-        umbral = s["ajustes"]["umbral_viral"]
+        s = spec("contencion")
+        from clases.ConfigMinijuegos import MODOS
+        umbral = MODOS["contencion"].get("umbral_viral", 10000)
         with self.assertRaises(T.ResultadoInvalido):
             T.puntuar(s, {"reposts": umbral * 3, "interceptados": 3, "exito": True})
         with self.assertRaises(T.ResultadoInvalido):
@@ -176,7 +191,9 @@ class TestTorneo(unittest.TestCase):
     def test_feria_tiene_las_cinco_pruebas_mas_cortas(self):
         _, _, specs = self.jugar(2, (.8, .4), modo="feria")
         self.assertEqual(len(specs), 5)
-        self.assertLess(T.limite_segundos(specs[1]), T.limite_segundos(spec("contencion")))
+        for s_feria in specs:      # cada prueba de la Feria dura como mucho lo que su version completa
+            self.assertLessEqual(T.limite_segundos(s_feria), T.limite_segundos(spec(s_feria["clave"])))
+        self.assertLess(T.limite_segundos(next(x for x in specs if x["clave"] == "plataformas")), T.limite_segundos(spec("plataformas")))
 
     def test_mismas_condiciones_para_todos(self):
         p = partida(4)

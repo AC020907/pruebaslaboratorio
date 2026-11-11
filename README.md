@@ -17,7 +17,7 @@ Proyecto para la **Feria Gamer 2026**.
   - **Moderación Express**: limpia los comentarios de Martina; borra bots y aprueba a las personas reales.
   - **Caza-Rumores**: frena un rumor que se propaga en tiempo real por la red de la ciudad.
   - **Rastreador**: un tablero de evidencias donde reconstruyes la cadena de difusión de un rumor hasta su origen.
-  - **La Gran Viralización**: el ataque final, dos horas antes de abrir las urnas.
+  - **Ruta de la Verdad** (plataformas): en la Gran Viralización, dos horas antes de abrir las urnas, entras al sistema de NOVA a rescatar la evidencia original. Sustituye al antiguo arcade, que repetía el de Caza-Rumores.
   - **Duelo de Frecuencias** (nuevo): un duelo rítmico contra NOVA durante la transmisión del domingo. Cuatro carriles, ritmo original a 120 BPM, dificultad Normal, Fácil o Asistido.
 - **NOVA**: la red de cuentas automáticas detrás de los rumores, con un giro que depende de lo que hiciste.
 - **Eventos variables**: cada partida es un poco distinta, sin bloquear el avance.
@@ -80,7 +80,7 @@ python tests/qa_visual.py arena --salida demo_arena
 
 ### Arena Online (teléfonos o redes distintas)
 
-Abre `https://civitas-leaderboard.onrender.com/arena` cuando esté desplegada (ver `DESPLIEGUE.md` §6). Una persona crea la sala y comparte el código o el enlace, y las demás se unen desde su teléfono o computador. Usa el mismo motor de reglas que la Arena local.
+Abre `https://civitas-leaderboard.onrender.com/arena` cuando esté desplegada (ver `DESPLIEGUE.md` §6). Una persona crea la sala y comparte el código o el enlace, y las demás se unen desde su teléfono o computador. Es una historia compartida de 5 rondas con cuatro perspectivas: cada rol recibe pistas propias, todos juegan los cinco retos y después de cada uno se decide qué hacer en Civitas. Usa el mismo motor de reglas que la Arena local. Detalle: [docs/ARENA_NARRATIVA_MULTIPERSPECTIVA.md](docs/ARENA_NARRATIVA_MULTIPERSPECTIVA.md).
 
 Para probarla en local:
 
@@ -104,7 +104,8 @@ Para publicar la versión web, la clasificación online y el QR, sigue **[DESPLI
 | Historial, guardar, cargar, opciones | Barra inferior o Esc |
 | Moderación Express | Flecha izquierda / A / cruceta izq.: borrar · flecha derecha / D / cruceta der.: aprobar |
 | Rastreador | Arrastrar fichas, o teclas 1–6 + Z X C · H pista · Enter comprobar · Mando: cruceta mueve, A elige y coloca, Y pista |
-| Caza-Rumores / Gran Viralización | Clic sobre los rumores · Mando o flechas: mover la mira, A disparar, X onda |
+| Caza-Rumores | Clic sobre los rumores · Mando o flechas: mover la mira, A disparar, X onda |
+| Ruta de la Verdad (plataformas) | A/D o flechas: moverse · Espacio, W o flecha arriba: saltar (mantén para más altura) · Mando: cruceta y A · Táctil: botones en pantalla |
 | Mapa | Flechas, WASD o cruceta · Enter o A para entrar · En el teléfono, flechas táctiles |
 | Mando (general) | A aceptar · B menú · Start pausa |
 | Arena | Clic, o flechas + Enter / A, sobre las opciones del árbol · «« Volver» regresa · Esc: salir de la sala |
@@ -143,7 +144,7 @@ tests/
 | Estructura | Dónde se usa |
 |---|---|
 | **Grafo dirigido ponderado** | La red social de la ciudad: quién sigue a quién (`GrafoSocial`). |
-| **BFS por niveles** | La propagación de rumores en Caza-Rumores y en la Gran Viralización; las horas del Rastreador. |
+| **BFS por niveles** | La propagación de rumores en Caza-Rumores (también en la versión online, rejugada en el servidor); las horas del Rastreador. |
 | **DFS inverso** | La validación de la cadena del Rastreador y el cálculo de las pistas. |
 | **Árbol AVL** | El banco de publicaciones del teléfono, que se entregan de menor a mayor riesgo. |
 | **Pila** | Los recorridos iterativos del AVL (`Clase_pila`). |

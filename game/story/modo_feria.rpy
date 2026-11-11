@@ -4,7 +4,7 @@
 ## el giro de NOVA y el final secreto. Termina en un final y vuelve al menu.
 
 define FERIA_CONTENCION = {"duracion": 40.0}
-define FERIA_VIRAL = {"duracion": 35.0}
+define FERIA_VIRAL = {"nivel": "feria"}
 define FERIA_RASTREO = dict(CASO_AGUA, eslabones=2, senuelos=2, tiempo=75.0)
 
 label modo_feria:
