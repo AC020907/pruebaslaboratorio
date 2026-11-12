@@ -19,7 +19,7 @@
 **Estado:**
 - **Entrega académica: GO condicionado** a la prueba en LAN física (`docs/PRUEBAS_FISICAS.md` §A).
 - **Feria: GO condicionado** a una partida Online con teléfonos y personas (§B) y al despliegue en Render.
-- **Pendiente:** sprites de Tomás en el estilo nuevo (no venían en el paquete).
+- **Tomás:** sprites nuevos integrados (2026-11-11). Lint, 180 + 165 pruebas, 10/10 recorridos y galería de personajes OK.
 
 ## 000. Plataformero y Arena Online narrativa (rama `feature/plataformero-arena-narrativa`; recuperación: tag `checkpoint-pre-plataformero`)
 

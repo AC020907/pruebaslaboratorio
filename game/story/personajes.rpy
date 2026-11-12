@@ -29,14 +29,13 @@ init -5 python:
     # dialogo (linea base) con un fundido inferior, asi el corte nunca se ve y la cara queda
     # por encima del texto. (lienzo de referencia en px, zoom, linea base y); el fundido usa el
     # tamano real del PNG. La linea base nivela los ojos; NOVA es mas bajito a proposito.
-    # Claudia, Martina, Rodrigo y NOVA usan los sprites oficiales del equipo (tools/arte/importar_sprites.py):
-    # lienzo de 760 px de alto con el mismo encuadre en todas sus expresiones. Tomas conserva su arte anterior
-    # (no venia en el paquete de sprites) con una escala que iguala la altura aparente.
+    # Todos usan los sprites oficiales en el estilo del equipo (tools/arte/importar_sprites.py):
+    # lienzo de 760 px de alto con el mismo encuadre en todas sus expresiones.
     ENCUADRE_SPRITE = {
         "claudia": ((579, 760), 0.96, 1000),
         "martina": ((682, 760), 0.96, 1010),
         "rodrigo": ((772, 760), 0.96, 1000),
-        "tomas":   ((542, 549), 1.32, 940),
+        "tomas":   ((761, 760), 0.96, 1000),
         "nova":    ((500, 760), 0.92, 1010),
     }
 

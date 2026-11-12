@@ -212,7 +212,7 @@ init python:
         build.classify('game/images/personajes/*_%s.png' % _expr, None)
     # Arte anterior de los personajes con sprites oficiales nuevos: solo seria respaldo y mezclaria estilos.
     build.classify('game/images/personajes/lateral/**', None)
-    for _personaje_viejo in ('claudia', 'martina', 'rodrigo', 'nova'):
+    for _personaje_viejo in ('claudia', 'martina', 'rodrigo', 'nova', 'tomas'):
         build.classify('game/images/personajes/%s_base.png' % _personaje_viejo, None)
     build.classify('game/images/placeholder*.png', None)
     build.classify('game/images/influencer/**', None)

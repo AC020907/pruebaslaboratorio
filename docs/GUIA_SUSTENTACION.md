@@ -75,7 +75,6 @@ Civitas tiene dos modos con el mismo tema: Ciudad Nova vota alcalde y la red soc
 | ¿Qué pasa si verifico mal? | Resta. Reportar como falsa una noticia verdadera baja la confianza y tu reputación; dar por cierto un rumor falso sube la desinformación. Se comprueba en los dos modos (`tests/test_coherencia_educativa.py`). |
 | ¿Cómo sabe el jugador si es verdadera? | Al pulsar «Verificar» aparece lo que encuentra: la fuente, la fecha o si el documento existe. El periodista de la Arena ve la fuente real. |
 | ¿Hay elecciones en la historia? | Sí. El domingo se nombran los cuatro candidatos y, antes del resultado final, el **escrutinio** muestra votos, participación, abstención y por qué, a partir de los indicadores y tu credibilidad (`clases/Eleccion.py`). |
-| ¿Por qué Tomás se ve distinto? | Los sprites oficiales del equipo traen a Claudia, Martina, Rodrigo y NOVA. Tomás no venía en el paquete y conserva su arte anterior (`docs/SPRITES.md`). |
 | ¿Se pueden pausar los minijuegos? | Sí. Moderación, Caza-Rumores y Rastreador comparten una pausa que detiene el reloj (`minijuegos/pausa.rpy`). El Duelo y la Ruta de la Verdad tienen la suya. |
 | ¿La Ruta de la Verdad cambia la historia? | Sí. Claudia reacciona según cuántas evidencias recuperaste y ajusta información verificada y confianza (`label evidencias_rescatadas`). |
 | ¿Y la Arena Online? | Es una mejora para la feria: el mismo motor de reglas en el servidor de Render, jugado desde el navegador por HTTPS. El requisito de sockets (§13) lo cumple la Arena local. |

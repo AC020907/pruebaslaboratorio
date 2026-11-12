@@ -21,7 +21,7 @@ python tools/web/exportar_ritmo_online.py      # retratos de la Arena Online y d
 | Martina | las 6 | `seria` es de **570 × 570**; el resto de 2480 | Las 6 se usan. El color de piel con manchas aparece en todas las expresiones: es el diseño, no un error de importación |
 | Rodrigo | neutral, feliz, serio, enojado, triste, sorprendido (en masculino) | `neutral` y `serio` son **idénticos** | Nombres normalizados al esquema del juego (`seria`, `enojada`, `sorprendida`). `seria` = alias de `neutral` |
 | NOVA | neutral, seria, enojada, triste, sorprendida | **No trae `feliz`**, que el guion usa | `feliz` = alias de `neutral` (guiño y sonrisa). No se generó arte nuevo |
-| Tomás | — | **No viene en el ZIP** | Se conserva su arte anterior. **Su estilo no coincide con el de los demás**: pendiente de que el equipo lo dibuje |
+| Tomás | las 6 (`tomas_sprites.zip`, aparte) | 1254 × 1254, fondo transparente real; la figura venía con alfa 253 | Se llevó a alfa 255 y al mismo encuadre (761 × 760). Mismo estilo que los demás |
 
 Los alias están en `ALIAS_EXPRESION` (`game/story/personajes.rpy`) y en `tools/web/exportar_ritmo_online.py`.
 

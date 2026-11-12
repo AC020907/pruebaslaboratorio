@@ -16,7 +16,8 @@ Qué hace (y por qué):
 - Expresiones que faltan en el ZIP: NOVA no trae "feliz"; se usa su "neutral" (guino y sonrisa) como alias.
   No se genera arte nuevo.
 - Regenera los retratos laterales (lado/<p>_<e>_lado.png, 230 px, circulo con aro del color del personaje).
-- Tomas no viene en el ZIP: se conservan sus sprites anteriores.
+- Tomas llego aparte (tomas_sprites.zip, 1254 px): se importa igual, con su carpeta tomas/.
+- Alfa casi opaco (>= 200) se lleva a 255: los PNG generados traen la figura a alfa 253.
 
 Escribe en game/images/personajes/sprites/ y imprime un informe (tamanos, alias, duplicados).
 """
@@ -34,9 +35,9 @@ MASCULINO = {"serio": "seria", "enojado": "enojada", "sorprendido": "sorprendida
 LIENZO = 2480
 ALTO_SALIDA = 760                     # alto del sprite en el juego (se muestra a zoom 1.0)
 COLOR = {"claudia": ("#5b5bd6", "#dcdcfa"), "martina": ("#d6457a", "#f8d6e3"), "rodrigo": ("#2f9e8f", "#cdeee9"),
-         "nova": ("#3b4cc0", "#d9ddf7")}
+         "nova": ("#3b4cc0", "#d9ddf7"), "tomas": ("#c99a2e", "#f6ecd2")}
 # Cara para el retrato lateral: (centro x, centro y, lado) en fraccion del recorte del personaje.
-CARA = {"claudia": (0.50, 0.30, 0.52), "martina": (0.50, 0.30, 0.46), "rodrigo": (0.50, 0.28, 0.46), "nova": (0.50, 0.24, 0.50)}
+CARA = {"claudia": (0.50, 0.30, 0.52), "martina": (0.50, 0.30, 0.46), "rodrigo": (0.50, 0.28, 0.46), "nova": (0.50, 0.24, 0.50), "tomas": (0.50, 0.30, 0.46)}
 ALIAS_FALTANTE = {("nova", "feliz"): "neutral"}
 
 
@@ -59,6 +60,8 @@ def cargar(carpeta):
             im = Image.open(os.path.join(dirp, archivo)).convert("RGBA")
             if im.size != (LIENZO, LIENZO):
                 im = im.resize((LIENZO, LIENZO), Image.LANCZOS)
+            r, g, b, a = im.split()
+            im = Image.merge("RGBA", (r, g, b, a.point(lambda v: 255 if v >= 200 else v)))
             datos.setdefault(personaje, {})[expr] = im
     return datos
 
