@@ -30,6 +30,7 @@ COYOTE, BUFFER = 6, 7                    # ticks
 RESPAWN_TICKS = 36
 PARPADEO = 80               # ticks encendido / apagado de los bloques intermitentes '~'
 MARGEN_PINCHO = 9 * SUB     # la caja de dano de un pincho es mas pequena que el tile (justo para el jugador)
+ESQUINA = 7 * SUB           # correccion de esquina: si la cabeza roza el borde de un bloque al saltar, se desliza
 
 SOLIDO, PINCHO, INTERMITENTE = "#", "^", "~"
 EVIDENCIA, CONTROL, INICIO, META = "E", "C", "S", "M"
@@ -248,7 +249,17 @@ class Partida(object):
             self.vx = 0
         self.x = nx
         ny = self.y + self.vy
+        estaba_en_suelo = self.en_suelo
         self.en_suelo = False
+        if self.vy < 0 and self._choca(self.x, ny):
+            # Correccion de esquina: un salto que solo roza el borde de un bloque no se corta; se desliza a un lado.
+            for dx in range(SUB, ESQUINA + 1, SUB):
+                if not self._choca(self.x + dx, ny) and not self._choca(self.x + dx, self.y):
+                    self.x += dx
+                    break
+                if not self._choca(self.x - dx, ny) and not self._choca(self.x - dx, self.y):
+                    self.x -= dx
+                    break
         if self._choca(self.x, ny):
             if self.vy > 0:
                 ny = _piso(ny + ALTO - 1, T) * T - ALTO
@@ -259,6 +270,8 @@ class Partida(object):
                 ny = self.y
             if self._choca(self.x, ny):
                 ny = self.y
+            if self.en_suelo and not estaba_en_suelo:
+                self.eventos.append((self.tick, "aterriza", None))
             self.vy = 0
         self.y = ny
 
@@ -412,4 +425,4 @@ def config_cliente(clave, extra_s=0):
             "constantes": {"T": T, "ANCHO": ANCHO, "ALTO": ALTO, "V_MAX": V_MAX, "ACEL_SUELO": ACEL_SUELO, "ACEL_AIRE": ACEL_AIRE,
                            "FRENO": FRENO, "GRAVEDAD": GRAVEDAD, "V_CAIDA_MAX": V_CAIDA_MAX, "V_SALTO": V_SALTO, "V_CORTE": V_CORTE,
                            "COYOTE": COYOTE, "BUFFER": BUFFER, "RESPAWN_TICKS": RESPAWN_TICKS, "PARPADEO": PARPADEO,
-                           "MARGEN_PINCHO": MARGEN_PINCHO}}
+                           "MARGEN_PINCHO": MARGEN_PINCHO, "ESQUINA": ESQUINA}}

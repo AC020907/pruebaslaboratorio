@@ -80,7 +80,8 @@ screen moderador_ui(cola, creadas):
     zorder 40
 
     if not cola.terminado():
-        timer 0.05 repeat True action Function(tick_moderacion, cola, 0.05)
+        timer 0.05 repeat True action If(minijuego_pausado, NullAction(), Function(tick_moderacion, cola, 0.05))
+        use boton_pausa_minijuego
         if cola.jugando():
             key "civ_izq" action Function(moderar, cola, True)
             key "civ_der" action Function(moderar, cola, False)

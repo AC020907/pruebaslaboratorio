@@ -256,7 +256,8 @@ label qa_gal_escenas:
 label qa_gal_minijuegos:
     scene bg operaciones
     ## Moderacion: alterna borrar/aprobar para ver acierto y error.
-    $ qa_pad_programar([(1.5, "foto:j01_moderador_inicio", None), (1.0, "dpleft", "press"), (0.25, "foto:j02_moderador_feedback_a", None),
+    $ qa_pad_programar([(1.5, "foto:j01_moderador_inicio", None), (0.3, pausar_minijuego, None), (0.8, "foto:j01b_moderador_pausa", None),
+                        (0.2, reanudar_minijuego, None), (1.0, "dpleft", "press"), (0.25, "foto:j02_moderador_feedback_a", None),
                         (1.2, "dpright", "press"), (0.25, "foto:j03_moderador_feedback_b", None)]
                        + [(0.9, ("dpleft" if i % 2 else "dpright"), "press") for i in range(8)]
                        + [(1.2, "foto:j04_moderador_resultado", None)] + qa_pad_repetir("a", 30, 1.0))
@@ -272,10 +273,11 @@ label qa_gal_minijuegos:
     $ qa_plataformas_auto = 0.9
     $ qa_pad_programar([(1.5, "foto:j09_plataformas_tutorial", None), (0.3, "a", "press"), (1.6, "foto:j10_plataformas_cuenta", None),
                         (3.0, "foto:j11_plataformas_juego_a", None), (3.0, "foto:j11_plataformas_juego_b", None),
-                        (3.0, "foto:j11_plataformas_juego_c", None), (9.0, "foto:j12_plataformas_resultado", None)]
+                        (3.0, "foto:j11_plataformas_juego_c", None), (6.5, "foto:j11_plataformas_victoria", None), (2.5, "foto:j12_plataformas_resultado", None)]
                        + qa_pad_repetir("a", 60, 1.0))
     call evento_gran_viralizacion(aplicar=False, ajustes={"nivel": "feria"})
     $ qa_plataformas_auto = None
+    $ qa_gal["eventos"].append(("plataformas_fps", vista_plataformas.fps(), plataformas.tick, round(vista_plataformas.st - vista_plataformas.st0, 1)))
     $ qa_gal["eventos"].append(("viralizacion", _return.get("exito"), _return.get("calificacion")))
     ## Rastreador: tutorial, error con explicacion y victoria.
     $ qa_pad_programar([(1.5, "foto:j13_rastreador_tutorial", None), (0.5, qa_gal_puzzle_mal, None),

@@ -18,6 +18,8 @@ qa_gal_dialogo_37013090,c,,Una cuenta dice que el agua está envenenada. Cuarent
 qa_gal_dialogo_94cd6713,c,,Línea que se cierra sola.,no,herramienta de desarrollo (no es dialogo del juego)
 qa_gal_dialogo_04623168,,,Línea de narración: A debe avanzar.,no,herramienta de desarrollo (no es dialogo del juego)
 qa_gal_dialogo_70fbcdf7,c,,Línea de Claudia: A debe avanzar.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_personajes_84cda862,r,enojada,¡Alcalde! Todo el barrio dice que mañana cierran el hospital.,no,herramienta de desarrollo (no es dialogo del juego)
+qa_gal_personajes_aebe5c94,n,feliz,Todas las cuentas despiertan al mismo tiempo.,no,herramienta de desarrollo (no es dialogo del juego)
 qa_mando_menus_679ee90e,,,QA: esta línea debe avanzar con A.,no,herramienta de desarrollo (no es dialogo del juego)
 acto1_f0928c64,,,La plaza está más llena que de costumbre. Medio Ciudad Nova mira su teléfono al mismo tiempo.,no,narrador (no se dobla)
 acto1_53b15aa0,,,"En la esquina, alguien reparte botellas de agua con una calcomanía de campaña.",no,narrador (no se dobla)
@@ -220,6 +222,9 @@ domingo_ataque_ce1367ba,c,,Tengo las pruebas listas. ¡Frénelo y yo publico tod
 domingo_ataque_e5246f22,m,,"¡Alcalde! Estoy en vivo con cien mil personas. ¡Lo que usted frene, yo lo desmiento al instante!",yes,ok
 domingo_ataque_5fda676d,r,,¡En el barrio nadie reenvía nada! Lucía y los de Primero Pregunto están respondiendo cada cadena.,yes,ok
 domingo_ataque_d5842b6f,,,El video de Martina para Resonancia sale justo ahora. Sus seguidores repiten la etiqueta de los rumores sin saberlo.,no,narrador (no se dobla)
+evidencias_rescatadas_046384fc,c,feliz,"Lo tienes todo: la factura, la lista de cuentas y el análisis original. Esto lo publico ya, con cada documento.",yes,ok
+evidencias_rescatadas_3884d199,c,seria,"Con lo que trajiste puedo desmentir lo principal. No todo, pero sí lo que más se compartió.",yes,ok
+evidencias_rescatadas_9f2e96b7,c,triste,"Saliste con muy poco. Vamos a tener que desmentir sin pruebas, y eso convence a menos gente.",yes,ok
 duelo_transmision_03e5a23f,c,seria,Estamos al aire. Diez mil personas viendo el mensaje del alcalde antes de las urnas.,yes,ok
 duelo_transmision_52dcfc1a,n,feliz,Qué bonita transmisión. ¿Les molesta si la acompaño con mi propia frecuencia?,yes,ok
 duelo_transmision_fc8bd5a7,c,sorprendida,¡Está metiendo ruido en la señal! Cada frase suya tapa la nuestra.,yes,ok

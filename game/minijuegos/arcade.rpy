@@ -209,7 +209,7 @@ init python:
             self.ultimo_st = st
             self.dt = dt
             self.mover_mira(dt)
-            if renpy.get_screen("debug_arcade") is None:
+            if renpy.get_screen("debug_arcade") is None and not store.minijuego_pausado:
                 self.sim.actualizar(dt)
             self.consumir_eventos()
             if self.sim.terminado() and not self.fin_avisado:
@@ -502,6 +502,7 @@ screen arcade_ui(sim, titulo, rumor):
     zorder 40
     default vista = VistaArcade(sim, titulo, rumor)
     add vista
+    use boton_pausa_minijuego(not sim.terminado())
 
     if modo_sustentacion and not sim.terminado():
         textbutton "RED INTERNA":

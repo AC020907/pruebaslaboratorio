@@ -64,6 +64,9 @@ init python:
                 renpy.show_screen("puzzle_feedback", texto=texto, correcto=False)
 
     def puzzle_tick(p):
+        if store.minijuego_pausado:
+            p.reloj = None          # al reanudar no se descuenta el tiempo en pausa
+            return
         p.tick_reloj(time.time())
         puzzle_procesar_eventos(p)
 
@@ -171,6 +174,7 @@ screen tarjeta_evidencia(p, nodo, cabecera=None, color_borde="#00000000"):
 screen puzzle_rastreo_ui(p, rumor):
     modal True
     zorder 40
+    use boton_pausa_minijuego(p.jugando())
 
     add "bg operaciones"
     add Solid("#1b1426c8")
