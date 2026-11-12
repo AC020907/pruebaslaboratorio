@@ -14,7 +14,7 @@
 
 | Clave | Comando | Resultado |
 |---|---|---|
-| [T] | `python -m pytest -q tests` | 179 pruebas |
+| [T] | `python -m pytest -q tests` | 180 pruebas |
 | [B] | `cd leaderboard && python -m pytest -q` | 165 pruebas |
 | [R] | `python tests/qa_recorridos.py` | 10/10: los 5 finales en historia y en feria |
 | [V] | `python tests/qa_visual.py galeria …` y `… arena …` | Capturas reales del motor |

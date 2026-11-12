@@ -20,6 +20,7 @@ Proyecto para la **Feria Gamer 2026**.
   - **Ruta de la Verdad** (plataformas): en la Gran Viralización, dos horas antes de abrir las urnas, entras al sistema de NOVA a rescatar la evidencia original. Sustituye al antiguo arcade, que repetía el de Caza-Rumores.
   - **Duelo de Frecuencias** (nuevo): un duelo rítmico contra NOVA durante la transmisión del domingo. Cuatro carriles, ritmo original a 120 BPM, dificultad Normal, Fácil o Asistido.
 - **NOVA**: la red de cuentas automáticas detrás de los rumores, con un giro que depende de lo que hiciste.
+- **Personajes:** Claudia, Martina, Rodrigo y NOVA usan los sprites oficiales del equipo; Tomás conserva su arte anterior hasta que se dibuje en el nuevo estilo (ver [docs/SPRITES.md](docs/SPRITES.md)).
 - **Eventos variables**: cada partida es un poco distinta, sin bloquear el avance.
 - **Cinco finales** con escenas propias: Ciudad Informada, Ciudad Dividida, Caos Informativo, Mandato Prestado y el final secreto Fuente Abierta. Se coleccionan en el **Archivo de Destinos**.
 - **Rutas con consecuencias**: la oferta a Martina, el audio falso de Tomás y a quién visitas el sábado cambian quién te ayuda el domingo y qué final es posible.

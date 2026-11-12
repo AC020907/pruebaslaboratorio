@@ -1,5 +1,26 @@
 # Release readiness: corrección de pendientes, Arena Online, torneo y validación final
 
+## 0000. Release final: sprites oficiales y pulido (rama `release/final-sprites-pulido`; recuperación: tag `checkpoint-pre-release-final`)
+
+| Comando (2026-11-11) | Resultado |
+|---|---|
+| `python -m pytest -q tests` | **180 OK** (43 subtests) |
+| `cd leaderboard && python -m pytest -q` | **165 OK**. Una ejecución terminó con un volcado de hilos al cerrar el intérprete; al repetirla salió limpia |
+| `renpy.exe . lint` | Sin errores |
+| `python tests/qa_recorridos.py` | **10/10** finales en historia y feria |
+| `qa_visual.py galeria --etapas personajes` | OK: 5 hojas de contacto, 30 expresiones en escena, dos personajes y retrato lateral |
+| `qa_visual.py galeria --etapas minijuegos` | OK: incluye la pausa de Moderación y el plataformero (178 FPS, victoria y resultado) |
+| `qa_visual.py galeria --etapas menus,ritmo,finales` | OK: Duelo con la NOVA nueva y los 5 escrutinios y finales |
+| `qa_visual.py arena --tam 1920x1080` | OK: torneo LAN con 2 Ren'Py + 2 bots |
+| `python tests/e2e_arena_online.py --jugadores 2,3,4` | **OK** (salida 0): salas de 2, 3 y 4 navegadores, 5 retos cada una, con campeón y escrutinio; NOVA nueva en el Duelo web. Servidor local, no Render |
+
+**Qué cambió:** ver `docs/SPRITES.md` y `docs/PLATAFORMERO_RUTA_VERDAD.md` (presentación y consecuencias).
+
+**Estado:**
+- **Entrega académica: GO condicionado** a la prueba en LAN física (`docs/PRUEBAS_FISICAS.md` §A).
+- **Feria: GO condicionado** a una partida Online con teléfonos y personas (§B) y al despliegue en Render.
+- **Pendiente:** sprites de Tomás en el estilo nuevo (no venían en el paquete).
+
 ## 000. Plataformero y Arena Online narrativa (rama `feature/plataformero-arena-narrativa`; recuperación: tag `checkpoint-pre-plataformero`)
 
 **Qué cambió:**

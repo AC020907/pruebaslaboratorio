@@ -115,6 +115,11 @@ Todo lo hace el servidor en `Partida.resolver_ronda()`, en un mismo turno:
 - **`test_rumores_cambian_el_ganador`:** desmentir un rumor contra Prado le da más confianza que compartirlo.
 - **`test_participacion_cambia_la_abstencion`.**
 
+## 4b. Estructuras de apoyo de la versión final
+
+- **Ruta de la Verdad** (`clases/Plataformas.py`): el nivel es una **lista de segmentos** que se convierte en una **rejilla de tiles** (matriz); la partida guarda una **traza** (lista de entradas por tick) que el servidor vuelve a jugar para validar el puntaje.
+- **Alias de expresiones** (`ALIAS_EXPRESION`): **diccionario** (personaje, expresión) → archivo real, para no duplicar imágenes idénticas.
+
 ## 5. Ejemplo reproducible
 
 ```bash
