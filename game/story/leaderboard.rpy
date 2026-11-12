@@ -218,6 +218,12 @@ screen estado_envio_leaderboard():
 
 ## ---------------- Pantalla de clasificacion ----------------
 
+# Tres botones de 406 px no caben en el marco de 1100 px utiles: version estrecha que estira la imagen.
+style boton_pestana_top is boton_vn:
+    background Frame("gui/boton_menu_idle.png", 40, 20)
+    hover_background Frame("gui/boton_menu_hover.png", 40, 20)
+    xysize (340, 80)
+
 screen leaderboard_pantalla():
     modal True
     zorder 130
@@ -237,10 +243,10 @@ screen leaderboard_pantalla():
         hbox:
             xalign 0.5
             spacing 20
-            textbutton ("» Historia «" if modo == "historia" else "Historia") style "boton_vn" text_style "boton_vn_text" action SetScreenVariable("modo", "historia")
-            textbutton ("» Modo Feria «" if modo == "feria" else "Modo Feria") style "boton_vn" text_style "boton_vn_text" action SetScreenVariable("modo", "feria")
+            textbutton ("» Historia «" if modo == "historia" else "Historia") style "boton_pestana_top" text_style "boton_vn_text" action SetScreenVariable("modo", "historia")
+            textbutton ("» Modo Feria «" if modo == "feria" else "Modo Feria") style "boton_pestana_top" text_style "boton_vn_text" action SetScreenVariable("modo", "feria")
             if leaderboard_activo():
-                textbutton "Actualizar" style "boton_vn" text_style "boton_vn_text" action Function(actualizar_top, modo)
+                textbutton "Actualizar" style "boton_pestana_top" text_style "boton_vn_text" action Function(actualizar_top, modo)
         if not leaderboard_activo():
             text "La clasificación online todavía no está configurada. Se muestran tus récords locales." size 20 color "#8b84a8" xalign 0.5
         elif top_error:
@@ -248,7 +254,7 @@ screen leaderboard_pantalla():
         $ entradas = persistent.top_cache.get(modo, [])
         frame:
             xfill True
-            ysize 560
+            ysize 500
             background Solid("#fbf6ee")
             padding (30, 20)
             if entradas:
