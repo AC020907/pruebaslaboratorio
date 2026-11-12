@@ -107,6 +107,8 @@ label qa_galeria:
         jump qa_gal_arena
     if etapa_gal == "dialogo":
         jump qa_gal_dialogo
+    if etapa_gal == "personajes":
+        jump qa_gal_personajes
     $ renpy.quit()
 
 ## ---------------- Pantallas del sistema ----------------
@@ -531,4 +533,61 @@ label qa_gal_arena_solo:
     call screen arena_partida
     $ arena_salir()
     $ qa_gal_volcar(etapa="arena_solo", ok=True)
+    $ renpy.quit()
+
+
+## ---------------- Personajes: cada sprite en escena real y hoja de contacto ----------------
+## Comprueba los sprites oficiales (y Tomas): escala, linea base, que no salten al cambiar de expresion,
+## recortes, transparencias, retrato lateral y que no quede arte antiguo por error.
+screen qa_hoja_personaje(nombre):
+    add Solid("#3a3150")
+    text "%s: 6 expresiones (alias: %s)" % (nombre.upper(), ", ".join("%s=%s" % (e, expresion_real(nombre, e)) for e in EXPRESIONES if expresion_real(nombre, e) != e) or "ninguno") size 26 color "#fbf6ee" xpos 30 ypos 20
+    for i, e in enumerate(EXPRESIONES):
+        fixed:
+            xpos 20 + i * 315
+            ypos 80
+            xysize (310, 640)
+            add Solid("#2b2440")
+            add retrato_escena(nombre, e) xalign 0.5 yalign 1.0 zoom 0.55
+            text e size 22 color "#facc15" xalign 0.5 yalign 0.0
+        add retrato_lado(nombre, e) xpos 60 + i * 315 ypos 760
+    text "Línea guía: base común de los sprites" size 18 color "#c9b8d8" xpos 30 ypos 1020
+
+label qa_gal_personajes:
+    $ qa_pad_limite = 300
+    window show
+    $ quick_menu = False
+    python:
+        hablantes = {"claudia": c, "martina": m, "rodrigo": r, "tomas": t, "nova": n}
+    $ i_qa = 0
+    while i_qa < len(PERSONAJES):
+        $ nombre_qa = PERSONAJES[i_qa]
+        window hide
+        $ renpy.show_screen("qa_hoja_personaje", nombre=nombre_qa)
+        call qa_foto("p_%s_hoja" % nombre_qa, 1.2)
+        $ renpy.hide_screen("qa_hoja_personaje")
+        scene bg operaciones
+        $ j_qa = 0
+        while j_qa < len(EXPRESIONES):
+            $ expr_qa = EXPRESIONES[j_qa]
+            $ renpy.show((nombre_qa, expr_qa), at_list=[escena(nombre_qa)])
+            $ store.hablante = nombre_qa
+            show screen qa_disparo("p_%s_%s" % (nombre_qa, expr_qa), 0.9)
+            $ hablantes[nombre_qa]("Prueba de sprite: %s · %s.{w=1.2}{nw}" % (nombre_qa, expr_qa))
+            hide screen qa_disparo
+            $ j_qa += 1
+        $ renpy.hide(nombre_qa)
+        $ i_qa += 1
+    ## Dos personajes a la vez (foco/atenuado) y retrato lateral cuando habla alguien fuera de escena.
+    scene bg barrio_sur conversacion
+    show rodrigo enojada at escena("rodrigo", 0.78)
+    show claudia triste at escena("claudia", 0.22)
+    show screen qa_disparo("p_dos_personajes", 1.0)
+    r enojada "¡Alcalde! Todo el barrio dice que mañana cierran el hospital.{w=1.4}{nw}"
+    hide screen qa_disparo
+    scene bg crisis
+    show screen qa_disparo("p_lateral_nova", 1.0)
+    n feliz "Todas las cuentas despiertan al mismo tiempo.{w=1.4}{nw}"
+    hide screen qa_disparo
+    $ qa_gal_volcar(etapa="personajes", ok=True)
     $ renpy.quit()

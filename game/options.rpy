@@ -210,6 +210,10 @@ init python:
     # transparente (existen los 30), y los placeholders y el influencer son de la entrega 1.
     for _expr in ('neutral', 'feliz', 'seria', 'enojada', 'triste', 'sorprendida'):
         build.classify('game/images/personajes/*_%s.png' % _expr, None)
+    # Arte anterior de los personajes con sprites oficiales nuevos: solo seria respaldo y mezclaria estilos.
+    build.classify('game/images/personajes/lateral/**', None)
+    for _personaje_viejo in ('claudia', 'martina', 'rodrigo', 'nova'):
+        build.classify('game/images/personajes/%s_base.png' % _personaje_viejo, None)
     build.classify('game/images/placeholder*.png', None)
     build.classify('game/images/influencer/**', None)
 

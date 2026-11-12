@@ -22,6 +22,12 @@ MUSICA = os.path.join(RAIZ, "game", "assets", "audio", "music")
 GUI = os.path.join(RAIZ, "game", "gui", "ritmo")
 SPRITES = os.path.join(RAIZ, "game", "images", "personajes", "sprites")
 EXPRESIONES_NOVA = ("seria", "feliz", "enojada")
+# Mismos alias que game/story/personajes.rpy (ALIAS_EXPRESION): expresiones identicas o que faltan.
+ALIAS = {("claudia", "seria"): "neutral", ("rodrigo", "seria"): "neutral", ("nova", "feliz"): "neutral"}
+
+
+def sprite(personaje, expresion):
+    return os.path.join(SPRITES, "%s_%s.png" % (personaje, ALIAS.get((personaje, expresion), expresion)))
 
 
 def main():
@@ -37,14 +43,10 @@ def main():
         for nombre in ("nota_%d.png", "receptor_%d.png", "receptor_on_%d.png"):
             shutil.copyfile(os.path.join(GUI, nombre % k), os.path.join(DESTINO, nombre % k))
     for e in EXPRESIONES_NOVA:
-        img = Image.open(os.path.join(SPRITES, "nova_%s.png" % e)).convert("RGBA")
+        img = Image.open(sprite("nova", e)).convert("RGBA")
         img.thumbnail((520, 520))
         img.save(os.path.join(DESTINO, "nova_%s.webp" % e), quality=85)
     print("Recursos exportados en", DESTINO)
-
-
-if __name__ == "__main__":
-    main()
 
 
 def exportar_arena():
@@ -53,7 +55,7 @@ def exportar_arena():
     os.makedirs(destino, exist_ok=True)
     for personaje in ("claudia", "martina", "rodrigo", "tomas", "nova"):
         for expresion in ("seria", "feliz"):
-            img = Image.open(os.path.join(SPRITES, "%s_%s.png" % (personaje, expresion))).convert("RGBA")
+            img = Image.open(sprite(personaje, expresion)).convert("RGBA")
             caja = img.getbbox()
             img = img.crop(caja)
             img = img.crop((0, 0, img.width, min(img.height, int(img.width * 1.25))))      # busto
@@ -75,4 +77,5 @@ def exportar_arena():
 
 
 if __name__ == "__main__":
+    main()
     exportar_arena()

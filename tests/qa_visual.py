@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from qa_recorridos import PROYECTO, SDK_DEFECTO, GuardadoAislado  # noqa: E402
 
-ETAPAS_GALERIA = ("menus", "escenas", "minijuegos", "ritmo", "ritmo:nada", "ritmo:abandonar", "finales")
+ETAPAS_GALERIA = ("menus", "personajes", "escenas", "minijuegos", "ritmo", "ritmo:nada", "ritmo:abandonar", "finales")
 
 
 def lanzar(sdk, env_extra, carpeta, timeout=900):
