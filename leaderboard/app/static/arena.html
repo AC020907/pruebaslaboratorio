@@ -709,7 +709,7 @@ const PLAT_IMGS = ["suelo","relleno","pincho","bloque_on","bloque_aviso","bloque
   "idle_0","idle_1","corre_0","corre_1","corre_2","corre_3","salto","cae","dano","fondo_lejos","fondo_cerca","cielo"];
 function iniciarPlataformas(d, cuerpo){
   const yo = R, cfg = R.cfg, p = new PlatCivitas.Partida(cfg);
-  Object.assign(R, {p, imgs:{}, teclas:new Set(), tactil:{}, acum:0, ultimo:null, fin:false, cam:0, vistos:0, aviso:null});
+  Object.assign(R, {p, imgs:{}, teclas:new Set(), tactil:{}, acum:0, ultimo:null, fin:false, cam:0, vistos:0, aviso:null, part:[], finT:null});
   const cv = lienzo(cuerpo);
   cuerpo.insertAdjacentHTML("beforeend", `<div class="tactil" aria-hidden="true"><div><button data-b="1">&#9664;</button><button data-b="2">&#9654;</button></div>
     <div><button class="salto" data-b="4">SALTO</button></div></div>
@@ -740,16 +740,23 @@ function iniciarPlataformas(d, cuerpo){
       const paso = 1000 / cfg.ticks_s;
       while (yo.acum >= paso && p.jugando()) { yo.acum -= paso; p.avanzar(piloto ? piloto() : mascara()); }
       for (const e of p.eventos.slice(yo.vistos)) {
+        const PC = {evidencia:["#facc15",18,420], dano:["#fb7185",22,380], aterriza:["#c9b8d8",6,160], salto:["#e9d5ff",4,120], control:["#5eead4",14,300], meta:["#5eead4",36,520]}[e[1]];
+        if (PC) { const suelo = e[1] === "aterriza" || e[1] === "salto";
+          const cx = (p.x + p.c.ANCHO / 2) / cfg.sub, cy = (p.y + (suelo ? p.c.ALTO : p.c.ALTO / 2)) / cfg.sub;
+          for (let k = 0; k < PC[1]; k++) { const a = suelo ? Math.PI + Math.random() * Math.PI : Math.random() * 2 * Math.PI, v = (0.4 + Math.random() * 0.6) * PC[2] / 72;
+            yo.part.push({x:cx, y:cy, vx:Math.cos(a) * v, vy:Math.sin(a) * v, vida:0.35 + Math.random() * 0.45, c:PC[0], t:4 + Math.floor(Math.random() * 3) * 2}); } }
         if (e[1] === "evidencia") yo.aviso = [cfg.fragmentos[e[2] % cfg.fragmentos.length], "#facc15", ahora];
         else if (e[1] === "dano") yo.aviso = ["NOVA te detectó: vuelves al punto de control", "#fb7185", ahora];
         else if (e[1] === "control") yo.aviso = ["Punto de control", "#5eead4", ahora];
       }
       yo.vistos = p.eventos.length;
-      if (!p.jugando()) { yo.fin = true; entregar({traza:p.traza}); }
+      if (!p.jugando()) { yo.fin = true; yo.finT = ahora; entregar({traza:p.traza}); }
     }
+    for (const q of yo.part) { q.x += q.vx * dt / 16; q.y += q.vy * dt / 16; q.vy += 0.9 * dt / 16; q.vida -= dt / 1000; }
+    yo.part = yo.part.filter(q => q.vida > 0);
     dibujarPlat(cv, yo, cfg, ahora);
     progreso(p.puntuacion(), p.recogidas.length, Math.min(1, p.x / cfg.constantes.T / p.meta[0]));
-    if (yo.fin) tarjetaEspera(cuerpo, p.completado() ? "Archivo recuperado" : "Sesión cerrada", yo.resultado);
+    if (yo.fin && ahora - yo.finT > 1100) tarjetaEspera(cuerpo, p.completado() ? "Archivo recuperado" : "Sesión cerrada", yo.resultado);
     yo.raf = requestAnimationFrame(bucle);
   };
   R.cerrar = () => cancelAnimationFrame(yo.raf);
@@ -774,7 +781,7 @@ function dibujarPlat(cv, yo, cfg, ahora){
   const p = yo.p, [g, W, H] = ajustar(cv), I = yo.imgs, filas = p.alto;
   const lado = Math.max(24, Math.min(64, Math.floor(H / (filas + 0.6)))), e = lado / cfg.tile;
   const px = p.x / cfg.sub * e, py = p.y / cfg.sub * e, anchoMundo = p.ancho * lado;
-  const objetivo = Math.max(0, Math.min(anchoMundo - W, px - W * 0.38));
+  const objetivo = Math.max(0, Math.min(anchoMundo - W, px - W * 0.38 + p.mira * W * 0.12));    // mira hacia donde corre
   yo.cam += (objetivo - yo.cam) * 0.2; const cam = yo.cam, y0 = H - filas * lado;
   if (I.cielo) g.drawImage(I.cielo, 0, 0, W, H); else { g.fillStyle = "#0d0a1a"; g.fillRect(0, 0, W, H); }
   for (const [img, f] of [[I.fondo_lejos, 0.15], [I.fondo_cerca, 0.35]]) if (img) {
@@ -801,6 +808,13 @@ function dibujarPlat(cv, yo, cfg, ahora){
     g.save(); const sx = px - cam - (56 - 30) * e / 2, sy = y0 + py - (64 - 42) * e;
     if (p.mira < 0) { g.translate(sx + sw, sy); g.scale(-1, 1); g.drawImage(spr, 0, 0, sw, sh); } else g.drawImage(spr, sx, sy, sw, sh);
     g.restore();
+  }
+  for (const q of yo.part) { g.globalAlpha = Math.min(1, q.vida * 2); g.fillStyle = q.c; g.fillRect(q.x * e - cam - q.t / 2, y0 + q.y * e - q.t / 2, q.t, q.t); }
+  g.globalAlpha = 1;
+  if (yo.finT && p.completado()) {
+    const dd = Math.max(0, 1 - (ahora - yo.finT) / 900);
+    g.fillStyle = "rgba(94,234,212," + (dd * 0.5) + ")"; g.fillRect(0, 0, W, H);
+    if (ahora - yo.finT < 1100) { g.textAlign = "center"; g.font = "900 40px system-ui"; g.fillStyle = "#5eead4"; g.fillText("ARCHIVO RECUPERADO", W / 2, H * 0.42); }
   }
   g.fillStyle = "#0d0a1acc"; g.fillRect(0, 0, W, 44);
   g.fillStyle = "#fbf6ee"; g.font = "900 17px system-ui"; g.textAlign = "left";

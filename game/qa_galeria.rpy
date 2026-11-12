@@ -107,6 +107,8 @@ label qa_galeria:
         jump qa_gal_arena
     if etapa_gal == "dialogo":
         jump qa_gal_dialogo
+    if etapa_gal == "personajes":
+        jump qa_gal_personajes
     $ renpy.quit()
 
 ## ---------------- Pantallas del sistema ----------------
@@ -254,7 +256,8 @@ label qa_gal_escenas:
 label qa_gal_minijuegos:
     scene bg operaciones
     ## Moderacion: alterna borrar/aprobar para ver acierto y error.
-    $ qa_pad_programar([(1.5, "foto:j01_moderador_inicio", None), (1.0, "dpleft", "press"), (0.25, "foto:j02_moderador_feedback_a", None),
+    $ qa_pad_programar([(1.5, "foto:j01_moderador_inicio", None), (0.3, pausar_minijuego, None), (0.8, "foto:j01b_moderador_pausa", None),
+                        (0.2, reanudar_minijuego, None), (1.0, "dpleft", "press"), (0.25, "foto:j02_moderador_feedback_a", None),
                         (1.2, "dpright", "press"), (0.25, "foto:j03_moderador_feedback_b", None)]
                        + [(0.9, ("dpleft" if i % 2 else "dpright"), "press") for i in range(8)]
                        + [(1.2, "foto:j04_moderador_resultado", None)] + qa_pad_repetir("a", 30, 1.0))
@@ -270,10 +273,11 @@ label qa_gal_minijuegos:
     $ qa_plataformas_auto = 0.9
     $ qa_pad_programar([(1.5, "foto:j09_plataformas_tutorial", None), (0.3, "a", "press"), (1.6, "foto:j10_plataformas_cuenta", None),
                         (3.0, "foto:j11_plataformas_juego_a", None), (3.0, "foto:j11_plataformas_juego_b", None),
-                        (3.0, "foto:j11_plataformas_juego_c", None), (9.0, "foto:j12_plataformas_resultado", None)]
+                        (3.0, "foto:j11_plataformas_juego_c", None), (6.5, "foto:j11_plataformas_victoria", None), (2.5, "foto:j12_plataformas_resultado", None)]
                        + qa_pad_repetir("a", 60, 1.0))
     call evento_gran_viralizacion(aplicar=False, ajustes={"nivel": "feria"})
     $ qa_plataformas_auto = None
+    $ qa_gal["eventos"].append(("plataformas_fps", vista_plataformas.fps(), plataformas.tick, round(vista_plataformas.st - vista_plataformas.st0, 1)))
     $ qa_gal["eventos"].append(("viralizacion", _return.get("exito"), _return.get("calificacion")))
     ## Rastreador: tutorial, error con explicacion y victoria.
     $ qa_pad_programar([(1.5, "foto:j13_rastreador_tutorial", None), (0.5, qa_gal_puzzle_mal, None),
@@ -531,4 +535,61 @@ label qa_gal_arena_solo:
     call screen arena_partida
     $ arena_salir()
     $ qa_gal_volcar(etapa="arena_solo", ok=True)
+    $ renpy.quit()
+
+
+## ---------------- Personajes: cada sprite en escena real y hoja de contacto ----------------
+## Comprueba los sprites oficiales (y Tomas): escala, linea base, que no salten al cambiar de expresion,
+## recortes, transparencias, retrato lateral y que no quede arte antiguo por error.
+screen qa_hoja_personaje(nombre):
+    add Solid("#3a3150")
+    text "%s: 6 expresiones (alias: %s)" % (nombre.upper(), ", ".join("%s=%s" % (e, expresion_real(nombre, e)) for e in EXPRESIONES if expresion_real(nombre, e) != e) or "ninguno") size 26 color "#fbf6ee" xpos 30 ypos 20
+    for i, e in enumerate(EXPRESIONES):
+        fixed:
+            xpos 20 + i * 315
+            ypos 80
+            xysize (310, 640)
+            add Solid("#2b2440")
+            add retrato_escena(nombre, e) xalign 0.5 yalign 1.0 zoom 0.55
+            text e size 22 color "#facc15" xalign 0.5 yalign 0.0
+        add retrato_lado(nombre, e) xpos 60 + i * 315 ypos 760
+    text "Línea guía: base común de los sprites" size 18 color "#c9b8d8" xpos 30 ypos 1020
+
+label qa_gal_personajes:
+    $ qa_pad_limite = 300
+    window show
+    $ quick_menu = False
+    python:
+        hablantes = {"claudia": c, "martina": m, "rodrigo": r, "tomas": t, "nova": n}
+    $ i_qa = 0
+    while i_qa < len(PERSONAJES):
+        $ nombre_qa = PERSONAJES[i_qa]
+        window hide
+        $ renpy.show_screen("qa_hoja_personaje", nombre=nombre_qa)
+        call qa_foto("p_%s_hoja" % nombre_qa, 1.2)
+        $ renpy.hide_screen("qa_hoja_personaje")
+        scene bg operaciones
+        $ j_qa = 0
+        while j_qa < len(EXPRESIONES):
+            $ expr_qa = EXPRESIONES[j_qa]
+            $ renpy.show((nombre_qa, expr_qa), at_list=[escena(nombre_qa)])
+            $ store.hablante = nombre_qa
+            show screen qa_disparo("p_%s_%s" % (nombre_qa, expr_qa), 0.9)
+            $ hablantes[nombre_qa]("Prueba de sprite: %s · %s.{w=1.2}{nw}" % (nombre_qa, expr_qa))
+            hide screen qa_disparo
+            $ j_qa += 1
+        $ renpy.hide(nombre_qa)
+        $ i_qa += 1
+    ## Dos personajes a la vez (foco/atenuado) y retrato lateral cuando habla alguien fuera de escena.
+    scene bg barrio_sur conversacion
+    show rodrigo enojada at escena("rodrigo", 0.78)
+    show claudia triste at escena("claudia", 0.22)
+    show screen qa_disparo("p_dos_personajes", 1.0)
+    r enojada "¡Alcalde! Todo el barrio dice que mañana cierran el hospital.{w=1.4}{nw}"
+    hide screen qa_disparo
+    scene bg crisis
+    show screen qa_disparo("p_lateral_nova", 1.0)
+    n feliz "Todas las cuentas despiertan al mismo tiempo.{w=1.4}{nw}"
+    hide screen qa_disparo
+    $ qa_gal_volcar(etapa="personajes", ok=True)
     $ renpy.quit()

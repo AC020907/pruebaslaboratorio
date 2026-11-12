@@ -121,7 +121,27 @@ label domingo_ataque(base=None, reintento=True):
     else:
         call evento_gran_viralizacion(ajustes=ayuda_viral)
     $ resultado_viral = _return
+    if resultado_viral.get("evidencias_total"):
+        call evidencias_rescatadas(resultado_viral)
     $ completar_mision("dom_elecciones")
+    return
+
+
+## Lo que se trajo del sistema de NOVA sirve despues: con todas las pruebas el desmentido es completo.
+label evidencias_rescatadas(res):
+    if res["evidencias"] >= res["evidencias_total"]:
+        show claudia feliz at escena("claudia")
+        c feliz "Lo tienes todo: la factura, la lista de cuentas y el análisis original. Esto lo publico ya, con cada documento."
+        $ aplicar_consecuencia({"info_verificada": 3, "confianza": 2})
+        $ renpy.notify("Evidencia completa: el desmentido llega con pruebas (+ información verificada, + confianza).")
+    elif res["evidencias"] * 2 >= res["evidencias_total"]:
+        show claudia seria at escena("claudia")
+        c seria "Con lo que trajiste puedo desmentir lo principal. No todo, pero sí lo que más se compartió."
+        $ aplicar_consecuencia({"info_verificada": 1})
+    else:
+        show claudia triste at escena("claudia")
+        c triste "Saliste con muy poco. Vamos a tener que desmentir sin pruebas, y eso convence a menos gente."
+    hide claudia
     return
 
 

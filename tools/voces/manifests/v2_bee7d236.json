@@ -3059,6 +3059,36 @@
    "out_sha1": "9c8f25676d5697e313ec5129f2f12f176d739058",
    "char": "c",
    "bytes": 18546
+  },
+  "evidencias_rescatadas_046384fc": {
+   "lufs": -16.5,
+   "tp_db": -2.03,
+   "limited_db": 2.38,
+   "dur": 6.006,
+   "hash": "8deadd9380625f24c7d0a61ef9e9cb1f8eac4262",
+   "out_sha1": "7881288b9ab0bf0865109f11dca5ae5f2bf527d9",
+   "char": "c",
+   "bytes": 40670
+  },
+  "evidencias_rescatadas_3884d199": {
+   "lufs": -16.2,
+   "tp_db": -1.66,
+   "limited_db": 0.55,
+   "dur": 4.889,
+   "hash": "a5f18f47dcd2441f47435984e0c6a40f9a2e5a2e",
+   "out_sha1": "525bd1a28ff61a4bf1d50d12459eee835cbd1020",
+   "char": "c",
+   "bytes": 33306
+  },
+  "evidencias_rescatadas_9f2e96b7": {
+   "lufs": -18.1,
+   "tp_db": -1.77,
+   "limited_db": 1.44,
+   "dur": 5.358,
+   "hash": "0d81f0fe06d2722e2b4da6724bcfc105996df079",
+   "out_sha1": "3df82829cbea33806c2606e11002f8a5e0c99222",
+   "char": "c",
+   "bytes": 34826
   }
  }
 }

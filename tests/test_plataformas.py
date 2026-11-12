@@ -166,6 +166,24 @@ class TestFisica(unittest.TestCase):
         self.assertEqual(q.muertes, 1)
         self.assertEqual(q.x // P.T, control[0])
 
+    def test_correccion_de_esquina_y_aterrizaje(self):
+        """Un salto que roza el borde inferior de un bloque por pocos px no se corta: se desliza y sigue subiendo."""
+        n = P.Nivel("tutorial")
+        fx, fy = next((x, y) for y, fila in enumerate(n.filas) for x, ch in enumerate(fila)
+                      if ch == P.SOLIDO and y < 8 and n.tile(x - 1, y) == "." and n.tile(x, y + 1) == ".")
+        for roce, debe_pasar in ((4 * P.SUB, True), (20 * P.SUB, False)):
+            p = P.Partida("tutorial")
+            suelo = next(y for y in range(fy + 1, n.alto) if n.tile(fx - 1, y) == P.SOLIDO)
+            p.x, p.y, p.en_suelo = fx * P.T - P.ANCHO + roce, suelo * P.T - P.ALTO, True
+            minimo = p.y
+            for i in range(40):
+                p.avanzar(P.SALTO)
+                minimo = min(minimo, p.y)
+            self.assertEqual(minimo < (fy + 1) * P.T - P.ALTO // 2, debe_pasar, roce)
+            for _ in range(120):
+                p.avanzar(0)
+            self.assertTrue(any(e[1] == "aterriza" for e in p.eventos))
+
     def test_intermitentes(self):
         self.assertTrue(P.intermitente_activo(0))
         self.assertFalse(P.intermitente_activo(P.PARPADEO))

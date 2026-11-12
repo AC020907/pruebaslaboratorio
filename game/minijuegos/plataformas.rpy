@@ -18,15 +18,23 @@ init python:
         config.pad_bindings[_ev] = list(config.pad_bindings.get(_ev, [])) + [_acc]
 
     PLAT_DIR = "gui/plataformas/"
-    PLAT_ESCALA = 1.25                 # 48 px del motor -> 60 px en pantalla (1920x1080)
-    PLAT_SUELO_Y = 990                 # y en pantalla del borde inferior del nivel
+    PLAT_ESCALA = 1.5                  # 48 px del motor -> 72 px en pantalla: el nivel (11 filas) llena el alto util
+    PLAT_SUELO_Y = 1010                # y en pantalla del borde inferior del nivel
+    PLAT_ANTICIPA = 260                # la camara mira hacia donde corre el jugador (ve antes los obstaculos)
+    COLOR_PARTICULA = {"evidencia": "#facc15", "dano": "#fb7185", "aterriza": "#c9b8d8", "salto": "#e9d5ff",
+                       "control": "#5eead4", "meta": "#5eead4"}
     # Zonas tactiles (x0, y0, x1, y1): izquierda, derecha y salto.
     PLAT_ZONAS = {PL.IZQ: (30, 850, 230, 1050), PL.DER: (260, 850, 460, 1050), PL.SALTO: (1640, 820, 1890, 1050)}
 
     class VistaPlataformas(renpy.Displayable):
-        def __init__(self, clave, extra_s=0, titulo="RUTA DE LA VERDAD", **kwargs):
+        def __init__(self, clave, extra_s=0, titulo="RUTA DE LA VERDAD", reinicio=True, **kwargs):
             super(VistaPlataformas, self).__init__(**kwargs)
             self.p = PL.Partida(clave, extra_s)
+            self.clave, self.extra_s, self.reinicio = clave, extra_s, reinicio
+            self.particulas = []          # [x, y, vx, vy, vida, color, tam] en px de pantalla del mundo
+            self.fin_st = None            # instante en que termino la carrera (transicion antes del resultado)
+            self.st = 0.0
+            self.st0, self.frames = None, 0     # medicion de FPS (QA)
             self.titulo = titulo
             self.teclas = set()           # direcciones mantenidas por teclado o mando
             self.salto = False
@@ -94,12 +102,42 @@ init python:
             self.p.abandonar()
             renpy.restart_interaction()
 
+        def reiniciar(self):
+            """Reinicio rapido (Historia y Feria): la misma carrera desde el principio."""
+            self.p = PL.Partida(self.clave, self.extra_s)
+            self.pausa, self.cuenta, self.acum, self.ultimo = False, 1.2, 0.0, None
+            self.eventos_vistos, self.fin_st, self.fin_avisado, self.camara, self.particulas = 0, None, False, 0.0, []
+            renpy.restart_interaction()
+
+        def resultado_listo(self):
+            """El resultado aparece tras una breve transicion (destello al llegar al archivo)."""
+            return not self.p.jugando() and self.fin_st is not None and self.st - self.fin_st > 1.1
+
+        def chispas(self, tipo, cantidad, fuerza):
+            p, z = self.p, PLAT_ESCALA
+            x = p.x / float(PL.SUB) * z + PL.ANCHO / float(PL.SUB) * z / 2
+            y = p.y / float(PL.SUB) * z + (PL.ALTO / float(PL.SUB) * z if tipo in ("aterriza", "salto") else PL.ALTO / float(PL.SUB) * z / 2)
+            rnd = __import__("random")
+            for k in range(cantidad if not persistent.reducir_movimiento else cantidad // 3):
+                ang = rnd.uniform(math.pi, 2 * math.pi) if tipo in ("aterriza", "salto") else rnd.uniform(0, 2 * math.pi)
+                v = rnd.uniform(0.4, 1.0) * fuerza
+                self.particulas.append([x, y, math.cos(ang) * v, math.sin(ang) * v, rnd.uniform(0.35, 0.8), COLOR_PARTICULA[tipo], rnd.choice((5, 7, 9))])
+
         # ----- simulacion a paso fijo -----
         def simular(self, st):
+            self.st = st
             if self.ultimo is None:
                 self.ultimo = st
             dt = min(0.1, max(0.0, st - self.ultimo))       # tras un tiron no se "teletransporta"
             self.ultimo = st
+            for q in self.particulas:
+                q[0] += q[2] * dt
+                q[1] += q[3] * dt
+                q[3] += 900 * dt
+                q[4] -= dt
+            self.particulas = [q for q in self.particulas if q[4] > 0]
+            if not self.p.jugando() and self.fin_st is None:
+                self.fin_st = st
             if self.pausa or not self.p.jugando():
                 return
             if self.cuenta > 0:
@@ -112,6 +150,9 @@ init python:
                 self.acum -= paso
                 self.p.avanzar(self.piloto.mascara(self.p) if self.piloto else m)
             for tick, tipo, dato in self.p.eventos[self.eventos_vistos:]:
+                if tipo in COLOR_PARTICULA:
+                    self.chispas(tipo, {"evidencia": 22, "dano": 26, "aterriza": 7, "salto": 5, "control": 16, "meta": 40}[tipo],
+                                 {"evidencia": 420, "dano": 380, "aterriza": 160, "salto": 120, "control": 300, "meta": 520}[tipo])
                 if tipo == "evidencia":
                     sfx("pista")
                     self.aviso = (PL.FRAGMENTOS[dato % len(PL.FRAGMENTOS)], "#facc15", st)
@@ -127,7 +168,13 @@ init python:
                     sfx("alarma")
             self.eventos_vistos = len(self.p.eventos)
 
+        def fps(self):
+            return round(self.frames / max(0.001, self.st - self.st0), 1) if self.st0 is not None else 0.0
+
         def render(self, width, height, st, at):
+            if self.st0 is None:
+                self.st0 = st
+            self.frames += 1
             self.simular(st)
             p, n, z = self.p, self.p.nivel, PLAT_ESCALA
             lado = int(PL.TILE * z)
@@ -139,7 +186,7 @@ init python:
             px = p.x / float(PL.SUB) * z
             py = p.y / float(PL.SUB) * z
             ancho_mundo = n.ancho * lado
-            objetivo = max(0.0, min(ancho_mundo - 1920.0, px - 760.0))
+            objetivo = max(0.0, min(ancho_mundo - 1920.0, px - 760.0 + p.mira * PLAT_ANTICIPA))
             self.camara += (objetivo - self.camara) * (0.18 if not persistent.reducir_movimiento else 1.0)
             cam = self.camara
             y0 = PLAT_SUELO_Y - n.alto * lado
@@ -188,6 +235,19 @@ init python:
             if not (p.respawn > 0 and int(st * 14) % 2):
                 poner(self.img[cuadro], px - cam - (56 - 30) * z / 2.0, y0 + py - (64 - 42) * z)
 
+            for q in self.particulas:
+                tam = q[6]
+                r.blit(renpy.render(Transform(Solid(q[5]), xysize=(tam, tam), alpha=min(1.0, q[4] * 2)), tam, tam, st, at),
+                       (int(q[0] - cam - tam / 2), int(y0 + q[1] - tam / 2)))
+            if self.fin_st is not None and self.p.completado():
+                destello = max(0.0, 1.0 - (st - self.fin_st) / 0.9)
+                if destello > 0 and not persistent.reducir_movimiento:
+                    r.blit(renpy.render(Transform(Solid("#5eead4"), xysize=(1920, 1080), alpha=destello * 0.55), 1920, 1080, st, at), (0, 0))
+                if not self.resultado_listo():
+                    t = self.texto("ARCHIVO RECUPERADO", 90, "#5eead4")
+                    tr = renpy.render(t, 1920, 200, st, at)
+                    r.blit(tr, (960 - tr.width // 2, 420))
+
             # HUD minimo: evidencias, tiempo, muertes
             barra = renpy.render(Solid("#0d0a1acc"), 1920, 84, st, at)
             r.blit(barra, (0, 0))
@@ -212,7 +272,7 @@ init python:
                 poner(self.flecha_izq, PLAT_ZONAS[PL.IZQ][0] + 30, PLAT_ZONAS[PL.IZQ][1] + 30)
                 poner(self.flecha, PLAT_ZONAS[PL.DER][0] + 30, PLAT_ZONAS[PL.DER][1] + 30)
                 poner(self.texto("SALTO", 40, "#facc15"), PLAT_ZONAS[PL.SALTO][0] + 50, PLAT_ZONAS[PL.SALTO][1] + 90)
-            if not p.jugando() and not self.fin_avisado:
+            if self.resultado_listo() and not self.fin_avisado:
                 self.fin_avisado = True
                 renpy.restart_interaction()
             renpy.redraw(self, 0)
@@ -324,9 +384,11 @@ screen plataformas_ui(vista):
                 spacing 16
                 text "PAUSA" size 44 bold True color "#2b2440" xalign 0.5
                 textbutton "Continuar" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.reanudar) default_focus True
+                if vista.reinicio:
+                    textbutton "Reiniciar desde el principio" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.reiniciar)
                 textbutton "Salir de la infiltración" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.abandonar)
         key "civ_pausa" action Function(vista.reanudar)
-    elif not vista.p.jugando():
+    elif vista.resultado_listo():
         use plataformas_resultado(vista.p)
 
 screen plataformas_resultado(p):
@@ -366,7 +428,7 @@ screen plataformas_resultado(p):
                 action Return()
 
 ## Minijuego reutilizable: Historia (nivel "historia"), Feria ("feria"), Arena ("arena") y tutorial.
-label minijuego_plataformas(nivel="historia", aplicar=True, ajustes=None, tutorial=True):
+label minijuego_plataformas(nivel="historia", aplicar=True, ajustes=None, tutorial=True, reinicio=True):
     $ hud_estaba_visible = renpy.get_screen("hud_ciudad") is not None
     $ ocultar_avisos_juego()
     hide screen hud_ciudad
@@ -377,7 +439,7 @@ label minijuego_plataformas(nivel="historia", aplicar=True, ajustes=None, tutori
     $ extra_plat = extra_plataformas(ajustes)
     if tutorial:
         call screen plataformas_tutorial(extra_plat)
-    $ vista_plataformas = VistaPlataformas(nivel, extra_plat)
+    $ vista_plataformas = VistaPlataformas(nivel, extra_plat, reinicio=reinicio)
     call screen plataformas_ui(vista_plataformas)
     $ plataformas = vista_plataformas.p
     $ quick_menu = quick_menu_previo

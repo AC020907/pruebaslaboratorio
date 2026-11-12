@@ -20,7 +20,7 @@ import sys
 sys.path.insert(0, os.path.dirname(__file__))
 from qa_recorridos import PROYECTO, SDK_DEFECTO, GuardadoAislado  # noqa: E402
 
-ETAPAS_GALERIA = ("menus", "escenas", "minijuegos", "ritmo", "ritmo:nada", "ritmo:abandonar", "finales")
+ETAPAS_GALERIA = ("menus", "personajes", "escenas", "minijuegos", "ritmo", "ritmo:nada", "ritmo:abandonar", "finales")
 
 
 def lanzar(sdk, env_extra, carpeta, timeout=900):
@@ -158,7 +158,7 @@ def verificar(nombre, d):
     if not g.get("ok"):
         return "la etapa no termino"
     eventos = g.get("eventos", [])
-    if g.get("etapa") == "minijuegos" and [e[0] for e in eventos] != ["moderador", "contencion", "viralizacion", "rastreador"]:
+    if g.get("etapa") == "minijuegos" and [e[0] for e in eventos if e[0] != "plataformas_fps"] != ["moderador", "contencion", "viralizacion", "rastreador"]:
         return "algun minijuego no devolvio el control: %s" % eventos
     if g.get("etapa") == "ritmo":
         # Perfecto (con pausa y reanudacion) debe ganar; sin pulsar o abandonando, perder.

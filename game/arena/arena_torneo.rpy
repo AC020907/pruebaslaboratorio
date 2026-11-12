@@ -63,7 +63,7 @@ label arena_jugar_prueba:
         call minijuego_rastreador(spec_ar["semilla"], False, spec_ar["ajustes"])
         $ datos_ar = arena_datos_rastreo(puzzle_rastreo)
     elif clave_ar == "plataformas":
-        call minijuego_plataformas(spec_ar["nivel"], False, None, True)
+        call minijuego_plataformas(spec_ar["nivel"], False, None, True, False)
         $ datos_ar = {"traza": [list(seg) for seg in plataformas.traza]}
     else:
         call screen arena_duelo_intro(spec_ar)

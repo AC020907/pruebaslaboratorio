@@ -94,13 +94,20 @@
       this.vx = 0;
     }
     this.x = nx;
-    var ny = this.y + this.vy;
+    var ny = this.y + this.vy, estabaEnSuelo = this.enSuelo;
     this.enSuelo = false;
+    if (this.vy < 0 && this._choca(this.x, ny)) {          // correccion de esquina (igual que Plataformas.py)
+      for (var dx = 16; dx <= c.ESQUINA; dx += 16) {
+        if (!this._choca(this.x + dx, ny) && !this._choca(this.x + dx, this.y)) { this.x += dx; break; }
+        if (!this._choca(this.x - dx, ny) && !this._choca(this.x - dx, this.y)) { this.x -= dx; break; }
+      }
+    }
     if (this._choca(this.x, ny)) {
       if (this.vy > 0) { ny = piso(ny + c.ALTO - 1, c.T) * c.T - c.ALTO; this.enSuelo = true; }
       else if (this.vy < 0) ny = (piso(ny, c.T) + 1) * c.T;
       else ny = this.y;
       if (this._choca(this.x, ny)) ny = this.y;
+      if (this.enSuelo && !estabaEnSuelo) this.eventos.push([this.tick, "aterriza", null]);
       this.vy = 0;
     }
     this.y = ny;

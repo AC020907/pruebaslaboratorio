@@ -22,11 +22,35 @@ Para no romper nada:
 | Coyote time | 6 ticks (100 ms): se puede saltar justo después de dejar el borde |
 | Jump buffering | 7 ticks (~117 ms): un salto pulsado justo antes de aterrizar se ejecuta al tocar suelo |
 | Colisiones | Resueltas por ejes contra una rejilla de tiles. La velocidad máxima es menor que un tile, así que no hay «túneles» |
+| Corrección de esquina | Si la cabeza roza el borde inferior de un bloque (hasta 7 px), el salto no se corta: el personaje se desliza a un lado (`test_correccion_de_esquina_y_aterrizaje`) |
+| Aterrizaje | Evento `aterriza` para el polvo y la animación; igual en el navegador |
 | Peligros | Pinchos (la caja de daño es menor que el tile), caída al vacío y bloques intermitentes `~` que avisan medio segundo antes de cambiar, con color y forma |
 | Puntos de control | Al morir se reaparece en el último, tras 0,6 s de reaparición |
 | Coleccionables | 5–8 fragmentos de evidencia con significado narrativo (factura de Resonancia, lista de bots, análisis original del Acueducto…) |
 | Fin | Meta (archivo recuperado), tiempo agotado o abandono |
 | Controles | Teclado (A/D, flechas, Espacio/W), mando (cruceta + A), táctil (botones en pantalla, multitoque) |
+
+## Presentación (Ren'Py y web)
+
+- **Escala:** tiles de 72 px en 1920 × 1080; el nivel ocupa el alto útil.
+- **Cámara:** sigue al jugador con suavizado, respeta los límites y mira 260 px hacia donde corre para ver antes los obstáculos. Con «reducir movimiento» no hay suavizado.
+- **Partículas moderadas:** polvo al saltar y aterrizar, destellos dorados al recoger evidencia, chispas rojas al ser detectado y una explosión turquesa en la meta. Con «reducir movimiento» se reducen a un tercio.
+- **Victoria:** destello, el texto «ARCHIVO RECUPERADO» y, tras 1,1 s, la pantalla de resultados (puntos, evidencias, detecciones, tiempo y la lista de documentos recuperados).
+- **Pausa** (botón, Esc/P o Start) con **reinicio rápido** en Historia y Feria. En la Arena no se puede reiniciar: todos tienen un solo intento.
+- **Rendimiento:** 178 FPS medidos en el motor real con la QA de minijuegos (RTX 4070, 1920 × 1080).
+- **Plataformas móviles: no se añadieron.** Los huecos, fosos, torres y bloques intermitentes ya dan variedad. Plataformas móviles exigirían arrastrar al jugador y complicarían la paridad con el motor web, sin mejorar claramente el juego.
+
+## Consecuencias narrativas
+
+Al salir del sistema de NOVA, Claudia reacciona según lo recuperado (`label evidencias_rescatadas`, Historia y Feria):
+
+| Lo recuperado | Reacción y efecto |
+|---|---|
+| Todo | Publica el desmentido con cada documento: información verificada +3, confianza +2 |
+| Al menos la mitad | Puede desmentir lo principal: información verificada +1 |
+| Menos de la mitad | Hay que desmentir sin pruebas; sin bonificación |
+
+Las tres líneas están dobladas con ElevenLabs. Fallar no bloquea la historia.
 
 ## Física determinista
 

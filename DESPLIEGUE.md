@@ -81,6 +81,14 @@ python tools/web/postbuild.py "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio-w
 
 `postbuild.py` agrega el aviso "gira el teléfono" y el archivo `.nojekyll` que necesita GitHub Pages.
 
+### 3b. Build de Windows
+
+```bash
+"C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/renpy.exe" "C:/Users/ALEJANDRO/Downloads/renpy-8.5.3-sdk/launcher" distribute "C:/Users/ALEJANDRO/Documents/pruebaslaboratorio" --package pc --destination "C:/Users/ALEJANDRO/Documents/civitas-dist"
+```
+
+Genera `civitas-dist/<nombre>-pc.zip`. Antes de publicarlo, comprueba que no contenga `.kra`, `personajes/lateral/` ni los `*_base.png` de los cuatro personajes sustituidos (`options.rpy` los excluye).
+
 ## 4. Publicar en GitHub Pages
 
 La build se publica en una rama aparte, `gh-pages`, sin mezclarla con el código.
