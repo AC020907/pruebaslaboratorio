@@ -533,6 +533,8 @@ transform menu_boton_entrada(retraso):
         easein 0.12 xoffset 0
 
 screen main_menu():
+    # La apertura usa imagenes grandes (mapa 3072 px): se decodifican mientras el jugador mira el menu.
+    on "show" action Function(renpy.start_predict, "images/bg/panorama.jpg", "images/bg/mapa.jpg", "images/bg/despacho.jpg", "images/bg/barrio_sur.jpg", "images/bg/barrio_centro.jpg")
     tag menu
 
     if persistent.reducir_movimiento:

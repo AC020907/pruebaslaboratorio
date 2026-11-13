@@ -2,36 +2,54 @@
 
 ## Por qué se cambió
 
-La profesora pidió un inicio más dinámico, capaz de atrapar a un jurado desde los primeros segundos. Había gustado el multijugador y los minijuegos, pero el comienzo era lento.
+La profesora pidió un inicio mucho más dinámico e impactante para los jurados. Había gustado el multijugador y los minijuegos, pero el comienzo era lento y no estaba a su altura.
 
 | Inicio anterior (Modo Feria, contado en el guion) | Ahora |
 |---|---|
-| 7 líneas de diálogo (447 caracteres) y la pantalla de CivitasNet antes de la primera decisión | 0 líneas: la decisión llega justo después del montaje |
-| El primer minijuego llegaba tras 26 líneas (≥ 1.745 caracteres), el teléfono, CivitasNet y varios menús, ya en el Lunes | Microprueba jugable a los ~31 s |
-| La consecuencia de la decisión solo se veía como números flotantes | La consecuencia se ve en el grafo real de Civitas, con indicadores y la reacción de un ciudadano |
+| 7 líneas de diálogo (447 caracteres) y la pantalla de CivitasNet antes de la primera decisión | 15 s de montaje sin texto que leer y 2 líneas de Claudia: decisión a los ~22 s |
+| El primer minijuego llegaba tras 26 líneas (≥ 1.745 caracteres), el teléfono, CivitasNet y varios menús | Microprueba jugable a los ~45 s |
+| La consecuencia era un número flotante | La consecuencia se ve en el mapa de la ciudad: el BFS real de tu respuesta, con los indicadores animados |
+
+## Guía de dirección artística de la apertura
+
+| Aspecto | Decisión |
+|---|---|
+| **Estilo** | Se respetan las ilustraciones planas del equipo: no se añaden 3D, realismo, brillos, partículas ni neón. La profundidad sale de la cámara, el encuadre y el ritmo. Lo dibujado en código (red, logo) usa el mismo lenguaje que el lineart de los sprites: **trazo de tinta oscura y color plano encima**, círculos con contorno y ningún degradado. |
+| **Paleta** | Tinta `#2b2440`, papel `#fbf6ee`, noche `#120d1c` y lila `#c9b8d8` para textos secundarios. Un solo color de emergencia, `#d1495b` (el rumor), y su opuesto `#3d7ea6` (lo que tu respuesta frena). Vino `#8c2f4b` para rótulos. Es la paleta de la interfaz y la ropa de Claudia: no se introduce ningún color nuevo. |
+| **Luz** | No hay efectos de luz. El amanecer se cuenta con una veladura nocturna que se retira (3 s), y el silencio del primer plano, con una veladura que vuelve. |
+| **Cámara** | Solo tiene tres funciones: **avanzar** (amanecer, 9 s lineal), **seguir la información** (el mapa se abre a medida que el rumor llena la ciudad y baja hasta la Alcaldía) y **acercarse en una línea clave** («Y ayer... esa cuenta no existía», `camera at ap_acercar`). Nunca se mueve mientras se lee una tarjeta. |
+| **Transiciones** | Cada transición une dos acontecimientos:<br>• la notificación crece hasta ser la publicación (corte por movimiento);<br>• la publicación se hunde en el barrio donde nació el rumor;<br>• el mapa baja hasta el edificio de la Alcaldía y abre el despacho;<br>• el teléfono de Claudia se convierte en la pantalla de moderación.<br>Las entradas y salidas duran 0,3–0,6 s y los movimientos de cámara, 6–9 s. |
+| **Tipografía** | Roboto Light espaciada para la marca y los rótulos de lugar («CIUDAD NOVA», «ALCALDE DIGITAL»). Roboto en negrita, sin espaciar, para lo que hay que leer rápido. Sin mayúsculas gigantes que entren y salgan. |
+| **CivitasNet** | Tarjetas de papel con una franja de color a la izquierda y la cuenta en vino. Son las mismas en las notificaciones, el teléfono de la decisión y la transición a la moderación. |
+| **Ritmo** | Calma (0–3 s, solo ciudad y música suave), incertidumbre (3–6 s, 1 → 3 notificaciones), **silencio** (6,3 s, la música se corta en el primer plano), crisis (8,2 s, tensión y alarma, el rumor se propaga), despacho (diálogo breve), decisión (sin música nueva), consecuencia, acción y título (transición sonora y tema «revelación»). |
+| **Personajes** | No se deforma ningún sprite. Claudia entra con un desplazamiento lateral corto (0,5 s) y cambia de expresión con cada línea; la cámara se acerca en el momento clave. Durante la decisión sigue en escena, a la derecha. |
+| **Título** | Logo propio: **cada letra de CIVITAS es un nodo**. Una arista llega, el punto se marca y la letra sube; el primer punto es rojo, el origen del rumor. Debajo, «ALCALDE DIGITAL» espaciado en rojo y el lema. Sirve igual para el tráiler, el stand o las diapositivas (`TituloRed`). |
+| **NOVA** | Su interferencia aparece una sola vez (0,5 s, franjas), justo cuando Claudia dice que la cuenta no existía ayer. |
 
 ## El flujo (`game/story/prologo.rpy` + `game/story/apertura.rpy`)
 
-| Fase | Qué ve y hace el jugador | Implementación |
+| # | Escena | Implementación |
 |---|---|---|
-| **A. La ciudad despierta** (≈ 9 s) | Vibración, notificaciones contradictorias de Civitas, el titular «¿EL AGUA ESTÁ ENVENENADA?», la tendencia, 3 llamadas perdidas de Claudia y «el alcalde eres tú». Clic, Enter o «Saltar» la terminan; si nadie toca nada, termina sola a los 11 s. | `screen apertura_montaje` |
-| **B. Decisión inmediata** | La publicación de @verdad.oculta con su alcance. Tres respuestas: desmentir ahora, pedir los análisis o no intervenir todavía. Opcional: «Ver de dónde salió» (revela la captura recortada y da la pista `captura_veneno`). No se marca ninguna opción como correcta. | `menu (screen="apertura_decision")`: es un menú real, así el guardado, el rollback y los recorridos de QA lo respetan |
-| **C. La ciudad reacciona** | El rumor se propaga nivel por nivel por el grafo de Civitas: cuentas alcanzadas, saltos, cuentas que tu respuesta frenó (en azul), la reacción de un ciudadano y el cambio en los indicadores. Clic: muestra todo; «Continuar» sigue. | `apertura_propagacion()` + `screen apertura_reaccion` |
-| **D. Entra Claudia** | Reacciona a lo que ya elegiste (no se repite la decisión), se presenta en una línea y trae la pista nueva: la cuenta no existía ayer. La sospecha de una campaña coordinada queda abierta; NOVA no se revela. | `prologo.rpy` |
-| **E. Microprueba** | Moderación Express con 4 comentarios (2 bots y 2 personas reales, una de ellas crítica con el alcalde). Claudia comenta el resultado. | `label apertura_microprueba`: mismo motor (`ColaModeracion`) y misma pantalla (`moderador_ui`) |
-| **F. Título** | CIVITAS · ALCALDE DIGITAL · «Cada publicación cambia la ciudad». | `screen apertura_titulo` |
-| Estilo del alcalde | Se conserva la elección (Cercano, Analítico, Mediático, Político). | `prologo.rpy` |
+| 1 | **Ciudad Nova antes del caos.** Panorama al amanecer con un avance lento de cámara, y el rótulo «CIUDAD NOVA · lunes 6:09». | `screen apertura_montaje`, `ap_plano_ciudad` |
+| 2 | **El rumor se propaga.** 1 notificación, después 3. La publicación pasa a primer plano en silencio y se hunde en el mapa. El rumor corre de cuenta en cuenta (BFS real), con un contador y dos viñetas de vecinos reaccionando. La cámara se abre sobre la ciudad y baja a la Alcaldía. Dura ~15 s; clic, Enter o «Saltar». | `CiudadRumor` + ATL |
+| 3 | **El despacho.** Del edificio de la Alcaldía al interior, con el plano abriéndose. Claudia entra: 2 líneas en Feria y 3 en Historia. | `ap_revela_despacho`, `ap_entra_lado` |
+| 4 | **La decisión.** El teléfono con la publicación a la izquierda y Claudia a la derecha, sin salir de la escena. Tres respuestas («Responder como alcalde») y «Ver de dónde salió» (pista `captura_veneno`). Ninguna opción aparece marcada como la buena. | `menu (screen="apertura_decision")`, un menú real: el guardado, el rollback y la QA lo respetan |
+| 5 | **La consecuencia.** El mapa de nuevo, con el BFS de tu respuesta: alcance, cuentas frenadas en azul, barras de confianza, desinformación e información verificada que se mueven del valor anterior al nuevo, y la reacción de un ciudadano. | `screen apertura_reaccion` |
+| — | **Claudia reacciona a tu elección** (sin repetirla) y trae la pista: la cuenta no existía ayer. | `prologo.rpy` |
+| 6 | **Primer desafío.** El teléfono de Claudia llena la pantalla y se convierte en Moderación Express: 4 comentarios. | `apertura_a_moderacion` + `ColaModeracion` / `moderador_ui` |
+| 7 | **Título.** | `screen apertura_titulo`, `TituloRed` |
+| — | Estilo del alcalde y Acto I. | sin cambios |
 
 ## Estructuras de datos que intervienen
 
-- **Grafo dirigido y ponderado** (`red_civitas`, `clases/RedCivitas.py` + `GrafoSocial`): la fase C hace un **BFS real** (`bfs_propagacion`, cola FIFO y conjunto de visitados) desde `@verdad.oculta`, con semilla fija («apertura»), así que la animación es reproducible. La respuesta del jugador cambia los parámetros del recorrido:
-  - **Desmentir:** las cuentas que siguen al alcalde quedan **bloqueadas**, porque leyeron el desmentido.
-  - **Pedir análisis:** se bloquean los medios (`@salud.nova`, `@investigador.nova`, `@noticias.nova`), que esperan los datos; el rumor sigue por los demás.
-  - **No intervenir:** no hay bloqueos y la fuerza de propagación sube ×1,35.
+- **Grafo dirigido y ponderado** (`red_civitas`): las escenas 2 y 5 dibujan un **BFS real** (`bfs_propagacion`: cola FIFO, conjunto de visitados y padres) desde `@verdad.oculta`, con semilla fija. Cada cuenta está en su barrio del mapa (`MAPA_ZONAS`, espiral de Fermat por barrio) y cada arista es el padre BFS real. La respuesta cambia el recorrido:
+  - **desmentir:** bloquea a quienes siguen a la alcaldía;
+  - **pedir análisis:** bloquea a los medios;
+  - **no intervenir:** sin bloqueos y con propagación ×1,35.
 
-  Alcance resultante, sobre 27 cuentas: desmentir 16, pedir análisis 17 e ignorar 24.
-- **Cola FIFO** (`ColaModeracion`, `deque`): la microprueba atiende los comentarios en orden de llegada.
-- **Diccionarios de estado:** `apertura_decision`, `apertura_micro` y `apertura_tiempos`, además de las estructuras de la historia (hechos, pistas, afinidad, indicadores).
+  Alcance sobre 27 cuentas: 16, 17 y 24.
+- **Cola FIFO** (`ColaModeracion`): la microprueba.
+- **Diccionarios de estado:** `apertura_decision`, `apertura_antes` (indicadores antes de decidir, para animar las barras), `apertura_micro` y `apertura_tiempos`.
 
 ## Consecuencias conservadas, aplicadas una sola vez
 
@@ -41,66 +59,76 @@ La profesora pidió un inicio más dinámico, capaz de atrapar a un jurado desde
 | Pedir análisis | información verificada +3, desinformación +2 | `pidio_analisis`, calidad 1,0, Claudia +1 |
 | No intervenir | desinformación +4, confianza −2 | `ignoro_rumor_agua`, calidad 0,0, Claudia −1 |
 
-- `apertura_decidir()` se niega a aplicarse dos veces, y después de la decisión se bloquea el rollback.
-- La microprueba aplica un efecto pequeño una sola vez:
-  - todo limpio: confianza +1;
-  - borró a una persona real: convivencia −1;
-  - dejó pasar bots: desinformación +1.
+- `apertura_decidir()` no se aplica dos veces, y después de decidir se bloquea el rollback.
+- La microprueba aplica un efecto pequeño una sola vez y no toca `registro_minijuegos`.
+- Sus 4 comentarios no están en el banco del Moderación Express completo (una prueba lo verifica).
+- La cuenta atrás de la moderación ya no dice «Martina» en la microprueba: el texto es `moderacion_intro`, y se restaura para el reto del lunes.
+- Se conservan la pista `hip_nova_creo`, las escenas posteriores que leen las marcas, la elección de estilo y los cinco finales.
 
-  No escribe en `registro_minijuegos`, así que no altera la puntuación del Moderación Express completo del Lunes.
-- **No se repiten comentarios:** los cuatro de la microprueba no están en el banco del reto completo (lo comprueba una prueba).
-- **Lo que sigue igual:** la pista `hip_nova_creo`, las escenas posteriores que leen las marcas (CivitasNet del miércoles, Rodrigo, Martina) y los cinco finales.
+## Rendimiento y accesibilidad
 
-## Decisiones de diseño
+- **Precarga:** el menú principal precarga el panorama, el mapa (3072 px), el despacho y los recortes de barrio (`renpy.start_predict`). Sin esto, el primer inicio tardaba ~5 s en mostrar el montaje; con la precarga, el montaje arranca al instante, comprobado en la ventana real.
+- **Dibujo:** `CiudadRumor` dibuja 28 nodos y sus aristas con el canvas de Ren'Py sobre una sola textura de mapa y deja de redibujarse al terminar. Es compatible con Ren'Py Web (no usa hilos ni extensiones).
+- **Reducir movimiento:**
+  - la cámara corta entre posiciones en vez de moverse;
+  - no hay desplazamientos ni zoom en las entradas;
+  - la propagación aparece por niveles, sin crecer;
+  - el título aparece completo.
 
-- **Interactuar antes de explicar.** La primera acción del jugador es la decisión de alcalde, no un diálogo.
-- **Ver la consecuencia.** El grafo muestra quién recibió el rumor y por qué, en lugar de anunciarlo con texto.
-- **Jugar pronto.** La microprueba enseña la regla clave de Moderación Express («a la gente real no se la calla») en 4 tarjetas y anticipa el reto completo.
-- **Sin respuesta correcta anunciada.** El foco de teclado usa un color neutro para no sugerir una opción.
-- **Accesibilidad:**
-  - con «reducir movimiento», nada se desliza ni vibra y la propagación aparece completa;
-  - el montaje dura lo mismo para que se pueda leer;
-  - los sonidos tienen aviso visual (`sfx`);
-  - no hay flashes;
-  - todo se controla con ratón, teclado (Enter) o mando (`civ_accion`).
-- **Voces:** las 13 líneas nuevas o cambiadas de Claudia se doblaron con las mismas voces de ElevenLabs. La línea del jugador no se dobla, por diseño.
-- **Modos:** Historia y Modo Feria comparten la apertura. En Feria se omiten 3 líneas (la presentación larga de Claudia y el intercambio «¿Alguien la creó solo para esto?»).
+  El montaje dura lo mismo para que se pueda leer.
+- **Control y avisos:** todo se puede **saltar o acelerar** con clic, Enter, el botón «Saltar» o el mando (`civ_accion`). Los sonidos tienen aviso visual (`sfx`) y no hay flashes. Las voces se doblaron con ElevenLabs (19 líneas nuevas o reordenadas de Claudia en total); la del jugador no se dobla, por diseño.
 
-## Demostración ante profesores y jurados (≈ 1 minuto)
+## Demostración ante profesores y jurados (≈ 1 min 15 s)
 
-1. **Menú principal → «Modo Feria (12 min)».** La crisis empieza sola; se puede pulsar «Saltar».
-2. **La crisis:** señalar el titular y las llamadas perdidas.
-3. **Decisión:** pulsar «Ver de dónde salió» y elegir una opción. Para comparar, repetir con otra respuesta y ver cómo cambia el alcance (16, 17 o 24 cuentas).
-4. **Grafo:** explicar que es el BFS real de la red de Civitas. Las cuentas en azul son las que frenó tu respuesta, y los indicadores cambian.
-5. **Claudia y la microprueba:** moderar 4 comentarios.
-6. **Título → estilo → Lunes:** la historia sigue con normalidad. Para mostrar un minijuego completo, continuar hasta Moderación Express en el estudio de Martina.
+1. **Menú → «Modo Feria (12 min)».** Dejar correr el montaje: ciudad, notificaciones, silencio y el rumor en el mapa.
+2. **Despacho:** dos líneas de Claudia.
+3. **Decisión:** pulsar «Ver de dónde salió» y elegir una respuesta.
+4. **Consecuencia:** el mapa muestra a quién llegó el rumor según tu respuesta. Las cuentas azules son las que frenaste, y las barras se mueven. Para comparar, repetir con «No intervenir» (24 cuentas) o «Desmentir» (16).
+5. **Microprueba:** borrar los 2 bots y aprobar a las 2 personas, una de ellas crítica.
+6. **Título** y paso natural al Lunes.
 
 ## Pruebas realizadas (2026-11-12)
 
 | Prueba | Resultado |
 |---|---|
 | `renpy.exe . lint` | Sin errores |
-| `python -m pytest -q tests` | 182 + 8 nuevas (`tests/test_apertura.py`) |
-| `python tests/qa_recorridos.py` | **10/10**: los 5 finales en Historia y en Feria, pasando por la nueva decisión (desmentir, analizar o no intervenir según el perfil) |
-| `qa_visual.py galeria --etapas apertura` (con `ALCALDE_QA_APERTURA` = desmentir, analisis, ignorar) | OK en las 3 respuestas, en Feria y en Historia. Indicadores, pistas, afinidad y marcas correctos; consecuencias aplicadas una vez |
-| Partida real con clics en la ventana | Montaje → decisión → grafo → Claudia → microprueba (4/4) → título → estilo, sin errores |
+| `python -m pytest -q tests` | **190 OK**, incluidas las 8 de `tests/test_apertura.py` |
+| `python tests/qa_recorridos.py` | **10/10**: los 5 finales en Historia y en Feria, pasando por la nueva decisión |
+| `qa_visual.py galeria --etapas apertura` | OK con desmentir, analizar y no intervenir; en Historia; con reducir movimiento. Indicadores, pistas, afinidad y marcas correctos y aplicados una vez |
+| Partida real en la ventana (ratón y teclado; flechas en la microprueba) | Montaje → despacho → decisión → consecuencia → pista → microprueba (4/4) → título → estilo, sin errores |
 
-**Medición simulada** (lector automático de ~15 caracteres/s que pulsa a los 8,5 s del montaje; **no son datos de personas**):
+**Correcciones hechas tras revisar capturas y la ventana real:**
+- la cámara se salía del borde del mapa: ahora se limita a sus bordes;
+- el grafo se leía débil sobre la ilustración: trazo y nodos más gruesos, y veladura más oscura;
+- el contador tapaba «Barrio Norte»;
+- el panel de la consecuencia tapaba Prensa: ahora va abajo a la derecha, sobre el mar;
+- la barra sin cambio salía roja: ahora es neutra;
+- los números flotantes duplicaban el panel;
+- había espacio vacío en el teléfono de la decisión;
+- el menú rápido aparecía sobre la decisión;
+- la cuenta atrás de la microprueba decía «Martina»;
+- el fondo del título competía con «ALCALDE DIGITAL»;
+- había ~5 s de carga al primer inicio.
+
+**Medición simulada** (lector automático de ~15 caracteres/s que deja correr el montaje completo; **no son datos de personas**):
 
 | Hito | Feria | Historia |
 |---|---|---|
-| Primer acontecimiento | < 1 s (verificado en ventana real: < 2 s) | igual |
-| Crisis comprendida y primera interacción | 8,8 s | 8,8 s |
-| Decisión y consecuencia visible | 14 s | 14 s |
-| Microprueba | 31 s | 33 s |
-| Título | 49 s | 51 s |
-| Fin del prólogo (incluido el estilo) | 64 s | 67 s |
-| Líneas de diálogo en todo el prólogo | 10 | 12 |
-| Interacciones obligatorias | 19 | 21 |
+| Primer acontecimiento (la ciudad; notificación a los 3,2 s) | < 1 s | < 1 s |
+| Fin del montaje (crisis comprendida) | 15,7 s | 15,7 s |
+| Decisión disponible | 22,2 s | 23,5 s |
+| Decisión y consecuencia visible | 27,4 s | 28,7 s |
+| Microprueba | 44,7 s | 46,0 s |
+| Título | 63,7 s | 65,0 s |
+| Fin del prólogo | 79,3 s | 80,6 s |
 
-Capturas reales del motor en `docs/auditoria/apertura/` (`ap01`–`ap09`; la propagación, la consecuencia y Claudia, para cada respuesta).
+Saltando el montaje, la decisión llega en ~7 s.
 
-**Sin verificar:** mando físico (las acciones `civ_accion` existen, pero no se probó con un mando conectado) y pruebas con personas (protocolo abajo).
+**Capturas reales del motor** en `docs/auditoria/apertura/`:
+- `serie_montaje_1s.jpg`: una captura por segundo del montaje;
+- `ap03`–`ap09`: decisión, consecuencia (con cada respuesta), Claudia, microprueba y título.
+
+**Sin verificar:** mando físico (las acciones existen, pero no se probó con un mando conectado), la versión web (no se ha publicado esta rama) y las pruebas con personas (protocolo abajo).
 
 ## Protocolo de prueba con personas (pendiente: no se ha realizado)
 
@@ -112,23 +140,24 @@ Al menos **5 personas ajenas al equipo**. Una sesión por persona, sin explicar 
 
 | Dato | Cómo registrarlo |
 |---|---|
+| ¿Le interesó en los primeros 5 s? | Observación: mira la pantalla, comenta, se inclina |
 | Tiempo hasta comprender la crisis | Cuando diga, con sus palabras, que hay un rumor sobre el agua |
 | Tiempo hasta la primera interacción | Primer clic o tecla con intención |
 | ¿Comprendió su responsabilidad? | Pregunta al final: «¿Quién eras tú y qué tenías que hacer?» |
 | ¿Entendió las consecuencias? | «¿Qué pasó en la ciudad por lo que elegiste?» |
-| ¿Quiso seguir jugando? | «¿Quieres seguir?» (sí, no o tal vez) |
-| Momento que más llamó su atención | Pregunta abierta |
-| Escena que le pareció lenta | Pregunta abierta |
+| ¿Reconoce una identidad propia? | «¿Te recuerda a algún otro juego?» y «¿Qué imagen recuerdas?» |
+| ¿Quiso seguir jugando? | «¿Quieres saber quién está detrás?» (sí, no o tal vez) |
+| Momento que más llamó su atención y escena lenta | Preguntas abiertas |
 | Problemas de controles o lectura | Observación directa |
 
 Plantilla de registro (una fila por persona; no anotes nombres ni datos personales):
 
-| # | Comprende la crisis (s) | 1.ª interacción (s) | Responsabilidad (s/n) | Consecuencias (s/n) | Quiere seguir | Lo mejor | Lo lento | Problemas |
-|---|---|---|---|---|---|---|---|---|
-| 1 | | | | | | | | |
-| 2 | | | | | | | | |
-| 3 | | | | | | | | |
-| 4 | | | | | | | | |
-| 5 | | | | | | | | |
+| # | Interés 5 s | Crisis (s) | 1.ª interacción (s) | Responsabilidad | Consecuencias | Quiere seguir | Lo mejor | Lo lento | Problemas |
+|---|---|---|---|---|---|---|---|---|---|
+| 1 | | | | | | | | | |
+| 2 | | | | | | | | | |
+| 3 | | | | | | | | | |
+| 4 | | | | | | | | | |
+| 5 | | | | | | | | | |
 
-**Criterio orientativo:** al menos 4 de 5 comprenden la crisis antes de los 15 s, entienden que su respuesta cambió la propagación y quieren seguir.
+**Criterio orientativo:** al menos 4 de 5 comprenden la crisis durante el montaje, entienden que su respuesta cambió la propagación y quieren seguir.

@@ -655,15 +655,12 @@ init python:
             qa_ap["fase"], qa_ap["desde"] = fase, qa_ap["t"]
         dt = qa_ap["t"] - qa_ap["desde"]
         if fase == "montaje":
-            if dt >= 1.5:
-                qa_ap_foto("ap01_notificaciones")
-            if dt >= 6.5:
-                qa_ap_foto("ap02_crisis_completa")
-            if dt >= 8.5:
-                qa_ap["interacciones"] += 1
-                return True
+            # Serie temporal: una captura por segundo para evaluar ritmo y transiciones.
+            seg = int(dt)
+            if dt - seg < 0.26:
+                qa_ap_foto("ap00_montaje_%02d" % seg)
         elif fase == "decision":
-            if dt >= 1.0:
+            if dt >= 1.2:
                 qa_ap_foto("ap03_decision")
             if dt >= 5.0:
                 qa_ap["interacciones"] += 1
@@ -716,6 +713,7 @@ screen qa_apertura_auto():
 label qa_gal_apertura:
     $ qa_pad_limite = 400
     $ modo_feria_activo = _qa_os.environ.get("ALCALDE_QA_APERTURA_MODO", "feria") == "feria"
+    $ persistent.reducir_movimiento = _qa_os.environ.get("ALCALDE_QA_REDUCIR") == "1"
     show screen qa_apertura_auto
     call prologo(corto=modo_feria_activo)
     hide screen qa_apertura_auto

@@ -163,7 +163,7 @@ screen moderador_ui(cola, creadas):
         vbox:
             align (0.5, 0.45)
             spacing 20
-            text "Los comentarios de Martina están llenos de bots." size 36 color "#fbf6ee" xalign 0.5
+            text moderacion_intro size 36 color "#fbf6ee" xalign 0.5
             text "Borrar: flecha izquierda, tecla A o cruceta izquierda     Aprobar: flecha derecha, tecla D o cruceta derecha" size 26 bold True color "#facc15" xalign 0.5
             text "Ojo: criticar al alcalde no es desinformación." size 28 color "#c9b8d8" xalign 0.5
             text "%d" % (int(cola.intro) + 1) size 140 bold True color "#ffffff" xalign 0.5
@@ -189,6 +189,8 @@ screen moderador_ui(cola, creadas):
                     action Return()
         key "civ_accion" action Return()
 
+
+default moderacion_intro = "Los comentarios de Martina están llenos de bots."
 
 label minijuego_moderador(semilla=None, aplicar=True, cantidad=16):
     $ semilla_moderacion = semilla if semilla is not None else renpy.random.randint(1, 999999)

@@ -351,14 +351,15 @@ final_fuente_abierta_fa12fb9a,c,feliz,Lo mejor no es que sepamos quién fue. Es 
 final_fuente_abierta_20552fbd,,,En el expediente también está tu comunicado del lunes. Decidiste no borrarlo: es parte de cómo pasó.,no,narrador (no se dobla)
 final_fuente_abierta_e2b286a2,,,arroba salud nova crea una regla nueva: ninguna nota de salud sale sin el análisis completo.,no,narrador (no se dobla)
 final_fuente_abierta_520041ae,,,Ciudad Nova no se volvió inmune a los rumores. Aprendió a preguntar de dónde vienen.,no,narrador (no se dobla)
-prologo_a35ad747,c,seria,"Alcalde, ya vi su desmentido. Rápido: eso calma a la gente hoy.",yes,ok
+prologo_7e0020b7,c,sorprendida,"Alcalde. Claudia Reyes, de Noticias Nova: me asignaron a su equipo esta semana.",yes,ok
+prologo_7b1ec9d4,c,seria,Acepté por una razón: quiero saber quién está detrás de esto. No vine a escribirle comunicados bonitos.,yes,ok
+prologo_190be76b,c,seria,Dieciocho mil reposts en una hora. La ciudad va a mirar lo primero que usted diga.,yes,ok
+prologo_f39b6dc5,c,seria,Rápido. Eso calma a la gente hoy.,yes,ok
 prologo_5c902665,c,,Ojalá no tengamos que tragarnos esas palabras si los análisis dicen otra cosa.,yes,ok
-prologo_73e26eae,c,feliz,Alcalde. Me dijeron que pidió los análisis. Alguien en este edificio que pregunta antes de hablar.,yes,ok
-prologo_5312ab53,c,seria,Pero el rumor no nos va a esperar: cada hora sin respuesta suma reposts.,yes,ok
+prologo_c40c8546,c,feliz,Vaya. Alguien en este edificio que pregunta antes de hablar.,yes,ok
+prologo_927ca49b,c,seria,Los pido ya. Pero el rumor no nos va a esperar: cada hora sin respuesta suma reposts.,yes,ok
 prologo_8ab3bebd,c,enojada,"¿Un rumor más? Alcalde, hay señoras haciendo fila con tres botellones cada una.",yes,ok
 prologo_0238b3b6,c,,Los rumores no se cansan. Nosotros sí.,yes,ok
-prologo_a7d73145,c,seria,"Claudia Reyes, de Noticias Nova. Me asignaron a su equipo esta semana, y acepté por una razón: quiero saber quién está detrás de esto.",yes,ok
-prologo_8e3c5c0e,c,seria,"Claudia Reyes, de Noticias Nova. Esta semana trabajo con usted.",yes,ok
 prologo_8630ce52,c,seria,"Rastreé la primera publicación. Salió de arroba verdad oculta: sin foto, sin historial.",yes,ok
 prologo_bdcbf9ca,c,,Y ayer... esa cuenta no existía.,yes,ok
 prologo_e1d7ceae,tu,,¿Alguien la creó solo para esto?,no,jugador (no se dobla)
