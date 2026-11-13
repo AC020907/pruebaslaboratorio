@@ -328,12 +328,32 @@ label qa_gal_finales:
         $ ind_gal = {"info_verificada": 70 - i_gal * 10, "confianza": 72 - i_gal * 11, "convivencia": 60, "bienestar": 60,
                      "desinformacion": 20 + i_gal * 14, "conflictos": 15 + i_gal * 12}
         $ from clases.Eleccion import escrutinio_historia as _esc_gal
+        # Remaster: cartela, escena con la identidad visual del desenlace, escrutinio contando y revelado, cierre.
+        show screen final_cartela(final_gal)
+        call qa_foto("f%02d_cartela_%s" % (i_gal + 1, final_gal), 1.9)
+        hide screen final_cartela
+        $ escena_gal = {"informada": ("bg panorama", "fin_informada", None, "claudia", "feliz"),
+                        "dividida": ("bg ciudad tarde", "fin_dividida", "fin_capa_grieta", "claudia", "seria"),
+                        "caos": ("bg ciudad noche", "fin_caos", "fin_capa_caos", "nova", "neutral"),
+                        "mandato": ("bg alcaldia", "fin_mandato", "fin_capa_franjas", "tomas", "seria"),
+                        "secreto": ("bg panorama", "fin_secreto", "fin_capa_expediente", "claudia", "feliz")}[final_gal]
+        $ renpy.scene()
+        $ renpy.show(escena_gal[0], at_list=[getattr(store, escena_gal[1])])
+        if escena_gal[2]:
+            $ renpy.show(escena_gal[2])
+        $ renpy.show(escena_gal[3] + " " + escena_gal[4], at_list=[escena(escena_gal[3])])
+        call qa_foto("f%02d_escena_%s" % (i_gal + 1, final_gal), 3.2)
+        $ renpy.scene()
         show screen escrutinio_historia(_esc_gal(final_gal, ind_gal, 70 - i_gal * 8, 1))
-        call qa_foto("f%02d_escrutinio_%s" % (i_gal + 1, final_gal), 1.6)
+        call qa_foto("f%02d_escrutinio_conteo_%s" % (i_gal + 1, final_gal), 1.2)
+        call qa_foto("f%02d_escrutinio_%s" % (i_gal + 1, final_gal), 3.4)
         hide screen escrutinio_historia
         show screen pantalla_resultados(final_gal, resultado_qa, i_gal % 2 == 0)
         call qa_foto("f%02d_resultados_%s" % (i_gal + 1, final_gal), 2.4)
         hide screen pantalla_resultados
+        show screen cierre_civitas(final_gal)
+        call qa_foto("f%02d_cierre_%s" % (i_gal + 1, final_gal), 2.6)
+        hide screen cierre_civitas
         $ i_gal += 1
     $ qa_gal_volcar(etapa="finales", ok=True)
     $ renpy.quit()
