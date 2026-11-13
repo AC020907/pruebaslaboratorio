@@ -23,6 +23,8 @@ init -1 python:
     AP_VINO = "#8c2f4b"        # acento de la marca
     AP_LILA = "#c9b8d8"        # texto secundario sobre oscuro
     AP_FUENTE_FINA = "fonts/Roboto-Light.ttf"
+    # En la web (emscripten) el canvas se dibuja por software: 15 cuadros/s bastan y no bloquean el navegador.
+    AP_REFRESCO = (1.0 / 15) if renpy.emscripten else 0
 
     # Centro de cada zona de la red sobre images/bg/mapa.jpg (3072 x 2048).
     MAPA_ZONAS = {"Norte": (560, 640), "Centro": (1480, 780), "Medios": (2140, 560),
@@ -115,6 +117,10 @@ init -1 python:
 
         def render(self, width, height, st, at):
             r = renpy.Render(width, height)
+            # Hasta que su plano empieza no se dibuja nada (en la web el canvas es por software y costoso).
+            if not self.forzado and st < self.camara[0][0] - 0.3:
+                renpy.redraw(self, max(0.05, self.camara[0][0] - 0.3 - st))
+                return r
             cx, cy, z = self.cam(st)
             ox, oy = width / 2.0 - cx * z, height / 2.0 - cy * z
             r.blit(renpy.render(Transform(self.MAPA, zoom=z), width, height, st, at), (int(ox), int(oy)))
@@ -157,7 +163,7 @@ init -1 python:
                                               outlines=[(3, AP_TINTA, 0, 0)]), width, height, st, at)
                         r.blit(t, (x - t.width // 2, y + int(18 * esc)))
             if not self.forzado and (st < self.fin or st < self.camara[-1][0]):
-                renpy.redraw(self, 0)
+                renpy.redraw(self, AP_REFRESCO)
             return r
 
         def texto_alcance(self, st, at):
@@ -206,7 +212,7 @@ init -1 python:
                     c.circle(AP_TINTA, (cx, linea), 11)
                     c.circle(AP_RUMOR if i == 0 else AP_PAPEL, (cx, linea), 7)
             if not self.reducido and st < 0.35 + len(self.LETRAS) * self.paso + 0.5:
-                renpy.redraw(self, 0)
+                renpy.redraw(self, AP_REFRESCO)
             return r
 
 init python:

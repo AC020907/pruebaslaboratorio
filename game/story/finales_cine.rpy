@@ -42,7 +42,7 @@ init -1 python:
                 img = renpy.render(Transform(t, rotate=giro, alpha=0.55), width, height, st, at)
                 r.blit(img, (int(xx), int(y)))
             if not persistent.reducir_movimiento:
-                renpy.redraw(self, 0.04)
+                renpy.redraw(self, max(0.04, AP_REFRESCO))
             return r
 
     class CapaGrieta(renpy.Displayable):
@@ -65,7 +65,7 @@ init -1 python:
             c.lines("#120d1c", False, pts, 14)
             c.lines("#fbf6ee", False, [(x + 5, y) for x, y in pts], 3)
             if p < 1.0:
-                renpy.redraw(self, 0)
+                renpy.redraw(self, AP_REFRESCO)
             return r
 
     class CapaExpediente(renpy.Displayable):
@@ -96,7 +96,7 @@ init -1 python:
                     c.line("#d1495b", prev, fin, 4)
                 prev = centro
             if not persistent.reducir_movimiento and st < 3.5:
-                renpy.redraw(self, 0)
+                renpy.redraw(self, AP_REFRESCO)
             return r
 
     def fin_votos(votos, retraso, dur):
