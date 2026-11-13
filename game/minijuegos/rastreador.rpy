@@ -289,8 +289,9 @@ screen puzzle_rastreo_ui(p, rumor):
             textbutton CONCLUSIONES[clave]:
                 xsize 470
                 ysize 70
-                background Frame("gui/telefono_boton_hover.png" if elegida else "gui/telefono_boton.png", 30, 30)
-                hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+                # Remaster: plano, sin degradado. Elegida = vino; disponible = noche con contorno lila.
+                background Frame(Fixed(Solid("#c9b8d8" if not elegida else "#2b2440"), Solid("#8c2f4b" if elegida else "#1b1426", xysize=(464, 64), pos=(3, 3)), xysize=(470, 70)), 8, 8)
+                hover_background Frame(Fixed(Solid("#fbf6ee"), Solid("#3a3350", xysize=(464, 64), pos=(3, 3)), xysize=(470, 70)), 8, 8)
                 text_size 21
                 text_bold elegida
                 text_color ("#fde68a" if elegida and p.conclusion_ok is False else "#fbf6ee")
@@ -300,17 +301,22 @@ screen puzzle_rastreo_ui(p, rumor):
                 sensitive p.jugando()
                 action Function(p.elegir_conclusion, clave)
     if p.explicaciones and p.jugando():
-        vbox:
+        # Remaster: la explicacion del error en una tira de papel (legible sobre cualquier fondo).
+        frame:
             xalign 0.5
-            ypos 560
-            for linea in p.explicaciones[:2]:
-                text linea size 19 bold True color "#fca5a5" xalign 0.5 outlines [(2, "#1b1426", 0, 0)]
+            ypos 580
+            background Frame(Fixed(Solid("#2b2440"), Solid("#fbf6ee", xysize=(994, 64), pos=(3, 3)), Solid("#d1495b", xysize=(8, 64), pos=(3, 3)), xysize=(1000, 70)), 12, 8)
+            padding (28, 8, 22, 8)
+            vbox:
+                for linea in p.explicaciones[:2]:
+                    text linea size 18 bold True color "#8c2f4b" xalign 0.5
 
-    text "EVIDENCIAS SOBRE LA MESA  -  arrástralas a la cadena (o haz clic en una cuenta y luego en un hueco)":
-        xalign 0.5
-        ypos PUZZLE_MESA_Y - 30
-        size 17
-        color "#c9b8d8"
+    if not (p.explicaciones and p.jugando()):
+        text "EVIDENCIAS SOBRE LA MESA  -  arrástralas a la cadena (o haz clic en una cuenta y luego en un hueco)":
+            xalign 0.5
+            ypos PUZZLE_MESA_Y - 30
+            size 17
+            color "#c9b8d8"
 
     # ---- Acciones ----
     hbox:
@@ -423,7 +429,7 @@ screen puzzle_rastreo_ui(p, rumor):
         frame:
             xpos 24
             ypos 1000
-            background "#0b1324e0"
+            background "#120d1ce8"
             padding (14, 8)
             text "DFS inverso desde %s: %s" % (p.inicio, "  <-  ".join(p.ruta_desde(p.inicio)[1:])) size 16 color "#93c5fd"
 

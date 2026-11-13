@@ -333,7 +333,7 @@ init python:
 
         def dibujar_hud(self, r, st, at):
             sim = self.sim
-            self.poner(r, Solid("#020617e8", xysize=(1920, 150)), 0, 0, st, at, (0, 0))
+            self.poner(r, Solid("#120d1cf0", xysize=(1920, 150)), 0, 0, st, at, (0, 0))
             self.poner(r, self.texto(self.titulo, 40, "#facc15" if self.rastreo else "#f87171", True), 40, 18, st, at, (0, 0))
             if self.rastreo:
                 objetivo = "Sigue el rastro hasta la cuenta que INICIÓ el rumor"
@@ -347,7 +347,7 @@ init python:
             v = sim.viralidad()
             color_v = "#ef4444" if v >= 0.75 else ("#f59e0b" if v >= 0.5 else "#22c55e")
             self.poner(r, self.texto("VIRALIDAD  %d%%" % int(v * 100), 18, color_v, True), 1010, 18, st, at, (0, 0))
-            self.poner(r, Solid("#1e293b", xysize=(300, 26)), 1010, 46, st, at, (0, 0))
+            self.poner(r, Solid("#3a3350", xysize=(300, 26)), 1010, 46, st, at, (0, 0))
             if v > 0:
                 self.poner(r, Solid(color_v, xysize=(max(1, int(300 * v)), 26)), 1010, 46, st, at, (0, 0))
             self.poner(r, self.texto("%s reposts" % formato_num(sim.reposts), 18, "#cbd5e1"), 1010, 80, st, at, (0, 0))

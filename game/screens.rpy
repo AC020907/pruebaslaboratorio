@@ -93,7 +93,7 @@ screen hud_ciudad():
             ypos 22
             xsize 340
             padding (28, 22, 28, 26)
-            background Solid("#120d1cf0")
+            background Frame(Fixed(Solid("#2b2440"), Solid("#120d1c", xysize=(334, 600), pos=(3, 3)), xysize=(340, 606)), 8, 8)
             vbox:
                 spacing 18
                 hbox:
@@ -122,24 +122,25 @@ screen hud_ciudad():
                             right_bar Solid("#2f2744")
 
 screen hud_acceso(etiqueta, pendientes, accion):
+    # Remaster: ficha de papel con contorno de tinta (mismo componente que CivitasNet y los resultados).
     button:
-        xsize 138
-        ysize 44
-        background Frame("gui/telefono_boton.png", 30, 30)
-        hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+        xsize 142
+        ysize 46
+        background Frame(Fixed(Solid("#2b2440"), Solid("#fbf6ee", xysize=(136, 40), pos=(3, 3)), xysize=(142, 46)), 6, 6)
+        hover_background Frame(Fixed(Solid("#2b2440"), Solid("#efe8f5", xysize=(136, 40), pos=(3, 3)), Solid("#d1495b", xysize=(6, 40), pos=(3, 3)), xysize=(142, 46)), 10, 6)
         hover_sound "assets/audio/sfx/menu_hover.ogg"
         activate_sound "assets/audio/sfx/ui_click.wav"
         action accion
-        text etiqueta size 16 bold True color "#fbf6ee" align (0.5, 0.5)
+        text etiqueta size 17 bold True color "#2b2440" hover_color "#8c2f4b" align (0.5, 0.5)
         if pendientes:
-            frame:
+            fixed:
+                xysize (30, 30)
                 xalign 1.0
                 yalign 0.0
-                xoffset 10
-                yoffset -10
-                background Solid("#e86a7e")
-                padding (8, 1)
-                text "[pendientes]" size 14 bold True color "#ffffff"
+                xoffset 12
+                yoffset -12
+                add circulo("#d1495b", "#2b2440", 14) align (0.5, 0.5)
+                text "[pendientes]" size 14 bold True color "#ffffff" align (0.5, 0.5)
 
 screen cambios_indicadores(lineas):
     zorder 60

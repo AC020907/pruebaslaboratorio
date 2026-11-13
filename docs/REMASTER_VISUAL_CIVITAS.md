@@ -47,13 +47,13 @@ Clasificación: **P0** impide comprender o jugar · **P1** presentación grave �
 | **Menú del juego** (Opciones, Guardar, Cargar, Historial, Ayuda, Créditos) | **El título salía cortado por arriba**; la veladura blanquecina parecía sin terminar; las ranuras vacías eran bloques grises | **P0** / P1 | Título visible en Roboto Light con acento rojo. Panel de papel sólido con la columna de navegación en lila y separador de tinta. Ranuras de guardado como tarjetas de papel con contorno. | `comparativas/menu_opciones.jpg`, `menu_guardar.jpg` | Hecho |
 | **Prólogo** | — | — | Ya remasterizado (`docs/APERTURA_FERIA_GAMER.md`) | `docs/auditoria/apertura/` | Hecho (rama anterior) |
 | **Duelo de Frecuencias** | Funciona y se ve bien | P3 | Sin cambios: no se tocaron ventanas, charts, música ni reglas | — | Sin cambios |
-| **Caza-Rumores (juego)** | Funcional; el estilo de grafo oscuro difiere del resto | P2 | Solo se unificaron los resultados | — | **Pendiente** |
-| **Rastreador (tablero)** | Legible y funcional | P2 | Solo se unificaron los resultados | — | **Pendiente** |
-| **HUD de la ciudad** (botones Ciudad, CivitasNet, Expediente…) | Píldoras azul marino de la versión anterior | P2 | — | — | **Pendiente** |
+| **Caza-Rumores, propagación y Gran Viralización (juego)** | Fondo tecnológico neón genérico; barra superior azul marino | P2 | Fondo nuevo: **el mapa ilustrado de Ciudad Nova entintado** (`tools/arte/fondos_minijuegos.py`), así que el grafo se juega sobre la ciudad real. Barra superior en el color noche de la paleta. Los originales quedan en `tools/arte/respaldo_v1/`. | `capturas/j05_contencion_2_juego.jpg` | Hecho |
+| **Rastreador (tablero)** | Explicación del error en rojo sobre la foto (poco legible); conclusión elegida con degradado | P1 | La explicación va en una tira de papel con franja roja (la etiqueta de la mesa se oculta mientras se muestra). Los botones de conclusión son planos: vino si está elegida y noche con contorno lila si está disponible. | `capturas/j14_rastreador_error.jpg` | Hecho |
+| **HUD de la ciudad** (Ciudad, CivitasNet, Expediente, Misiones, Mapa) | Píldoras azul marino con degradado | P2 | Fichas de papel con contorno de tinta y franja roja al pasar el ratón; los avisos pendientes en un círculo rojo con contorno; el panel de la ciudad, enmarcado | `capturas/e03_barrio_conversacion.jpg` | Hecho |
 | **CivitasNet, Expediente, Mapa, Misiones** | Coherentes entre sí; sin defectos P0 o P1 detectados | P3 | — | — | Sin cambios |
-| **Escenas de la novela** (cámara por escena, entradas de personajes) | Presentación correcta, mejorable | P2 | Rótulos y cartelas; la cámara narrativa se aplicó en la apertura y los finales | — | **Parcial** |
-| **Arena Local** | Sin cambios visuales | — | No se tocó para no desestabilizar el multijugador | — | Sin cambios |
-| **Arena Online** | Usa sus propios recursos web (`leaderboard/app/static/`) | — | **No se modificó.** Unificarla requeriría regenerar los sprites del plataformero web (`plat_motor.js` dibuja sus propios bloques) con el mismo generador y probarlos por separado; necesita autorización | — | Propuesta |
+| **Escenas de la novela** (personajes) | — | — | Ya existían entrada con subida y fundido, respiración, foco que atenúa a quien no habla y reacciones (`funcion_foco`). Se añaden rótulos, cartelas, cámara en la apertura y en los finales. | — | Hecho |
+| **Arena Local (LAN)** | — | — | Usa las mismas pantallas de Ren'Py que Historia y Feria, así que recibe el plataformero, los fondos y los resultados nuevos. La red y el protocolo no cambian. | — | Hecho |
+| **Arena Online (navegador)** | Plataformero con el arte antiguo; fondos neón | P1 | **Mismo arte que Ren'Py** en WebP: 58 archivos, 128 KB (`tools/arte/exportar_plataformas_web.py`). Se reescribió solo `dibujarPlat` en `static/arena.html`: autotiling, 3 planos, avatar con poses, squash, documentos que flotan, antenas con onda, archivo, partículas con contorno, sacudida y estática al ser detectado, HUD en fichas, `prefers-reduced-motion`. Fondos de los retos de grafo reexportados. **`plat_motor.js` (física) no cambia**: las pruebas de paridad Python/JS pasan. | E2E con Chrome: 2 navegadores, 5 retos, exit 0 | Hecho (requiere deploy en Render) |
 
 ## 4. Identidad de cada desenlace
 
@@ -99,6 +99,8 @@ Sigue muy por encima de 60.
 | `qa_visual.py galeria --etapas menus,escenas` | OK |
 | `qa_visual.py galeria --etapas apertura` | OK |
 | Inventario de arte y narrativa | **Idénticos** |
+
+**Arena Online:** `python tests/e2e_arena_online.py --jugadores 2` contra el servidor local termina con exit 0 (5 retos, campeón y elección).
 
 **Sin verificar:**
 - partida completa con mando físico;
