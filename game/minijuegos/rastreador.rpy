@@ -463,48 +463,17 @@ screen puzzle_rastreo_ui(p, rumor):
     if p.terminado():
         # Con mando el foco puede quedar en una ficha de debajo: A / Enter continuan siempre.
         key "civ_accion" action Return()
-        $ nota = p.calificacion()
-        $ color_nota = {"S": "#facc15", "A": "#22c55e", "B": "#38bdf8", "C": "#a78bfa", "D": "#ef4444"}[nota]
-        add Solid("#000000b0")
-        frame:
-            align (0.5, 0.5)
-            xsize 980
-            background ("#0b1324f5")
-            padding (50, 36)
-            vbox:
-                spacing 12
-                xfill True
-                text ("¡ORIGEN ENCONTRADO!" if p.exito() else "SE PERDIÓ EL RASTRO") size 56 bold True color ("#22c55e" if p.exito() else "#ef4444") xalign 0.5
-                text nota size 150 bold True color color_nota xalign 0.5 at nota_golpe
-                text p.motivo_fin size 24 color "#f1f5f9" xalign 0.5 textalign 0.5
-                if p.exito():
-                    text "Conclusión: " + CONCLUSIONES[p.tipo_origen()] size 22 color "#fde68a" xalign 0.5
-                    text "Metadato del origen: publicada desde el panel 'RSN-Scheduler', una entrada cada 7 minutos." size 19 color "#93c5fd" xalign 0.5 textalign 0.5
-                    if p.inferencia_ok:
-                        text "La captura viral era una publicación real de %s, recortada." % p.caso["autor"] size 19 color "#93c5fd" xalign 0.5
-                else:
-                    text "La historia continúa aunque el rastro se pierda." size 19 color "#cbd5e1" xalign 0.5
-                hbox:
-                    xalign 0.5
-                    spacing 60
-                    vbox:
-                        text "COMPROBACIONES" size 16 color "#94a3b8" xalign 0.5
-                        text "[p.comprobaciones_usadas]" size 34 bold True color "#f8fafc" xalign 0.5
-                    vbox:
-                        text "PISTAS" size 16 color "#94a3b8" xalign 0.5
-                        text "[p.pistas_usadas]" size 34 bold True color "#f8fafc" xalign 0.5
-                    vbox:
-                        text "TIEMPO" size 16 color "#94a3b8" xalign 0.5
-                        text "%d s" % int(min(p.transcurrido, p.tiempo_total)) size 34 bold True color "#f8fafc" xalign 0.5
-                null height 8
-                textbutton "CONTINUAR":
-                    style "grafo_button"
-                    text_style "grafo_button_text"
-                    xalign 0.5
-                    xsize 360
-                    text_xalign 0.5
-                    default_focus True
-                    action Return()
+        $ lineas_r = []
+        if p.exito():
+            $ lineas_r.append(("Conclusión: " + CONCLUSIONES[p.tipo_origen()], "#8c2f4b"))
+            $ lineas_r.append(("Metadato del origen: publicada desde el panel 'RSN-Scheduler', una entrada cada 7 minutos.", "#2b2440"))
+            if p.inferencia_ok:
+                $ lineas_r.append(("La captura viral era una publicación real de %s, recortada." % p.caso["autor"], "#2b2440"))
+        else:
+            $ lineas_r.append(("La historia continúa aunque el rastro se pierda.", "#5b4f72"))
+        use resultado_tarjeta(p.exito(), ("¡ORIGEN ENCONTRADO!" if p.exito() else "SE PERDIÓ EL RASTRO"), p.calificacion(), p.motivo_fin,
+                              [("COMPROBACIONES", "%d" % p.comprobaciones_usadas, "#2b2440"), ("PISTAS", "%d" % p.pistas_usadas, "#2b2440"),
+                               ("TIEMPO", "%d s" % int(min(p.transcurrido, p.tiempo_total)), "#2b2440")], lineas_r)
 
 
 label minijuego_rastreador(semilla=None, aplicar=True, ajustes=None):

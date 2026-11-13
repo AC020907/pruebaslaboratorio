@@ -683,6 +683,7 @@ screen game_menu(title, scroll=None, yinitial=0.0, spacing=0):
         action Return()
 
     label title
+    add Solid("#d1495b", xsize=120, ysize=4) xpos 474 ypos 158
 
     if main_menu:
         key "game_menu" action ShowMenu("main_menu")
@@ -726,12 +727,15 @@ style game_menu_side:
     spacing 15
 
 style game_menu_label:
-    xpos 75
-    ysize 180
+    xpos 470
+    ypos 56
+    ysize 110
 
 style game_menu_label_text:
-    size 75
-    color gui.accent_color
+    font "fonts/Roboto-Light.ttf"
+    size 64
+    kerning 6
+    color "#2b2440"
     yalign 0.5
 
 style return_button:

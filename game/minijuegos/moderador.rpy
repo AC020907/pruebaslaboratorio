@@ -89,13 +89,15 @@ screen moderador_ui(cola, creadas):
     add "bg civitas"
     add Solid("#1b1426b0")
 
-    hbox:
-        xalign 0.5
+    vbox:
+        xpos 80
         ypos 40
-        spacing 70
-        vbox:
-            text "MODERACIÓN EXPRESS" size 40 bold True color "#fbf6ee"
-            text "Borra bots y desinformación. Aprueba a las personas reales, aunque critiquen." size 20 color "#c9b8d8"
+        text "MODERACIÓN EXPRESS" size 40 bold True color "#fbf6ee"
+        text "Borra bots y desinformación. Aprueba a las personas reales, aunque critiquen." size 20 color "#c9b8d8"
+    hbox:
+        xalign 0.96
+        ypos 40
+        spacing 60
         vbox:
             text "PUNTOS" size 16 color "#a7a5f2"
             text formato_num(cola.puntos) size 38 bold True color "#fbf6ee"
@@ -169,24 +171,10 @@ screen moderador_ui(cola, creadas):
             text "%d" % (int(cola.intro) + 1) size 140 bold True color "#ffffff" xalign 0.5
 
     if cola.terminado():
-        add Solid("#000000b0")
-        frame:
-            align (0.5, 0.5)
-            xsize 900
-            background Frame("gui/frame.png", 30, 30)
-            padding (50, 40)
-            vbox:
-                spacing 14
-                xfill True
-                text ("¡COMENTARIOS LIMPIOS!" if cola.exito() else "LOS BOTS GANARON ESTA VEZ") size 46 bold True color ("#2f9e8f" if cola.exito() else "#c0392b") xalign 0.5
-                text "Aciertos: [cola.aciertos]   Errores: [cola.errores]   Mejor racha: x[cola.mejor_racha]" size 24 color "#2b2440" xalign 0.5
-                text "Puntos: " + formato_num(cola.puntos) size 30 bold True color "#8c2f4b" xalign 0.5
-                textbutton "CONTINUAR":
-                    style "boton_vn"
-                    text_style "boton_vn_text"
-                    xalign 0.5
-                    default_focus True
-                    action Return()
+        use resultado_tarjeta(cola.exito(), ("¡COMENTARIOS LIMPIOS!" if cola.exito() else "LOS BOTS GANARON ESTA VEZ"), None,
+                              "Aciertos: %d   Errores: %d   Mejor racha: x%d" % (cola.aciertos, cola.errores, cola.mejor_racha),
+                              [("PUNTOS", formato_num(cola.puntos), "#8c2f4b"), ("ACIERTOS", "%d" % cola.aciertos, "#2b2440"),
+                               ("ERRORES", "%d" % cola.errores, "#d1495b" if cola.errores else "#2b2440"), ("MEJOR RACHA", "x%d" % cola.mejor_racha, "#2b2440")])
         key "civ_accion" action Return()
 
 
