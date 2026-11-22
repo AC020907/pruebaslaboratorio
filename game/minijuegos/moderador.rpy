@@ -14,10 +14,17 @@ init python:
             return icono_aparente(red_civitas, autor, False)
         return ICONO_TIPO["ciudadano"]
 
+    def moderacion_salida(cola):
+        if cola.historial:
+            com, eliminar, correcto = cola.historial[-1]
+            renpy.hide_screen("moderador_salida")
+            renpy.show_screen("moderador_salida", autor=com.autor, contenido=com.contenido, borrado=eliminar, correcto=correcto)
+
     def tick_moderacion(cola, dt):
         atendidas = cola.atendidas
         cola.tick(dt)
         if cola.atendidas != atendidas and cola.ultimo:
+            moderacion_salida(cola)
             sonar(SONIDO_AVISO["bueno" if cola.ultimo[1] else "malo"])
             renpy.hide_screen("moderador_feedback")
             renpy.show_screen("moderador_feedback", texto=cola.ultimo[0], correcto=cola.ultimo[1])
@@ -25,7 +32,11 @@ init python:
                 sonar(SONIDO_EXITO if cola.exito() else SONIDO_FALLO)
 
     def moderar(cola, eliminar):
-        if cola.decidir(eliminar):
+        antes = cola.atendidas
+        ok = cola.decidir(eliminar)
+        if cola.atendidas != antes:
+            moderacion_salida(cola)
+        if ok:
             sonar(SONIDO_AVISO["bueno"])
         else:
             sonar(SONIDO_AVISO["malo"])
@@ -36,8 +47,15 @@ init python:
 
 
 transform tarjeta_comentario:
-    alpha 0.0 xoffset 260
-    easein 0.22 alpha 1.0 xoffset 0
+    alpha 0.0 yoffset (0 if persistent.reducir_movimiento else 40)
+    easein 0.22 alpha 1.0 yoffset 0
+
+transform sello_girado:
+    rotate -8
+
+transform tarjeta_sale(lado):
+    alpha 1.0 xoffset 0 rotate 0
+    easein 0.38 alpha 0.0 xoffset (0 if persistent.reducir_movimiento else lado * 760) rotate (0 if persistent.reducir_movimiento else lado * 9)
 
 transform feedback_moderador:
     alpha 0.0 zoom 1.4
@@ -56,24 +74,42 @@ screen moderador_feedback(texto, correcto):
         outlines [(4, "#fbf6ee", 0, 0)]
     timer 0.95 action Hide("moderador_feedback")
 
+## Remaster: el comentario como publicacion de CivitasNet (papel, contorno de tinta, franja y contexto).
+screen moderador_ficha(autor, creada, contenido, franja="#c9b8d8", sello=None, sello_color="#2b2440"):
+    fixed:
+        xysize (1000, 300)
+        add Solid("#2b2440")
+        add Solid("#fbf6ee", xysize=(988, 288), pos=(6, 6))
+        add Solid(franja, xysize=(12, 288), pos=(6, 6))
+        hbox:
+            pos (46, 34)
+            spacing 18
+            add Transform(avatar_comentario(autor), xysize=(78, 78))
+            vbox:
+                yalign 0.5
+                text autor size 28 bold True color "#2b2440"
+                text ("Cuenta creada: " + creada + "  ·  " if creada else "") + "comentario reportado" size 17 color "#8b84a8"
+        text contenido size 30 color "#2b2440" pos (46, 138) xmaximum 900
+        if sello:
+            text sello size 46 bold True color sello_color pos (640, 190) outlines [(4, "#fbf6ee", 0, 0)] at sello_girado
+
 screen moderador_tarjeta(cola, creadas):
     $ com = cola.actual
-    frame:
+    fixed:
         xalign 0.5
         ypos 380
-        xsize 980
-        background Frame("gui/frame.png", 30, 30)
-        padding (40, 32)
-        vbox:
-            spacing 16
-            hbox:
-                spacing 16
-                add Transform(avatar_comentario(com.autor), xysize=(78, 78))
-                vbox:
-                    yalign 0.5
-                    text com.autor size 28 bold True color "#2b2440"
-                    text "Cuenta creada: " + creadas.get(com.autor, "?") size 18 color "#8b84a8"
-            text com.contenido size 30 color "#2b2440"
+        xysize (1000, 300)
+        use moderador_ficha(com.autor, creadas.get(com.autor, "?"), com.contenido)
+
+screen moderador_salida(autor, contenido, borrado, correcto):
+    zorder 41
+    fixed at tarjeta_sale(-1 if borrado else 1):
+        xalign 0.5
+        ypos 380
+        xysize (1000, 300)
+        use moderador_ficha(autor, "", contenido, ("#d1495b" if borrado else "#2f9e8f"),
+                            ("BORRADO" if borrado else "APROBADO"), ("#d1495b" if borrado else "#2f9e8f"))
+    timer 0.45 action Hide("moderador_salida")
 
 screen moderador_ui(cola, creadas):
     modal True
@@ -116,13 +152,14 @@ screen moderador_ui(cola, creadas):
 
     # Al terminar se retiran tarjeta y botones: si no, el mando puede quedarse con el foco en BORRAR/APROBAR.
     if cola.actual is not None and cola.intro <= 0 and not cola.terminado():
+        add Solid("#2b2440", xysize=(1000, 26)) xalign 0.5 ypos 325
         bar:
             xalign 0.5
             ypos 330
-            xsize 980
+            xsize 988
             ysize 16
             value StaticValue(cola.progreso_tiempo(), 1.0)
-            left_bar Solid("#e86a7e" if cola.progreso_tiempo() < 0.35 else "#a7a5f2")
+            left_bar Solid("#d1495b" if cola.progreso_tiempo() < 0.35 else "#c9b8d8")
             right_bar Solid("#3a3350")
         if cola.atendidas % 2 == 0:
             fixed at tarjeta_comentario:
@@ -138,11 +175,12 @@ screen moderador_ui(cola, creadas):
             textbutton "<  BORRAR":
                 xsize 400
                 ysize 90
-                background Frame("gui/telefono_boton.png", 30, 30)
-                hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+                background Frame(Fixed(Solid("#2b2440"), Solid("#fbf6ee", xysize=(394, 84), pos=(3, 3)), Solid("#d1495b", xysize=(12, 84), pos=(3, 3)), xysize=(400, 90)), 16, 8)
+                hover_background Frame(Fixed(Solid("#2b2440"), Solid("#d1495b", xysize=(394, 84), pos=(3, 3)), xysize=(400, 90)), 16, 8)
                 text_size 30
                 text_bold True
-                text_color "#fbf6ee"
+                text_color "#2b2440"
+                text_hover_color "#fbf6ee"
                 text_xalign 0.5
                 text_yalign 0.5
                 hover_sound "assets/audio/sfx/menu_hover.ogg"
@@ -150,11 +188,12 @@ screen moderador_ui(cola, creadas):
             textbutton "APROBAR  >":
                 xsize 400
                 ysize 90
-                background Frame("gui/telefono_boton.png", 30, 30)
-                hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+                background Frame(Fixed(Solid("#2b2440"), Solid("#fbf6ee", xysize=(394, 84), pos=(3, 3)), Solid("#2f9e8f", xysize=(12, 84), pos=(3, 3)), xysize=(400, 90)), 16, 8)
+                hover_background Frame(Fixed(Solid("#2b2440"), Solid("#2f9e8f", xysize=(394, 84), pos=(3, 3)), xysize=(400, 90)), 16, 8)
                 text_size 30
                 text_bold True
-                text_color "#fbf6ee"
+                text_color "#2b2440"
+                text_hover_color "#fbf6ee"
                 text_xalign 0.5
                 text_yalign 0.5
                 hover_sound "assets/audio/sfx/menu_hover.ogg"

@@ -29,7 +29,9 @@ init python:
     RITMO_RECORRIDO_MS = 1500
     RITMO_NACE_Y = 150              # centro de la nota al aparecer: por debajo de la cabecera
     RITMO_FUNDIDO_PX = 120
-    COLOR_JUICIO = {"perfect": "#facc15", "good": "#5eead4", "bad": "#f4b6c2", "miss": "#8b84a8"}
+    # Paleta de Civitas: ambar (perfecto), teal (bien), lila (justo), gris (fallo). La forma del anillo tambien cambia.
+    COLOR_JUICIO = {"perfect": "#e8b04b", "good": "#3fbfae", "bad": "#c9b8d8", "miss": "#8b84a8"}
+    RITMO_TINTA = "#2b2440"
     TEXTO_JUICIO = {"perfect": "¡PERFECTO!", "good": "BIEN", "bad": "JUSTO", "miss": "FALLO"}
     # Modo competitivo de la Arena: nombres de juicio de juego de ritmo (mismas ventanas que Normal).
     TEXTO_JUICIO_COMPETITIVO = {"perfect": "PERFECT", "good": "GREAT", "bad": "GOOD", "miss": "MISS"}
@@ -68,6 +70,8 @@ init python:
             self.textos = {}
             self.fondo_carril = Solid("#1b142699")
             self.estado_visto = None
+            self.combo_visto, self.combo_t = 0, -9999.0      # el contador de combo "late" cuando sube
+            self.bpm = float(self.duelo.chart.get("bpm") or 120)
 
         def texto(self, s, size, color):
             clave = (s, size, color)
@@ -117,6 +121,7 @@ init python:
         def render(self, width, height, st, at):
             if not self.arrancado:
                 self.arrancar()
+            quieto = persistent.reducir_movimiento
             d = self.duelo
             if d.estado == Ritmo.PLAYING:
                 self.t = self.reloj.actualizar(renpy.music.get_pos(channel="ritmo"), _time_ritmo.time())
@@ -126,10 +131,34 @@ init python:
                 renpy.restart_interaction()
             r = renpy.Render(width, height)
             recorrido = RITMO_RECORRIDO_MS / max(0.5, persistent.ritmo_velocidad)
+            # Pista (remaster): franja con contorno de tinta, separadores, linea de golpe y pulsos del compas.
+            x0p = RITMO_X0 - 26
+            x1p = self.x_carril(3) + RITMO_CARRIL_W + 26
+            r.blit(renpy.render(Solid(RITMO_TINTA), x1p - x0p + 8, 1080, st, at), (x0p - 4, 0))
+            r.blit(renpy.render(Solid("#120d1cf0"), x1p - x0p, 1080, st, at), (x0p, 0))
+            c = r.canvas()
+            for k in range(1, 4):
+                xs = self.x_carril(k) - RITMO_GAP // 2
+                c.line("#3a3350", (xs, 0), (xs, 1080), 2)
+            pulso = 60000.0 / self.bpm
+            if d.estado in (Ritmo.PLAYING, Ritmo.PAUSED):
+                base = int(self.t // pulso)
+                for i in range(0, 8):
+                    tb = (base + i) * pulso
+                    yb = RITMO_RECEPTOR_Y - (tb - self.t) / recorrido * (RITMO_RECEPTOR_Y + 60)
+                    if RITMO_NACE_Y < yb < RITMO_RECEPTOR_Y:
+                        fuerte = (base + i) % 4 == 0
+                        c.line("#4a3f66" if fuerte else "#2f2744", (x0p + 6, int(yb)), (x1p - 6, int(yb)), 3 if fuerte else 2)
+            c.line(RITMO_TINTA, (x0p, RITMO_RECEPTOR_Y), (x1p, RITMO_RECEPTOR_Y), 12)
+            c.line("#c9b8d8", (x0p, RITMO_RECEPTOR_Y), (x1p, RITMO_RECEPTOR_Y), 4)
             for k in range(4):
                 x = self.x_carril(k)
-                r.blit(renpy.render(self.fondo_carril, RITMO_CARRIL_W, 1080, st, at), (x, 0))
-                brillo = self.t - self.pulsados.get(k, -9999) < 110
+                edad_p = self.t - self.pulsados.get(k, -9999)
+                if 0 <= edad_p < 160 and not quieto:
+                    alto = int(320 * (1 - edad_p / 160.0))
+                    r.blit(renpy.render(Transform(Solid("#fbf6ee"), xysize=(RITMO_CARRIL_W, alto), alpha=0.10), RITMO_CARRIL_W, alto, st, at),
+                           (x, RITMO_RECEPTOR_Y - alto))
+                brillo = edad_p < 110
                 rec = (self.receptores_on if brillo else self.receptores)[k]
                 r.blit(renpy.render(rec, 110, 110, st, at), (x + 20, RITMO_RECEPTOR_Y - 55))
             for n in (d.visibles(self.t, recorrido) if d.estado in (Ritmo.PLAYING, Ritmo.PAUSED) else ()):
@@ -142,20 +171,40 @@ init python:
             for t_j, carril, juicio in d.ultimos:
                 edad = self.t - t_j
                 if 0 <= edad < 450:
-                    txt = renpy.render(self.texto(texto_juicio(juicio), 30, COLOR_JUICIO[juicio]), 400, 60, st, at)
+                    cx = self.x_carril(carril) + RITMO_CARRIL_W // 2
+                    # Anillo en el receptor: doble (perfecto), simple (bien/justo), cruz (fallo).
+                    if juicio != "miss":
+                        k_a = edad / 450.0
+                        rad = int(58 + (0 if quieto else 40 * k_a))
+                        c.circle(COLOR_JUICIO[juicio], (cx, RITMO_RECEPTOR_Y), rad, 5)
+                        if juicio == "perfect":
+                            c.circle(COLOR_JUICIO[juicio], (cx, RITMO_RECEPTOR_Y), max(10, rad - 16), 3)
+                    elif edad < 250:
+                        c.line("#8b84a8", (cx - 22, RITMO_RECEPTOR_Y - 22), (cx + 22, RITMO_RECEPTOR_Y + 22), 6)
+                        c.line("#8b84a8", (cx + 22, RITMO_RECEPTOR_Y - 22), (cx - 22, RITMO_RECEPTOR_Y + 22), 6)
+                    zoom_j = 1.0 if quieto else (1.25 - 0.25 * min(1.0, edad / 120.0))
+                    txt = renpy.render(Transform(self.texto(texto_juicio(juicio), 38, COLOR_JUICIO[juicio]), zoom=zoom_j), 500, 80, st, at)
                     w, _h = txt.get_size()
-                    subida = 0 if persistent.reducir_movimiento else int(edad / 12)
-                    r.blit(txt, (self.x_carril(carril) + RITMO_CARRIL_W // 2 - w // 2, RITMO_RECEPTOR_Y - 120 - subida))
+                    subida = 0 if quieto else int(edad / 12)
+                    r.blit(txt, (cx - w // 2, RITMO_RECEPTOR_Y - 140 - subida))
+            if d.combo > self.combo_visto:
+                self.combo_t = self.t
+            self.combo_visto = d.combo
             if d.combo >= 5:
-                c = renpy.render(self.texto("COMBO x%d" % d.combo, 44, "#fbf6ee"), 600, 80, st, at)
-                r.blit(c, (960 - c.get_size()[0] // 2, 120))
+                late = 1.0 if quieto else (1.0 + 0.18 * max(0.0, 1 - (self.t - self.combo_t) / 140.0))
+                num = renpy.render(Transform(Text("%d" % d.combo, font="fonts/Roboto-Light.ttf", size=96, color="#fbf6ee",
+                                                  outlines=[(3, RITMO_TINTA, 0, 0)]), zoom=late), 400, 160, st, at)
+                etq = renpy.render(self.texto("COMBO", 22, "#c9b8d8"), 300, 40, st, at)
+                xc = x0p - 40 - max(etq.get_size()[0], num.get_size()[0])
+                r.blit(etq, (xc, 470))
+                r.blit(num, (xc - 4, 494))
             if self.arrancado and d.estado == Ritmo.PLAYING:
                 primera = d.chart["notes"][0]["time_ms"]
                 if self.t < primera:
                     falta = int((primera - self.t) / 1000.0) + 1
                     letrero = "¡YA!" if self.t > primera - 500 else str(min(3, falta))
-                    c = renpy.render(self.texto(letrero, 120, "#facc15"), 600, 200, st, at)
-                    r.blit(c, (960 - c.get_size()[0] // 2, 380))
+                    cr = renpy.render(self.texto(letrero, 120, "#fbf6ee"), 600, 200, st, at)
+                    r.blit(cr, (960 - cr.get_size()[0] // 2, 380))
             if d.estado in (Ritmo.PLAYING, Ritmo.COUNTDOWN):
                 renpy.redraw(self, 0)
             return r
@@ -225,7 +274,7 @@ screen duelo_pantalla(vista, aliado):
         xalign 0.5
         ypos 26
         spacing 6
-        text "DUELO DE FRECUENCIAS" size 30 bold True color "#fbf6ee" xalign 0.5 kerning 3
+        text "DUELO DE FRECUENCIAS" font "fonts/Roboto-Light.ttf" size 32 color "#fbf6ee" xalign 0.5 kerning 8
         $ juzgadas = max(1, d.juzgadas())
         $ senal = sum(Ritmo.VALOR_JUICIO[j] * c for j, c in d.conteo.items()) / juzgadas
         hbox:
@@ -271,21 +320,13 @@ screen duelo_pausa(vista):
 screen duelo_resultados(vista):
     $ d = vista.duelo
     $ res = d.resultado()
-    add Solid("#000000b0")
-    frame:
-        align (0.5, 0.5)
-        xsize 900
-        background Frame("gui/frame.png", 30, 30)
-        padding (50, 38)
-        has vbox
-        spacing 12
-        xfill True
-        text ("¡SEÑAL LIMPIA!" if res["exito"] else ("DUELO ABANDONADO" if res["abandonado"] else "NOVA SATURÓ LA SEÑAL")) size 46 bold True color ("#2f9e8f" if res["exito"] else "#c0392b") xalign 0.5
-        text res["calificacion"] size 120 bold True color "#5b5bd6" xalign 0.5
-        text ("Precisión %d%%   ·   Mejor combo x%d" % (int(res["precision"] * 100), res["max_combo"])) size 24 color "#2b2440" xalign 0.5
-        text ("%s %d   %s %d   %s %d   %s %d" % (texto_juicio("perfect").strip("¡!").capitalize(), d.conteo["perfect"], texto_juicio("good").capitalize(), d.conteo["good"], texto_juicio("bad").capitalize(), d.conteo["bad"], texto_juicio("miss").capitalize(), d.conteo["miss"])) size 20 color "#5b4f72" xalign 0.5
-        textbutton "CONTINUAR" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return(res) default_focus True
-    key "civ_accion" action Return(res)
+    use resultado_tarjeta(res["exito"], ("¡SEÑAL LIMPIA!" if res["exito"] else ("DUELO ABANDONADO" if res["abandonado"] else "NOVA SATURÓ LA SEÑAL")),
+                          res["calificacion"], ("Precisión %d%%   ·   Mejor combo x%d" % (int(res["precision"] * 100), res["max_combo"])),
+                          [(texto_juicio("perfect").strip("¡!").upper(), "%d" % d.conteo["perfect"], "#8c2f4b"),
+                           (texto_juicio("good").upper(), "%d" % d.conteo["good"], "#2b2440"),
+                           (texto_juicio("bad").upper(), "%d" % d.conteo["bad"], "#2b2440"),
+                           (texto_juicio("miss").upper(), "%d" % d.conteo["miss"], "#d1495b" if d.conteo["miss"] else "#2b2440")],
+                          valor=res)
     key "game_menu" action Return(res)
 
 screen duelo_tutorial(modo):
