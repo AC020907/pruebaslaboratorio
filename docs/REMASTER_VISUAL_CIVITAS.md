@@ -131,5 +131,8 @@ Sigue muy por encima de 60.
 | `tests/e2e_arena_online.py --jugadores 2,3,4` (Arena Online en Chrome contra el servidor local) | OK con 2, 3 y 4 jugadores: 5 retos, campeón, alcalde y ciudad |
 | Inventario de arte (155) y narrativa (652) | **Idénticos** |
 | Diálogo exportado por Ren'Py | Identificador, personaje y texto **idénticos**; solo cambian números de línea de `qa_galeria.rpy` (archivo de pruebas) |
+| Distribución de Windows (`DigitalMayor-2.0-pc.zip`, 93,4 MB) | CRC correcto; **870 de 870** archivos del juego idénticos byte a byte al código fuente; sin archivos de QA, respaldos ni documentación. SHA-256 `9d5892320e1492e68b8f0e9bcc5de275e9a549b8ee30d681cfb8ad9e0c20e772` |
+| Arranque del paquete | Se descomprimió en una carpeta limpia y `DigitalMayor.exe` abrió el menú principal remasterizado, sin `traceback.txt` (`capturas/exe_arranque_r3.jpg`) |
+| Versión web (`web_build` + `postbuild`) | 479 archivos revisados: los del juego son idénticos; solo difieren `index.html`, el manifiesto, el service worker y el presplash, que modifica el postbuild. En el servidor local carga el menú y el Archivo de Destinos remasterizados, sin errores en consola |
 
 Moderación Express aparece unas veces como victoria y otras como derrota en la galería: el piloto automático alterna borrar y aprobar sobre comentarios con semilla aleatoria. Ya ocurría antes de estos cambios.
