@@ -114,6 +114,6 @@ screen aviso_sonido(texto):
         padding (18, 10)
         hbox:
             spacing 10
-            text "SONIDO" size 16 bold True color "#facc15" yalign 0.5
+            text "SONIDO" size 16 bold True color "#e8b04b" yalign 0.5
             text texto size 22 bold True color "#fbf6ee" yalign 0.5
     timer 2.2 action Hide("aviso_sonido")

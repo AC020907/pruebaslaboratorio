@@ -135,20 +135,20 @@ screen moderador_ui(cola, creadas):
         ypos 40
         spacing 60
         vbox:
-            text "PUNTOS" size 16 color "#a7a5f2"
+            text "PUNTOS" size 16 color "#c9b8d8"
             text formato_num(cola.puntos) size 38 bold True color "#fbf6ee"
         vbox:
-            text "VIDAS" size 16 color "#a7a5f2"
+            text "VIDAS" size 16 color "#c9b8d8"
             hbox:
                 spacing 8
                 for i in range(3):
-                    add circulo("#e86a7e" if i < cola.vidas else "#3a3350", "#fbf6ee", 14)
+                    add circulo("#d1495b" if i < cola.vidas else "#3a3350", "#fbf6ee", 14)
         vbox:
-            text "EN COLA" size 16 color "#a7a5f2"
+            text "EN COLA" size 16 color "#c9b8d8"
             text "[cola.pendientes()]" size 38 bold True color "#fbf6ee"
 
     if cola.racha >= 3:
-        text "RACHA x[cola.racha]" size 34 bold True color "#facc15" xalign 0.5 ypos 170 outlines [(3, "#2b2440", 0, 0)]
+        text "RACHA x[cola.racha]" size 34 bold True color "#e8b04b" xalign 0.5 ypos 170 outlines [(3, "#2b2440", 0, 0)]
 
     # Al terminar se retiran tarjeta y botones: si no, el mando puede quedarse con el foco en BORRAR/APROBAR.
     if cola.actual is not None and cola.intro <= 0 and not cola.terminado():
@@ -205,7 +205,7 @@ screen moderador_ui(cola, creadas):
             align (0.5, 0.45)
             spacing 20
             text moderacion_intro size 36 color "#fbf6ee" xalign 0.5
-            text "Borrar: flecha izquierda, tecla A o cruceta izquierda     Aprobar: flecha derecha, tecla D o cruceta derecha" size 26 bold True color "#facc15" xalign 0.5
+            text "Borrar: flecha izquierda, tecla A o cruceta izquierda     Aprobar: flecha derecha, tecla D o cruceta derecha" size 26 bold True color "#e8b04b" xalign 0.5
             text "Ojo: criticar al alcalde no es desinformación." size 28 color "#c9b8d8" xalign 0.5
             text "%d" % (int(cola.intro) + 1) size 140 bold True color "#ffffff" xalign 0.5
 

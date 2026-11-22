@@ -34,7 +34,7 @@ init python:
             for i in range(len(ruta) - 1):
                 resaltadas[(ruta[i + 1], ruta[i])] = "#c084fc"
             for i in range(len(sim.rastro) - 1):
-                resaltadas[(sim.rastro[i + 1], sim.rastro[i])] = "#facc15"
+                resaltadas[(sim.rastro[i + 1], sim.rastro[i])] = "#e8b04b"
         return estados, resaltadas, subtitulos, ruta
 
 
@@ -48,7 +48,7 @@ screen debug_arcade(sim):
 
     add Solid("#020617f8")
     use grafo_red(g, pos, estados, {}, {}, resaltadas, subtitulos)
-    text ("MODO SUSTENTACION - Rastreador (DFS + BFS)" if rastreo else "MODO SUSTENTACION - BFS en tiempo real") pos (40, 48) size 30 color "#facc15" bold True
+    text ("MODO SUSTENTACION - Rastreador (DFS + BFS)" if rastreo else "MODO SUSTENTACION - BFS en tiempo real") pos (40, 48) size 30 color "#e8b04b" bold True
     use leyenda_grafo([("infectado", "Comparte"), ("riesgo", "Rumor en camino"), ("visitado", "Cuarentena"), ("contenido", "Protegida"), ("pila", "Pila DFS"), ("origen", "Origen")])
 
     frame:
@@ -66,7 +66,7 @@ screen debug_arcade(sim):
             text "Visitados (contagiados): %d" % len(sim.hora) size 15
             if rastreo:
                 null height 6
-                text "DFS: rastro del jugador como pila" size 20 bold True color "#facc15"
+                text "DFS: rastro del jugador como pila" size 20 bold True color "#e8b04b"
                 text "Pila (base -> tope): " + " > ".join(g.nombre(n) for n in sim.rastro) size 15
                 text "dfs_buscar (reverso) hasta el origen:" size 17 bold True color "#c084fc"
                 text " > ".join(g.nombre(n) for n in ruta) size 15

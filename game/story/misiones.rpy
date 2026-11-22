@@ -18,89 +18,98 @@ init python:
 
 
 style mision_texto is default:
-    color "#fbf6ee"
+    color "#2b2440"
 
-screen mision_tarjeta(mision, estado):
+## Remaster 3: el diario como hoja de papel. Cada mision es una ficha con la franja de su estado:
+## en curso (ambar, con boton al mapa), cumplida (teal, sello) y pendiente (atenuada).
+transform mision_entra(retraso):
+    alpha 0.0 xoffset (0 if persistent.reducir_movimiento else -18)
+    pause retraso
+    easein 0.25 alpha 1.0 xoffset 0
+
+screen mision_tarjeta(mision, estado, retraso=0.0):
     $ hecha = estado == "hecha"
     $ activa = estado == "activa"
-    $ color = "#facc15" if activa else ("#7dd3a8" if hecha else "#6b6384")
+    $ color = "#e8b04b" if activa else ("#2f9e8f" if hecha else "#c9b8d8")
     $ lugar = UBICACIONES[mision["ubicacion"]][0]
     $ minijuego = mision["minijuego"] or ""
-    frame:
+    $ tinta = "#2b2440" if estado != "bloqueada" else "#8b84a8"
+    frame at mision_entra(retraso):
         xfill True
-        padding (24, 16)
-        background Solid("#1d1630f2" if activa else "#171123e6")
+        padding (0, 0, 0, 8)
+        background Frame(ficha_fondo(200, 100, papel=("#fffaf3" if activa else ("#fbf6ee" if hecha else "#f3edf4")), franja=color, franja_w=14, sombra=(8 if activa else 4), borde=(4 if activa else 2)), 30, 20, 30, 24)
         hbox:
-            spacing 20
+            spacing 24
+            null width 14
             fixed:
-                xsize 44
-                ysize 44
+                xysize (56, 56)
                 yalign 0.5
-                add Solid(color) xsize 44 ysize 44
-                text ("✓" if hecha else ("!" if activa else "·")) size 30 bold True color "#120d1c" align (0.5, 0.5)
+                add Solid("#2b2440")
+                add Solid(color, xysize=(48, 48), pos=(4, 4))
+                text ("✓" if hecha else ("!" if activa else "·")) size 32 bold True color ("#fbf6ee" if hecha else "#2b2440") align (0.5, 0.5)
             vbox:
-                spacing 4
-                xsize 1100
-                text mision["titulo"] size 26 bold True color (color if not hecha else "#c9b8d8")
-                text mision["descripcion"] size 18 color ("#6b6384" if estado == "bloqueada" else "#c9b8d8")
+                spacing 6
+                xsize 1080
+                yalign 0.5
+                null height 16
+                text ("EN CURSO" if activa else ("CUMPLIDA" if hecha else "PENDIENTE")) size 13 bold True kerning 3 color ("#b07a1c" if activa else ("#2f9e8f" if hecha else "#8b84a8"))
+                text mision["titulo"] font CIV_FUENTE_FINA size (36 if activa else 30) color tinta
+                text mision["descripcion"] size 18 color ("#5b4f72" if estado != "bloqueada" else "#a39cb8")
                 hbox:
-                    spacing 24
-                    text "Lugar: [lugar]" size 17 bold True color "#a7a5f2"
+                    spacing 12
+                    frame:
+                        background Solid("#2b2440" if estado != "bloqueada" else "#c9b8d8")
+                        padding (10, 3)
+                        text "Lugar: [lugar]" size 15 bold True color "#fbf6ee"
                     if minijuego:
-                        text "Minijuego: [minijuego]" size 17 bold True color "#e86a7e"
+                        frame:
+                            background Solid("#d1495b" if estado != "bloqueada" else "#c9b8d8")
+                            padding (10, 3)
+                            text "Minijuego: [minijuego]" size 15 bold True color "#fbf6ee"
+                null height 14
             if activa:
                 textbutton "Ver en el mapa":
+                    style "civ_ficha"
+                    text_style "civ_ficha_text"
                     yalign 0.5
-                    xsize 200
-                    ysize 44
-                    background Frame("gui/telefono_boton.png", 30, 30)
-                    hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
-                    text_size 16
-                    text_bold True
-                    text_color "#fbf6ee"
-                    text_xalign 0.5
-                    text_yalign 0.5
-                    hover_sound "assets/audio/sfx/menu_hover.ogg"
-                    activate_sound "assets/audio/sfx/ui_click.wav"
                     action [Hide("misiones_ciudad"), Function(abrir_mapa_libre)]
 
 screen misiones_ciudad():
     zorder 102
     modal True
     key "game_menu" action Hide("misiones_ciudad")
-    add Solid("#120d1cd9")
-    frame:
-        xysize (1560, 1030)
+    add Solid("#120d1ce6")
+    $ lista = misiones.estado_misiones(misiones_hechas, modo_feria_activo)
+    $ hechas = sum(1 for _m, e in lista if e == "hecha")
+    fixed:
+        xysize (1640, 1020)
         xalign 0.5
-        ypos 26
-        padding (40, 32)
-        background Solid("#120d1cf2")
-        vbox:
-            spacing 16
-            hbox:
-                xfill True
-                vbox:
-                    text "DIARIO" size 16 color "#a7a5f2" kerning 3
-                    text "Misiones principales" size 40 bold True style "mision_texto"
-                textbutton "Cerrar":
-                    xalign 1.0
-                    yalign 0.5
-                    xsize 138
-                    ysize 44
-                    background Frame("gui/telefono_boton.png", 30, 30)
-                    hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
-                    text_size 16
-                    text_bold True
-                    text_color "#fbf6ee"
-                    text_xalign 0.5
-                    text_yalign 0.5
-                    action Hide("misiones_ciudad")
-            viewport:
-                mousewheel True
-                scrollbars "vertical"
-                ysize 850
-                vbox:
-                    spacing 12
-                    xfill True
-                    for mision, estado in misiones.estado_misiones(misiones_hechas, modo_feria_activo):
-                        use mision_tarjeta(mision, estado)
+        ypos 24
+        add ficha_fondo(1640, 1010, sombra=10, borde=4)
+        add Solid("#8c2f4b", xysize=(1632, 10), pos=(4, 4))
+        fixed:
+            pos (56, 40)
+            xysize (1100, 150)
+            use civ_cabecera("DIARIO", "Misiones principales")
+        hbox:
+            xpos 1584
+            xanchor 1.0
+            ypos 52
+            spacing 30
+            vbox:
+                yalign 0.5
+                text "%d / %d" % (hechas, len(lista)) font CIV_FUENTE_FINA size 54 color "#2b2440" xalign 1.0
+                text "CUMPLIDAS" size 14 bold True kerning 3 color "#8b84a8" xalign 1.0
+            use civ_cerrar(Hide("misiones_ciudad"))
+        add Solid("#2b2440", xysize=(1528, 3), pos=(56, 190))
+        viewport:
+            pos (56, 214)
+            xysize (1540, 770)
+            mousewheel True
+            scrollbars "vertical"
+            vscrollbar_unscrollable "hide"
+            vbox:
+                spacing 10
+                xsize 1500
+                for i, (mision, estado) in enumerate(lista):
+                    use mision_tarjeta(mision, estado, 0.04 * min(i, 8))

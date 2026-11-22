@@ -58,7 +58,7 @@ init python:
 style net_scroll is vscrollbar:
     xsize 8
     base_bar Solid("#2f2744")
-    thumb Solid("#a7a5f2")
+    thumb Solid("#c9b8d8")
     unscrollable "hide"
 
 ## ----- piezas -----
@@ -108,7 +108,7 @@ screen net_post(post, nueva=False):
                     yalign 0.5
                     spacing nz(10)
                     if nueva:
-                        text "NUEVA" size nz(11) bold True color "#facc15" yalign 0.5
+                        text "NUEVA" size nz(11) bold True color "#e8b04b" yalign 0.5
                     use net_chip(estado)
                     add net_icono("mas") yalign 0.5
         fixed:
@@ -136,7 +136,7 @@ screen net_post(post, nueva=False):
             vbox:
                 spacing nz(6)
                 text "%s %s  ·  %s me gusta" % (formato_num(post["reposts"]), "repost" if post["reposts"] == 1 else "reposts", formato_num(post["likes"])) size nz(13) bold True color "#fbf6ee" substitute False
-                text ("Fuente: " + post["fuente"] if post["fuente"] else "Fuente: ninguna citada") size nz(12) color "#a7a5f2" substitute False
+                text ("Fuente: " + post["fuente"] if post["fuente"] else "Fuente: ninguna citada") size nz(12) color "#c9b8d8" substitute False
 
 screen net_post_feed(post, nueva):
     button:
@@ -197,10 +197,10 @@ screen net_nav(activa):
                                         xalign 1.0
                                         xoffset nz(6)
                                         yoffset nz(-4)
-                                        background Solid("#e86a7e")
+                                        background Solid("#d1495b")
                                         padding (nz(5), 0)
                                         text str(pistas_sin_ver()) size nz(10) bold True color "#ffffff"
-                            text etiqueta size nz(10) bold encendida color ("#a7a5f2" if encendida else "#a99fc4") xalign 0.5
+                            text etiqueta size nz(10) bold encendida color ("#c9b8d8" if encendida else "#a99fc4") xalign 0.5
 
 ## ----- pantallas -----
 
@@ -215,7 +215,7 @@ screen net_feed(nuevos, feed, adj):
             hbox:
                 yalign 0.5
                 spacing nz(14)
-                text "CIVITAS" size nz(28) bold True color "#a7a5f2" kerning 2 yalign 0.5
+                text "CIVITAS" size nz(28) bold True color "#c9b8d8" kerning 2 yalign 0.5
                 text "Ciudad Nova  ·  " + inv.NOMBRE_MOMENTO[memoria["momento"]] size nz(13) color "#a99fc4" yalign 0.5
             hbox:
                 xalign 1.0
@@ -287,9 +287,9 @@ screen net_inspeccionar(post, adj):
             xfill True
             spacing nz(12)
             use net_post(post)
-            use net_tarjeta_info("FUENTE", "#a7a5f2", fuente)
+            use net_tarjeta_info("FUENTE", "#c9b8d8", fuente)
             if contexto:
-                use net_tarjeta_info("CONTEXTO", "#facc15", contexto)
+                use net_tarjeta_info("CONTEXTO", "#e8b04b", contexto)
             if post["pista"]:
                 frame:
                     background None
@@ -328,9 +328,22 @@ screen civitasnet(llamada=False, destacar=None):
     $ feed = inv.feed_visible(memoria)
     $ elegido = inv.POSTS_POR_ID.get(seleccion)
 
-    add Solid("#120d1cd9")
+    add Solid("#120d1ce6")
 
-    text "Los me gusta no son evidencia.\nAbre una publicación para ver de dónde viene." size 22 color "#c9b8d8" xalign 0.5 xoffset (-(NET_ANCHO // 2 + 200)) yalign 0.5 xsize 340 text_align 0.5
+    ## Remaster 3: nota de papel junto al telefono (mismo consejo de siempre) y cierre en ficha.
+    fixed:
+        xysize (400, 250)
+        xalign 0.5
+        xoffset (-(NET_ANCHO // 2 + 270))
+        yalign 0.5
+        at civ_sello_giro(-2)
+        add ficha_fondo(392, 230, franja="#d1495b", sombra=8)
+        vbox:
+            pos (44, 30)
+            xsize 320
+            spacing 10
+            text "CIVITASNET" style "civ_etiqueta"
+            text "Los me gusta no son evidencia.\nAbre una publicación para ver de dónde viene." size 22 color "#2b2440"
 
     frame:
         align (0.5, 0.5)
@@ -344,17 +357,15 @@ screen civitasnet(llamada=False, destacar=None):
             else:
                 use net_feed(nuevos, feed, feed_adj)
 
-    textbutton ("CONTINUAR" if llamada else "CERRAR (Esc)"):
-        style "net_boton"
-        text_style "net_boton_text"
+    hbox:
         xalign 0.5
-        xoffset (NET_ANCHO // 2 + 160)
+        xoffset (NET_ANCHO // 2 + 190)
         yalign 0.5
-        action cerrar_civitasnet(llamada)
+        use civ_cerrar(cerrar_civitasnet(llamada), ("CONTINUAR" if llamada else "CERRAR"))
 
 style net_boton is default:
-    background Frame("gui/telefono_boton.png", 30, 30)
-    hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+    background Frame("gui/telefono_boton.png", 12, 12)
+    hover_background Frame("gui/telefono_boton_hover.png", 12, 12)
     padding (26, 14)
     hover_sound "assets/audio/sfx/menu_hover.ogg"
 

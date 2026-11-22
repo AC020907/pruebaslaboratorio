@@ -19,7 +19,7 @@ def main():
         if not nombre.endswith(".png"):
             continue
         im = Image.open(os.path.join(ORIGEN, nombre)).convert("RGBA")
-        if nombre.startswith(("fondo_", "primer_plano")):
+        if nombre.startswith(("fondo_", "primer_plano", "cielo", "vineta")):
             im = im.resize((im.width // 2, im.height // 2), Image.LANCZOS)      # el canvas web es mas pequeno
             calidad = 72
         else:

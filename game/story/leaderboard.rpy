@@ -187,7 +187,7 @@ screen elegir_alias():
                 padding (20, 12)
                 input value FieldInputValue(persistent, "alias") length 20 allow "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZáéíóúÁÉÍÓÚñÑüÜ0123456789 _-." size 34 color "#2b2440"
         else:
-            text "[persistent.alias]" size 44 bold True color "#5b5bd6" xalign 0.5
+            text "[persistent.alias]" size 44 bold True color "#3d7ea6" xalign 0.5
         hbox:
             xalign 0.5
             spacing 24
@@ -266,7 +266,7 @@ screen leaderboard_pantalla():
                             text ("%d." % e.get("rank", 0)) size 28 bold True color "#8c2f4b" min_width 70
                             text e.get("alias", "?") size 28 color "#2b2440" min_width 420
                             text e.get("final_title", "") size 22 color "#5b4f72" min_width 320 yalign 0.5
-                            text str(e.get("score", 0)) size 30 bold True color "#5b5bd6" xalign 1.0
+                            text str(e.get("score", 0)) size 30 bold True color "#3d7ea6" xalign 1.0
             else:
                 text "Todavía no hay resultados guardados para este modo." size 24 color "#8b84a8" align (0.5, 0.5)
         $ mejor = persistent.mejor_local.get(modo)

@@ -230,7 +230,7 @@ screen escrutinio_historia(e):
                                 add circulo("#8c2f4b" if gana else "#e6deee", "#2b2440", 31)
                                 text ("TÚ" if c["id"] == "alcalde" else "".join(p[0] for p in c["nombre"].split()[:2])) size 22 bold True color ("#fbf6ee" if gana else "#2b2440") align (0.5, 0.5)
                         text c["nombre"] size 26 bold gana color "#2b2440" min_width 280 yalign 0.5
-                        bar value AnimatedValue(c["votos"], maximo, (0.01 if persistent.reducir_movimiento else dur), 0) xsize 520 ysize 26 yalign 0.5 left_bar Solid("#8c2f4b" if gana else "#a7a5f2") right_bar Solid("#ece6f5")
+                        bar value AnimatedValue(c["votos"], maximo, (0.01 if persistent.reducir_movimiento else dur), 0) xsize 520 ysize 26 yalign 0.5 left_bar Solid("#8c2f4b" if gana else "#c9b8d8") right_bar Solid("#ece6f5")
                         add fin_votos(c["votos"], 0.0, dur) yalign 0.5
                 if revelado:
                     text "Abstención: %s personas" % "{:,}".format(e["abstencion"]).replace(",", ".") size 20 italic True color "#5b4f72" at fin_entra(0.1)

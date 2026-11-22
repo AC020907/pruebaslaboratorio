@@ -1,6 +1,6 @@
 # Remasterización visual de Civitas
 
-**Rama:** `feature/remaster-visual`. **Punto de recuperación:** tag `checkpoint-pre-remaster`. Sin push ni deploy.
+**Ramas:** `feature/remaster-visual` (remaster 1), `feature/remaster-2` y `feature/remaster-3`. **Puntos de recuperación:** tags `checkpoint-pre-remaster`, `checkpoint-pre-remaster-2` y `checkpoint-pre-remaster-3`.
 
 La remasterización cambia **cómo se presenta** el juego, nunca **qué ocurre**. La historia, los diálogos, las decisiones, los finales y el arte oficial de los personajes están intactos, y se puede verificar (ver «Integridad»).
 
@@ -23,7 +23,8 @@ La referencia son los sprites oficiales: dibujo plano, contorno definido, expres
 |---|---|
 | **Trazo** | Contorno de tinta `#2b2440` y color plano encima. Nada de degradados, brillos, partículas decorativas ni neón. |
 | **Paleta** | Tinta `#2b2440`, papel `#fbf6ee`, noche `#120d1c`, lila `#c9b8d8`, vino `#8c2f4b`. Rojo de emergencia `#d1495b` (rumor y peligro), teal `#2f9e8f` (red ciudadana y lo verificado), ámbar `#e8b04b` (evidencia). |
-| **Componentes** | **Tarjeta de papel** con contorno de tinta y franja roja (CivitasNet). Se usa en notificaciones, el rótulo de lugar, el HUD del plataformero y los resultados de los minijuegos. |
+| **Componentes** | **Tarjeta de papel** con contorno de tinta y franja roja (CivitasNet). Se usa en notificaciones, el rótulo de lugar, el HUD del plataformero y los resultados de los minijuegos. **Remaster 3:** es un kit común en `game/minijuegos/civitas_kit.rpy`: hoja con sombra plana (`ficha_fondo`), botón ficha (`civ_ficha`), cabecera con título en Roboto Light y raya roja (`civ_cabecera`), cierre con la tecla (`civ_cerrar`), chip y sello. Los botones de Ren'Py (`boton_menu_*`, `frame.png`, deslizadores y barras) se regeneraron con el mismo lenguaje (`tools/arte/gui_civitas.py`). |
+| **Paleta única** | Remaster 3: se sustituyeron 90 colores heredados de la interfaz anterior (índigo `#5b5bd6`, lavanda `#a7a5f2`, amarillo `#facc15`, menta `#5eead4`, rosa `#e86a7e`) por sus equivalentes de la paleta en todos los `.rpy`, y 31 en la Arena web. Solo cambian colores. |
 | **Tipografía** | Roboto Light espaciada para la marca y los títulos (logo, cartelas, título del menú del juego). Roboto en negrita para lo que se lee rápido. |
 | **Marca** | **La línea de red con nodos** del logo CIVITAS se repite: en las cartelas de acto (la semana de lunes a domingo, con el acto marcado), en la ruta del plataformero y en las cartelas de los desenlaces. |
 | **Movimiento** | La cámara avanza, sigue o se acerca con intención. Las entradas duran 0,35–0,45 s. Con «reducir movimiento» no hay desplazamientos, sacudidas ni zooms. |
@@ -51,7 +52,15 @@ Clasificación: **P0** impide comprender o jugar · **P1** presentación grave �
 | **Caza-Rumores, propagación y Gran Viralización (juego)** | Fondo tecnológico neón genérico; barra superior azul marino | P2 | Fondo nuevo: **el mapa ilustrado de Ciudad Nova entintado** (`tools/arte/fondos_minijuegos.py`), así que el grafo se juega sobre la ciudad real. Barra superior en el color noche de la paleta. Los originales quedan en `tools/arte/respaldo_v1/`. | `capturas/j05_contencion_2_juego.jpg` | Hecho |
 | **Rastreador (tablero)** | Explicación del error en rojo sobre la foto (poco legible); conclusión elegida con degradado | P1 | La explicación va en una tira de papel con franja roja (la etiqueta de la mesa se oculta mientras se muestra). Los botones de conclusión son planos: vino si está elegida y noche con contorno lila si está disponible. | `capturas/j14_rastreador_error.jpg` | Hecho |
 | **HUD de la ciudad** (Ciudad, CivitasNet, Expediente, Misiones, Mapa) | Píldoras azul marino con degradado | P2 | Fichas de papel con contorno de tinta y franja roja al pasar el ratón; los avisos pendientes en un círculo rojo con contorno; el panel de la ciudad, enmarcado | `capturas/e03_barrio_conversacion.jpg` | Hecho |
-| **CivitasNet, Expediente, Mapa, Misiones** | Coherentes entre sí; sin defectos P0 o P1 detectados | P3 | — | — | Sin cambios |
+| **Expediente** | Panel genérico con acentos índigo; la ficha abierta era un rectángulo plano | P2 | Carpeta de investigación: hoja de papel con franja vino, cabecera «Expediente» en Roboto Light, contador de hilos abiertos. Índice con la franja del estado de cada ficha y la elegida en tinta. La ficha abierta es una hoja con clip, franja del estado, título en Light, preguntas abiertas con barra ámbar, conexiones como fichas y **sello** cuando la conclusión está comprobada o refutada. Mismas fichas, textos y acciones. | `comparativas/expediente.jpg` | Hecho (remaster 3) |
+| **Misiones** | Lista oscura de bajo contraste; las pendientes casi no se leían | P2 | Diario en papel: cada misión es una ficha con la franja de su estado (en curso ámbar, cumplida teal, pendiente atenuada), etiqueta de estado, título en Light, chips de lugar y minijuego, y contador «cumplidas». | `comparativas/misiones.jpg` | Hecho (remaster 3) |
+| **Mapa de Ciudad Nova** | Paneles azul marino genéricos sobre la ilustración | P2 | Barra superior con raya roja y «Ciudad Nova» en Light; misión, controles y lugar cercano como fichas de papel con la franja que corresponde (ámbar si es el destino, rojo si no está disponible). La conducción no cambia. | `comparativas/mapa.jpg` | Hecho (remaster 3) |
+| **CivitasNet** | Degradados de otra aplicación (morado-rosa); consejo flotando y botón de píldora | P2 | Fondos de publicación en la paleta según el estado, con trama de semitono, como un afiche (`tools/arte/civitasnet_arte.py`); aro de historias rojo y ámbar; marco lila; botón «Añadir al expediente» en vino. El consejo es una nota de papel junto al teléfono y el cierre una ficha. Los textos y la lógica del feed no cambian. | `comparativas/civitasnet.jpg` | Hecho (remaster 3) |
+| **Archivo de Destinos** | Tarjetas correctas, botón lavanda | P3 | Cada destino es una ficha del archivo con la banda de color de su final (la misma de su cartela), insignia sobre la banda, número y barra de progreso de destinos descubiertos. Los ocultos conservan su pista. | `comparativas/archivo_destinos.jpg` | Hecho (remaster 3) |
+| **Ruta de la Verdad (segunda pasada)** | Seguía viéndose plano: el fondo y las plataformas tenían el mismo tono morado y la escena no tenía profundidad | P1 | **Cielo** nocturno en bandas con la **señal de NOVA** (disco con ondas) y estrellas, fijo. **Skyline propio** de Ciudad Nova en dos planos, con la torre del cerro, ventanas y bruma en el horizonte. **Torres de NOVA** oscuras con canto iluminado y pantallas del rumor que brillan. **Plataformas con volumen**: pasarela clara, cuerpo que se oscurece hacia dentro, racks con LED, canto con luz y sombra. **Halo ámbar** en los documentos (se ven antes). **Viñeta** que centra la mirada. Tutorial y pausa con la cabecera de la marca; botón de pausa en ficha. El motor, los niveles y la puntuación no cambian. | `comparativas/plataformero_juego_r3.jpg`, `plataformero_tutorial_r3.jpg` | Hecho (remaster 3) |
+| **Menú principal y opciones** | Botón activo en lavanda; deslizadores índigo | P2 | Botones como fichas de papel con contorno y sombra plana (el activo, con franja roja); Modo Feria en rojo; deslizadores con relleno vino y perilla de papel. | `comparativas/menu_principal_r3.jpg`, `opciones_r3.jpg` | Hecho (remaster 3) |
+| **Duelo de Frecuencias en la Arena Online** | El navegador usaba la versión anterior: sin pista, juicio único en el centro, colores neón | P1 | `dibujarDuelo` (`static/arena.html`) dibuja ahora lo mismo que el Duelo de escritorio: pista con contorno, separadores, **pulsos del compás**, **línea de golpe**, brillo del carril, **anillo por juicio** (doble, simple o cruz) con el texto sobre el carril, combo en trazo fino que late y paleta de Civitas. No cambian el reloj de audio, el chart, las ventanas, la calibración ni el envío del resultado (`ritmo_motor.js` intacto). | `comparativas/arena_web_duelo_r3.jpg` | Hecho (requiere deploy en Render) |
+| **Ruta de la Verdad en la Arena Online** | — | — | Recibe el mismo arte nuevo (cielo, viñeta y halo añadidos a `dibujarPlat`; 61 WebP, 158 KB). | `comparativas/arena_web_plataformero_r3.jpg` | Hecho (requiere deploy en Render) |
 | **Escenas de la novela** (personajes) | — | — | Ya existían entrada con subida y fundido, respiración, foco que atenúa a quien no habla y reacciones (`funcion_foco`). Se añaden rótulos, cartelas, cámara en la apertura y en los finales. | — | Hecho |
 | **Arena Local (LAN)** | — | — | Usa las mismas pantallas de Ren'Py que Historia y Feria, así que recibe el plataformero, los fondos y los resultados nuevos. La red y el protocolo no cambian. | — | Hecho |
 | **Arena Online (navegador)** | Plataformero con el arte antiguo; fondos neón | P1 | **Mismo arte que Ren'Py** en WebP: 58 archivos, 128 KB (`tools/arte/exportar_plataformas_web.py`). Se reescribió solo `dibujarPlat` en `static/arena.html`: autotiling, 3 planos, avatar con poses, squash, documentos que flotan, antenas con onda, archivo, partículas con contorno, sacudida y estática al ser detectado, HUD en fichas, `prefers-reduced-motion`. Fondos de los retos de grafo reexportados. **`plat_motor.js` (física) no cambia**: las pruebas de paridad Python/JS pasan. | E2E con Chrome: 2 navegadores, 5 retos, exit 0 | Hecho (requiere deploy en Render) |
@@ -73,13 +82,14 @@ Todo es presentación añadida a las escenas existentes (`story/finales_cine.rpy
 - `game/gui/plataformas/v2/` (58 PNG), generados con `tools/arte/plataformas_arte.py`. Es el archivo editable: los parámetros de forma y color están en el código y se regeneran con un comando.
   - Si se quiere mantener el tamaño en disco de la distribución, los PNG antiguos de `gui/plataformas/` se pueden excluir del build; no se borraron.
 - `gui/button/slot_*_background.png` y `gui/overlay/game_menu.png`, rehechos.
-- No se usó material de terceros. El fondo lejano del plataformero es el panorama oficial del juego, entintado.
+- No se usó material de terceros. El fondo lejano del plataformero era el panorama oficial del juego, entintado; en el remaster 3 se sustituye por un skyline dibujado con el mismo generador.
+- Remaster 3: `tools/arte/gui_civitas.py` (botones, marco y deslizadores de Ren'Py) y `tools/arte/civitasnet_arte.py` (fondos de publicación, aro, marco y botón de CivitasNet). Los originales se guardaron en `tools/arte/respaldo_v1/gui/` y `tools/arte/respaldo_v1/civitasnet/`.
 
 ## 6. Rendimiento
 
 | Medida | Antes | Después |
 |---|---|---|
-| Plataformero (QA de minijuegos, RTX 4070, 1920×1080) | 178 FPS | 140–142 FPS |
+| Plataformero (QA de minijuegos, RTX 4070, 1920×1080) | 178 FPS | 140–142 FPS (remaster 1); 131–143 FPS con el cielo, el halo y la viñeta del remaster 3 |
 
 Sigue muy por encima de 60.
 - **Capas:** los fondos son dos texturas de 3840 px enlazables más una de cables.
@@ -107,3 +117,19 @@ Sigue muy por encima de 60.
 - partida completa con mando físico;
 - versión web de esta rama (no se publicó);
 - pruebas con personas.
+
+## 8. Pruebas del remaster 3 (2026-11-22)
+
+| Prueba | Resultado |
+|---|---|
+| `renpy.exe . lint` | Sin errores |
+| `python -m unittest discover -s tests` | **190 OK** (incluye la paridad Python/JS de los motores del plataformero y del Duelo) |
+| `cd leaderboard && python -m pytest -q` | **165 OK** |
+| `python tests/qa_recorridos.py` | **10/10**: los cinco finales en Historia y en Feria |
+| `qa_visual.py galeria` (menús, personajes, escenas, minijuegos, Duelo ganado, Duelo sin pulsar, Duelo abandonado, finales, apertura, diálogo, Arena con bots) | **11/11 OK** |
+| `qa_visual.py arena` (Arena LAN de escritorio: 2 instancias de Ren'Py y 2 bots, 4 participantes) | OK: 5 rondas, 5 pruebas, campeón y elección |
+| `tests/e2e_arena_online.py --jugadores 2,3,4` (Arena Online en Chrome contra el servidor local) | OK con 2, 3 y 4 jugadores: 5 retos, campeón, alcalde y ciudad |
+| Inventario de arte (155) y narrativa (652) | **Idénticos** |
+| Diálogo exportado por Ren'Py | Identificador, personaje y texto **idénticos**; solo cambian números de línea de `qa_galeria.rpy` (archivo de pruebas) |
+
+Moderación Express aparece unas veces como victoria y otras como derrota en la galería: el piloto automático alterna borrar y aprobar sobre comentarios con semilla aleatoria. Ya ocurría antes de estos cambios.

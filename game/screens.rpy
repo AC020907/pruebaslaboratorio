@@ -98,7 +98,7 @@ screen hud_ciudad():
                 spacing 18
                 hbox:
                     xfill True
-                    text "ESTADO DE LA CIUDAD" size 16 color "#a7a5f2" kerning 3 yalign 0.5
+                    text "ESTADO DE LA CIUDAD" size 16 color "#c9b8d8" kerning 3 yalign 0.5
                     textbutton "×":
                         xalign 1.0
                         text_size 30
@@ -216,6 +216,7 @@ style vscrollbar:
 style slider:
     ysize gui.slider_size
     base_bar Frame("gui/slider/horizontal_[prefix_]bar.png", gui.slider_borders, tile=gui.slider_tile)
+    left_bar Frame("gui/bar/left.png", gui.slider_borders, tile=gui.slider_tile)
     thumb "gui/slider/horizontal_[prefix_]thumb.png"
 
 style vslider:

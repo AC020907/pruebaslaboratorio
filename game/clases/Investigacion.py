@@ -22,7 +22,7 @@ ESTADOS_POST = {
 }
 
 ESTADOS_PISTA = {
-    "observado":  ("Hecho observado", "#5b5bd6"),
+    "observado":  ("Hecho observado", "#3d7ea6"),
     "hipotesis":  ("Hipótesis", "#d97706"),
     "comprobado": ("Conclusión comprobada", "#2f9e8f"),
     "refutado":   ("Hipótesis refutada", "#8b84a8"),

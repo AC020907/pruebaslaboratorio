@@ -279,9 +279,9 @@ screen duelo_pantalla(vista, aliado):
         $ senal = sum(Ritmo.VALOR_JUICIO[j] * c for j, c in d.conteo.items()) / juzgadas
         hbox:
             spacing 12
-            text "INTERFERENCIA" size 16 color "#e86a7e" yalign 0.5
-            bar value StaticValue(senal if d.juzgadas() else 0.5, 1.0) xsize 520 ysize 16 left_bar Solid("#5eead4") right_bar Solid("#e86a7e")
-            text "SEÑAL %d%%" % int((senal if d.juzgadas() else 0.5) * 100) size 16 color "#5eead4" yalign 0.5
+            text "INTERFERENCIA" size 16 color "#d1495b" yalign 0.5
+            bar value StaticValue(senal if d.juzgadas() else 0.5, 1.0) xsize 520 ysize 16 left_bar Solid("#3fbfae") right_bar Solid("#d1495b")
+            text "SEÑAL %d%%" % int((senal if d.juzgadas() else 0.5) * 100) size 16 color "#3fbfae" yalign 0.5
 
     if d.estado == "playing":
         textbutton "Pausa" style "boton_vn" text_style "boton_vn_text" xalign 0.98 yalign 0.03 action Function(vista.pausar)

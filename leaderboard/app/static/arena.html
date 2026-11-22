@@ -7,11 +7,11 @@
 <style>
 :root{--bg:#f6f1ea;--panel:#fffaf3;--fg:#2b2440;--suave:#6b6080;--borde:#e3d8cb;--acento:#8c2f4b;--acento2:#5b5bd6;
 --ok:#2f9e8f;--mal:#c0392b;--aviso:#c58a1b;--ciu:#2f9e8f;--per:#5b5bd6;--inf:#d6457a;--can:#c58a1b;--sombra:0 2px 10px #2b244014;
---noche:#0d0a1a;--noche2:#1b1440;--neon:#5eead4;--neon2:#f0abfc;--crema:#fbf1dc}
+--noche:#0d0a1a;--noche2:#1b1440;--neon:#3fbfae;--neon2:#f0abfc;--crema:#fbf1dc}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#151020;--panel:#1f1830;--fg:#f1ecfa;--suave:#b3a8c9;
---borde:#3a3150;--acento:#f08aa8;--acento2:#a7a5f2;--ok:#5eead4;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}}
+--borde:#3a3150;--acento:#f08aa8;--acento2:#c9b8d8;--ok:#3fbfae;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}}
 :root[data-theme=dark]{--bg:#151020;--panel:#1f1830;--fg:#f1ecfa;--suave:#b3a8c9;--borde:#3a3150;--acento:#f08aa8;
---acento2:#a7a5f2;--ok:#5eead4;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}
+--acento2:#c9b8d8;--ok:#3fbfae;--mal:#f4867a;--aviso:#f2c14e;--sombra:none;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{overscroll-behavior:none}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -109,14 +109,14 @@ padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-in
 #capa .hud .t{font-weight:900;font-variant-numeric:tabular-nums}
 #capa .hud .rivales{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap;font-size:.8rem}
 #capa .hud .rivales span{background:#ffffff14;border-radius:99px;padding:2px 9px}
-#capa .hud .rivales span.ok{background:#5eead433}
+#capa .hud .rivales span.ok{background:#3fbfae33}
 #capa .cuerpo{position:relative;flex:1;min-height:0;overflow:auto}
 #capa canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none;-webkit-user-select:none}
 .tarjeta{pointer-events:auto;background:#1f1830f2;border:1px solid #3a3150;border-radius:16px;padding:18px;text-align:center;color:#fbf6ee}
-.tarjeta h2{margin:.2em 0;color:#facc15;letter-spacing:.05em}.tarjeta .suave{color:#c9b8d8}
-.tarjeta .grande{font-size:2.4rem;font-weight:900;color:#5eead4;margin:.1em 0}
+.tarjeta h2{margin:.2em 0;color:#e8b04b;letter-spacing:.05em}.tarjeta .suave{color:#c9b8d8}
+.tarjeta .grande{font-size:2.4rem;font-weight:900;color:#3fbfae;margin:.1em 0}
 .flotante{position:absolute;left:50%;top:14%;transform:translateX(-50%);width:min(92vw,560px);z-index:3}
-.cuenta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6rem;font-weight:900;color:#facc15;
+.cuenta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6rem;font-weight:900;color:#e8b04b;
 text-shadow:0 4px 20px #000;pointer-events:none;z-index:4}
 /* Moderacion */
 .feed{max-width:640px;margin:0 auto;padding:16px;display:flex;flex-direction:column;gap:14px;min-height:100%;justify-content:center}
@@ -130,7 +130,7 @@ text-shadow:0 4px 20px #000;pointer-events:none;z-index:4}
 .botones2 button{min-height:64px;font-size:1.1rem}
 .b-borrar{background:#c0392b}.b-dejar{background:#2f9e8f}
 .feedback{text-align:center;font-weight:800;min-height:1.6em}
-.feedback.bien{color:#5eead4}.feedback.mal{color:#fb7185}
+.feedback.bien{color:#3fbfae}.feedback.mal{color:#d1495b}
 /* Rastreador */
 .tablero{max-width:900px;margin:0 auto;padding:14px;display:grid;gap:12px}
 .cadena{display:grid;gap:8px}
@@ -138,21 +138,21 @@ text-shadow:0 4px 20px #000;pointer-events:none;z-index:4}
 display:grid;grid-template-columns:1fr auto;gap:2px 10px;min-height:0;width:100%}
 .ficha b{font-size:1rem}.ficha .h{font-weight:900;color:#5b5bd6;font-variant-numeric:tabular-nums}
 .ficha small{grid-column:1/-1;color:#6b6080}
-.ficha.sel{border-color:#facc15;box-shadow:0 0 0 3px #facc1555}
-.ficha.pista{border-color:#5eead4}
+.ficha.sel{border-color:#e8b04b;box-shadow:0 0 0 3px #e8b04b55}
+.ficha.pista{border-color:#3fbfae}
 .ficha.viral{background:#2a1f5c;color:#fbf1dc}.ficha.viral small{color:#c9b8d8}
 .hueco{border:2px dashed #6b5b95;border-radius:12px;padding:10px;min-height:58px;background:#ffffff0d;color:#c9b8d8;text-align:left;font-weight:400;width:100%}
-.hueco.ok{border-color:#5eead4;border-style:solid}.hueco.mal{border-color:#fb7185;border-style:solid}
+.hueco.ok{border-color:#3fbfae;border-style:solid}.hueco.mal{border-color:#d1495b;border-style:solid}
 .mesa{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
 .conclusiones{display:grid;gap:8px}
-.conclusiones button{background:#2a1f5c;border:2px solid transparent}.conclusiones button[aria-pressed=true]{border-color:#facc15}
-.explic{background:#fb718522;border-radius:10px;padding:8px 12px;font-size:.92rem}
+.conclusiones button{background:#2a1f5c;border:2px solid transparent}.conclusiones button[aria-pressed=true]{border-color:#e8b04b}
+.explic{background:#d1495b22;border-radius:10px;padding:8px 12px;font-size:.92rem}
 /* Plataformas: controles tactiles */
 .tactil{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;padding:12px;pointer-events:none;z-index:2}
 .tactil div{display:flex;gap:12px}
 .tactil button{pointer-events:auto;width:84px;height:84px;border-radius:50%;background:#ffffff26;border:2px solid #ffffff55;font-size:1.6rem;
 color:#fbf6ee;padding:0;min-height:0;user-select:none;-webkit-user-select:none}
-.tactil button.salto{width:104px;height:104px;background:#facc1533;border-color:#facc15;font-size:1rem}
+.tactil button.salto{width:104px;height:104px;background:#e8b04b33;border-color:#e8b04b;font-size:1rem}
 @media (hover:hover) and (pointer:fine){.tactil{display:none}}
 /* Resultados */
 .ganador h2.gana{font-size:1.6rem;color:var(--acento);animation:gana .9s ease-out}
@@ -170,8 +170,8 @@ color:#fbf6ee;padding:0;min-height:0;user-select:none;-webkit-user-select:none}
 /* Duelo */
 .duelInfo{position:absolute;left:50%;top:18%;transform:translateX(-50%);width:min(92vw,520px);pointer-events:none;z-index:3}
 .duelCard{pointer-events:auto;background:#1f1830ee;border:1px solid #3a3150;border-radius:16px;padding:18px;text-align:center}
-.duelCard h2{margin:.2em 0;color:#facc15;letter-spacing:.05em}.duelCard .suave{color:#c9b8d8}.duelCard.mini{padding:10px}
-.duelCard .grande{font-size:2.4rem;font-weight:900;color:#5eead4;margin:.1em 0}.duelCard .tag{color:#f4b6c2}
+.duelCard h2{margin:.2em 0;color:#e8b04b;letter-spacing:.05em}.duelCard .suave{color:#c9b8d8}.duelCard.mini{padding:10px}
+.duelCard .grande{font-size:2.4rem;font-weight:900;color:#3fbfae;margin:.1em 0}.duelCard .tag{color:#f4b6c2}
 /* Espectadores */
 .espect{max-width:1200px}
 .gigante{font-size:2rem;font-weight:900;color:var(--acento)}
@@ -683,21 +683,21 @@ function dibujarCaza(cv, yo, cfg, pos, escala){
   for (const [a, b] of cfg.aristas) { g.beginPath(); g.moveTo(pos[a].x, pos[a].y); g.lineTo(pos[b].x, pos[b].y); g.stroke(); }
   for (const p of motor.paquetes) if (p.estado === "vuelo") {
     const [x, y] = motor.posicion(p.id, t);
-    g.strokeStyle = "#fb718566"; g.lineWidth = 3; g.beginPath(); g.moveTo(pos[p.a].x, pos[p.a].y); g.lineTo(x, y); g.stroke();
+    g.strokeStyle = "#d1495b66"; g.lineWidth = 3; g.beginPath(); g.moveTo(pos[p.a].x, pos[p.a].y); g.lineTo(x, y); g.stroke();
     const pulso = 16 + Math.sin(ahora / 120) * 3;
-    g.fillStyle = "#fb718544"; g.beginPath(); g.arc(x, y, pulso + 10, 0, 7); g.fill();
+    g.fillStyle = "#d1495b44"; g.beginPath(); g.arc(x, y, pulso + 10, 0, 7); g.fill();
     g.fillStyle = "#ef4444"; g.beginPath(); g.arc(x, y, pulso, 0, 7); g.fill();
     g.fillStyle = "#fff"; g.font = "900 16px system-ui"; g.textAlign = "center"; g.fillText("!", x, y + 6);
   }
   for (const n of cfg.nodos) {
     const c = n.id in motor.contagiados, foco = cfg.focos.includes(n.id);
-    g.fillStyle = foco ? "#9333ea" : c ? "#dc2626" : "#334155"; g.strokeStyle = c ? "#fecaca" : "#5eead4"; g.lineWidth = 3;
+    g.fillStyle = foco ? "#9333ea" : c ? "#dc2626" : "#334155"; g.strokeStyle = c ? "#fecaca" : "#3fbfae"; g.lineWidth = 3;
     g.beginPath(); g.arc(n.x, n.y, 22, 0, 7); g.fill(); g.stroke();
     g.fillStyle = "#fff"; g.font = "800 16px system-ui"; g.textAlign = "center"; g.fillText(n.nombre[0], n.x, n.y + 6);
     g.fillStyle = "#cbd5e1"; g.font = "600 13px system-ui"; g.fillText(n.nombre, n.x, n.y + 40);
   }
   yo.anillos = yo.anillos.filter(a => ahora - a.t < 450);
-  for (const a of yo.anillos) { const p = (ahora - a.t) / 450; g.strokeStyle = a.ok ? "#5eead4" : "#fb7185"; g.globalAlpha = 1 - p; g.lineWidth = 4;
+  for (const a of yo.anillos) { const p = (ahora - a.t) / 450; g.strokeStyle = a.ok ? "#3fbfae" : "#d1495b"; g.globalAlpha = 1 - p; g.lineWidth = 4;
     g.beginPath(); g.arc(a.x, a.y, 20 + p * 40, 0, 7); g.stroke(); g.globalAlpha = 1; }
   g.restore();
   g.fillStyle = "#fbf6ee"; g.font = "800 16px system-ui"; g.textAlign = "left";
@@ -710,7 +710,7 @@ const PLAT_IMGS = [   /* arte v2: el mismo que Ren'Py (tools/arte/plataformas_ar
   ...Array.from({length:32}, (_, k) => "solido_" + (k >> 1) + "_" + (k & 1)),
   "barrera_0","barrera_1","barrera_2","inestable_on","inestable_aviso","inestable_off","documento","antena_off","antena_on","archivo",
   "av_idle_0","av_idle_1","av_corre_0","av_corre_1","av_corre_2","av_corre_3","av_corre_4","av_corre_5",
-  "av_salto","av_cae","av_recoge","av_dano","av_victoria","fondo_lejos","fondo_medio","primer_plano"];
+  "av_salto","av_cae","av_recoge","av_dano","av_victoria","fondo_lejos","fondo_medio","primer_plano","cielo","vineta","halo"];
 function iniciarPlataformas(d, cuerpo){
   const yo = R, cfg = R.cfg, p = new PlatCivitas.Partida(cfg);
   Object.assign(R, {p, imgs:{}, teclas:new Set(), tactil:{}, acum:0, ultimo:null, fin:false, cam:0, vistos:0, aviso:null, part:[], finT:null});
@@ -752,9 +752,9 @@ function iniciarPlataformas(d, cuerpo){
           const cx = (p.x + p.c.ANCHO / 2) / cfg.sub, cy = (p.y + (suelo ? p.c.ALTO : p.c.ALTO / 2)) / cfg.sub;
           for (let k = 0; k < PC[1]; k++) { const a = suelo ? Math.PI + Math.random() * Math.PI : Math.random() * 2 * Math.PI, v = (0.4 + Math.random() * 0.6) * PC[2] / 72;
             yo.part.push({x:cx, y:cy, vx:Math.cos(a) * v, vy:Math.sin(a) * v, vida:0.35 + Math.random() * 0.45, c:PC[0], t:4 + Math.floor(Math.random() * 3) * 2}); } }
-        if (e[1] === "evidencia") yo.aviso = [cfg.fragmentos[e[2] % cfg.fragmentos.length], "#facc15", ahora];
-        else if (e[1] === "dano") yo.aviso = ["NOVA te detectó: vuelves al punto de control", "#fb7185", ahora];
-        else if (e[1] === "control") yo.aviso = ["Punto de control", "#5eead4", ahora];
+        if (e[1] === "evidencia") yo.aviso = [cfg.fragmentos[e[2] % cfg.fragmentos.length], "#e8b04b", ahora];
+        else if (e[1] === "dano") yo.aviso = ["NOVA te detectó: vuelves al punto de control", "#d1495b", ahora];
+        else if (e[1] === "control") yo.aviso = ["Punto de control", "#3fbfae", ahora];
       }
       yo.vistos = p.eventos.length;
       if (!p.jugando()) { yo.fin = true; yo.finT = ahora; entregar({traza:p.traza}); }
@@ -794,6 +794,7 @@ function dibujarPlat(cv, yo, cfg, ahora){
   const sac = (!quieto && ahora - yo.danoT < 280) ? Math.round(6 * Math.sin((ahora - yo.danoT) / 14) * (1 - (ahora - yo.danoT) / 280)) : 0;
   const cam = yo.cam + sac, y0 = H - filas * lado;
   g.fillStyle = "#120d1c"; g.fillRect(0, 0, W, H);
+  if (I.cielo) { const k = Math.max(W / I.cielo.width, H / I.cielo.height); g.drawImage(I.cielo, (W - I.cielo.width * k) / 2, 0, I.cielo.width * k, I.cielo.height * k); }
   for (const [img, f] of [[I.fondo_lejos, 0.12], [I.fondo_medio, 0.35]]) if (img) {
     const h = H, w = img.width * h / img.height, x = -((cam * f) % w);
     for (let k = -1; k < W / w + 1; k++) g.drawImage(img, x + k * w, 0, w, h);
@@ -818,6 +819,7 @@ function dibujarPlat(cv, yo, cfg, ahora){
     }
     else if (ch === "E") { const i = p.evidencias.findIndex(v => v[0] === fx && v[1] === fy);
       if (!p.recogidas.includes(i) && I.documento) { g.save(); g.translate(x + lado / 2, y + lado / 2 + (quieto ? 0 : Math.sin(ahora / 330 + fx) * 4));
+        if (I.halo) g.drawImage(I.halo, -lado, -lado, lado * 2, lado * 2);
         g.rotate(quieto ? 0 : Math.sin(ahora / 500 + fx) * 0.1); g.drawImage(I.documento, -lado * 0.62, -lado * 0.62, lado * 1.24, lado * 1.24); g.restore(); } continue; }
     else if (ch === "C") { const on = p.control[0] === fx && p.control[1] === fy; img = on ? I.antena_on : I.antena_off;
       if (on && ahora - yo.controlT < 800) { const k = (ahora - yo.controlT) / 800; g.strokeStyle = "#2f9e8f"; g.lineWidth = 3; g.beginPath(); g.arc(x + lado / 2, y + lado * 0.25, lado * (0.3 + 1.2 * k), 0, 7); g.stroke(); } }
@@ -842,6 +844,7 @@ function dibujarPlat(cv, yo, cfg, ahora){
   g.globalAlpha = 1;
   if (I.primer_plano) { const img = I.primer_plano, h = Math.min(H * 0.24, img.height * W / 1920), w = img.width * h / img.height, x = -((cam * 1.25) % w);
     for (let k = -1; k < W / w + 1; k++) g.drawImage(img, x + k * w, 0, w, h); }
+  if (I.vineta) g.drawImage(I.vineta, 0, 0, W, H);
   if (!quieto && ahora - yo.danoT < 220) { g.fillStyle = "rgba(209,73,91,0.35)"; for (const yy of [0.18, 0.42, 0.68, 0.86]) g.fillRect(0, H * yy, W, 5); }
   if (yo.finT && p.completado() && ahora - yo.finT < 1100) {
     g.fillStyle = "rgba(18,13,28," + Math.min(0.55, (ahora - yo.finT) / 900) + ")"; g.fillRect(0, 0, W, H);
@@ -863,8 +866,8 @@ function dibujarPlat(cv, yo, cfg, ahora){
 /* ---------------- Reto 5: Duelo de Frecuencias (gran final) ---------------- */
 const RECORRIDO_MS = 1500;                   // mismo recorrido de las notas que en Ren'Py (RITMO_RECORRIDO_MS)
 const TXT_JUICIO = {perfect:"PERFECT", good:"GREAT", bad:"GOOD", miss:"MISS"};
-const COL_JUICIO = {perfect:"#facc15", good:"#5eead4", bad:"#f4b6c2", miss:"#8b84a8"};
-const COL_CARRIL = ["#c084fc","#38bdf8","#4ade80","#fb7185"];
+const COL_JUICIO = {perfect:"#e8b04b", good:"#3fbfae", bad:"#c9b8d8", miss:"#8b84a8"};   /* paleta de Civitas, igual que Ren'Py */
+const COL_CARRIL = ["#c084fc","#38bdf8","#4ade80","#d1495b"];
 const TECLAS = {KeyD:0, ArrowLeft:0, KeyF:1, ArrowDown:1, KeyJ:2, ArrowUp:2, KeyK:3, ArrowRight:3};
 const D = {cfg:null, ctx:null, buffer:null, fuente:null, inicioCtx:null, motor:null, activo:false, entrado:false, enviado:false, enviando:false,
   id:null, imgs:{}, pulsos:[0,0,0,0], efectos:[], juicio:null, calib:0, raf:null, ultimoProg:0, finLocal:null, modo:null, cargando:null};
@@ -988,63 +991,96 @@ function expresionNova(){
   return "nova_seria";
 }
 function dibujarDuelo(cv, t){   /* el tiempo de cancion decide donde va cada nota; los frames solo pintan (igual que en Ren'Py) */
+  /* Remaster: misma presentacion que el Duelo de escritorio (ritmo.rpy): pista con contorno de tinta, separadores,
+     pulsos del compas, linea de golpe, anillo por juicio (doble, simple o cruz) y combo que late. Solo dibujo. */
   const [g, W, H] = ajustar(cv);
-  const m = D.motor, chart = D.cfg.chart, ahora = performance.now();
+  const m = D.motor, chart = D.cfg.chart, ahora = performance.now(), quieto = MOV_REDUCIDO;
   const beat = 60000 / chart.bpm, fase = t > 0 ? ((t - chart.offset_ms) % beat) / beat : 0;
   const pulso = t > 0 && t < chart.duration_ms ? Math.pow(1 - fase, 3) : 0;
-  const fondo = g.createLinearGradient(0, 0, 0, H);
-  fondo.addColorStop(0, `rgb(${18+pulso*30},${12+pulso*8},${30+pulso*40})`); fondo.addColorStop(1, "#08050f");
-  g.fillStyle = fondo; g.fillRect(0, 0, W, H);
+  g.fillStyle = "#120d1c"; g.fillRect(0, 0, W, H);
+  if (pulso > 0 && !quieto) { g.fillStyle = `rgba(140,47,75,${(0.12 * pulso).toFixed(3)})`; g.fillRect(0, 0, W, H); }
   const ancho = Math.min(W * 0.92, 520), carril = ancho / 4, x0 = (W - ancho) / 2;
   const recY = H - Math.max(96, H * 0.16), naceY = Math.max(110, H * 0.17), tam = Math.min(carril * 0.86, 96);
+  const esc = Math.max(0.5, Math.min(1.4, H / 1080 * 1.4));
   const nova = D.imgs[expresionNova()];
   if (nova) {
-    const h = W > 900 ? H * 0.62 : H * 0.2, w = h * nova.width / nova.height, rebote = Math.sin(t / beat * Math.PI) * 6;
+    const h = W > 900 ? H * 0.62 : H * 0.2, w = h * nova.width / nova.height, rebote = quieto ? 0 : Math.sin(t / beat * Math.PI) * 6;
     g.globalAlpha = W > 900 ? 0.95 : 0.5;
     g.drawImage(nova, W > 900 ? x0 - w - 30 : W - w - 4, (W > 900 ? H - h : naceY - 20) + rebote, w, h);
     g.globalAlpha = 1;
   }
+  /* pista */
+  const borde = Math.max(8, carril * 0.17), x0p = x0 - borde, x1p = x0 + ancho + borde;
+  g.fillStyle = "#2b2440"; g.fillRect(x0p - 4, 0, x1p - x0p + 8, H);
+  g.fillStyle = "rgba(18,13,28,0.94)"; g.fillRect(x0p, 0, x1p - x0p, H);
+  g.fillStyle = "#3a3350"; for (let k = 1; k < 4; k++) g.fillRect(x0 + k * carril - 1, 0, 2, H);
+  if (t > 0 && t < chart.duration_ms) {
+    const base = Math.floor(t / beat);
+    for (let i = 0; i < 8; i++) {
+      const tb = (base + i) * beat, yb = recY - (tb - t) / RECORRIDO_MS * (recY - naceY);
+      if (yb > naceY && yb < recY) { const fuerte = (base + i) % 4 === 0;
+        g.fillStyle = fuerte ? "#4a3f66" : "#2f2744"; g.fillRect(x0p + 6, yb - (fuerte ? 1.5 : 1), x1p - x0p - 12, fuerte ? 3 : 2); }
+    }
+  }
+  g.fillStyle = "#2b2440"; g.fillRect(x0p, recY - 6, x1p - x0p, 12);
+  g.fillStyle = "#c9b8d8"; g.fillRect(x0p, recY - 2, x1p - x0p, 4);
   for (let k = 0; k < 4; k++) {
-    g.fillStyle = k % 2 ? "rgba(27,20,38,.55)" : "rgba(27,20,38,.7)";
-    g.fillRect(x0 + k*carril + 3, 0, carril - 6, H);
-    const brillo = Math.max(0, 1 - (ahora - D.pulsos[k]) / 160);
-    if (brillo > 0) { g.fillStyle = COL_CARRIL[k] + Math.round(brillo * 60).toString(16).padStart(2, "0"); g.fillRect(x0 + k*carril + 3, 0, carril - 6, H); }
-    const rec = D.imgs[(brillo > 0.3 ? "receptor_on_" : "receptor_") + k], cx = x0 + k*carril + carril/2, s = tam * (1 + pulso * 0.06);
-    if (rec) g.drawImage(rec, cx - s/2, recY - s/2, s, s);
+    const edad = ahora - D.pulsos[k];
+    if (edad >= 0 && edad < 160 && !quieto) { const alto = 320 * esc * (1 - edad / 160);
+      g.fillStyle = "rgba(251,246,238,0.10)"; g.fillRect(x0 + k * carril + 3, recY - alto, carril - 6, alto); }
+    const rec = D.imgs[(edad < 110 ? "receptor_on_" : "receptor_") + k], cx = x0 + k * carril + carril / 2, s = tam * (1 + (quieto ? 0 : pulso * 0.06));
+    if (rec) g.drawImage(rec, cx - s / 2, recY - s / 2, s, s);
   }
   for (let i = m.siguiente; i < m.notas.length; i++) {
     const n = m.notas[i]; if (n.estado !== null) continue;
     const dt = n.time_ms - t; if (dt > RECORRIDO_MS) break;
     const y = recY - dt / RECORRIDO_MS * (recY - naceY), img = D.imgs["nota_" + n.lane];
     g.globalAlpha = Math.max(0, Math.min(1, (y - naceY + 80) / 120));
-    if (img) g.drawImage(img, x0 + n.lane*carril + carril/2 - tam/2, y - tam/2, tam, tam);
+    if (img) g.drawImage(img, x0 + n.lane * carril + carril / 2 - tam / 2, y - tam / 2, tam, tam);
     g.globalAlpha = 1;
   }
   D.efectos = D.efectos.filter(e => ahora - e.t0 < 380);
-  for (const e of D.efectos) {
-    const p = (ahora - e.t0) / 380, cx = x0 + e.carril*carril + carril/2;
-    g.strokeStyle = COL_JUICIO[e.j]; g.globalAlpha = 1 - p; g.lineWidth = 6 * (1 - p) + 1;
-    g.beginPath(); g.arc(cx, recY, tam * (0.45 + p * 0.6), 0, 2 * Math.PI); g.stroke(); g.globalAlpha = 1;
-  }
+  if (m.conteo.miss > (D.missVistos || 0)) D.missVistos = m.conteo.miss;
+  /* anillo y juicio sobre el carril: doble (perfecto), simple (bien/justo), cruz (fallo) */
   g.textAlign = "center"; g.lineJoin = "round";
-  if (m.conteo.miss > (D.missVistos || 0)) { D.missVistos = m.conteo.miss; D.juicio = {j:"miss", t0: ahora}; }
-  if (D.juicio && ahora - D.juicio.t0 < 600) {
-    const p = (ahora - D.juicio.t0) / 600, e = 1.25 - Math.min(0.25, p * 1.5);
-    g.font = `900 ${Math.round(34 * e)}px system-ui,sans-serif`; g.globalAlpha = 1 - p * p;
-    g.strokeStyle = "#1b1426"; g.lineWidth = 6; g.strokeText(TXT_JUICIO[D.juicio.j], W/2, recY - tam * 1.6);
-    g.fillStyle = COL_JUICIO[D.juicio.j]; g.fillText(TXT_JUICIO[D.juicio.j], W/2, recY - tam * 1.6); g.globalAlpha = 1;
+  for (const [tj, lane, j] of m.ultimos) {
+    const edad = t - tj; if (edad < 0 || edad >= 450) continue;
+    const cx = x0 + lane * carril + carril / 2;
+    if (j !== "miss") {
+      const rad = tam * 0.53 + (quieto ? 0 : tam * 0.36 * edad / 450);
+      g.strokeStyle = COL_JUICIO[j]; g.lineWidth = 5; g.beginPath(); g.arc(cx, recY, rad, 0, 2 * Math.PI); g.stroke();
+      if (j === "perfect") { g.lineWidth = 3; g.beginPath(); g.arc(cx, recY, Math.max(10, rad - tam * 0.15), 0, 2 * Math.PI); g.stroke(); }
+    } else if (edad < 250) {
+      const c = tam * 0.2; g.strokeStyle = "#8b84a8"; g.lineWidth = 6; g.beginPath();
+      g.moveTo(cx - c, recY - c); g.lineTo(cx + c, recY + c); g.moveTo(cx + c, recY - c); g.lineTo(cx - c, recY + c); g.stroke();
+    }
+    const zoom = quieto ? 1 : 1.25 - 0.25 * Math.min(1, edad / 120), subida = quieto ? 0 : edad / 12 * esc;
+    g.font = `900 ${Math.round(Math.max(14, carril * 0.25) * zoom)}px system-ui,sans-serif`;
+    g.strokeStyle = "#2b2440"; g.lineWidth = 6; g.strokeText(TXT_JUICIO[j], cx, recY - tam * 1.3 - subida);
+    g.fillStyle = COL_JUICIO[j]; g.fillText(TXT_JUICIO[j], cx, recY - tam * 1.3 - subida);
   }
-  if (m.combo >= 3) {
-    g.font = `900 ${Math.round(26 + Math.min(14, m.combo / 4))}px system-ui,sans-serif`; g.strokeStyle = "#1b1426"; g.lineWidth = 5;
-    g.strokeText("x" + m.combo, W/2, recY - tam * 2.25); g.fillStyle = "#fbf6ee"; g.fillText("x" + m.combo, W/2, recY - tam * 2.25);
+  /* combo: numero en trazo fino que late al subir, al lado de la pista (arriba en pantallas estrechas) */
+  if (m.combo > (D.comboVisto || 0)) D.comboT = ahora;
+  D.comboVisto = m.combo;
+  if (m.combo >= 5) {
+    const late = quieto ? 1 : 1 + 0.18 * Math.max(0, 1 - (ahora - (D.comboT || 0)) / 140);
+    const lado = W - x1p - 24 > 140, tn = Math.round((lado ? 84 : 46) * Math.min(1.2, esc) * late);   /* NOVA ocupa la izquierda */
+    const xc = lado ? x1p + 32 : W / 2, yc = lado ? H * 0.5 : naceY - 34;
+    g.textAlign = lado ? "left" : "center";
+    g.font = "800 14px system-ui,sans-serif"; g.fillStyle = "#c9b8d8"; g.fillText("COMBO", xc, yc - tn * 0.9);
+    g.font = `300 ${tn}px system-ui,sans-serif`; g.strokeStyle = "#2b2440"; g.lineWidth = 6;
+    g.strokeText(String(m.combo), xc, yc); g.fillStyle = "#fbf6ee"; g.fillText(String(m.combo), xc, yc);
   }
-  g.font = "900 28px system-ui,sans-serif"; g.fillStyle = "#fbf6ee"; g.textAlign = "left"; g.fillText(String(m.puntos()).padStart(4, "0"), 14, 38);
+  /* marcador y senal */
+  g.textAlign = "left";
+  g.font = "900 28px system-ui,sans-serif"; g.fillStyle = "#fbf6ee"; g.fillText(String(m.puntos()).padStart(4, "0"), 14, 38);
   const senal = m.senal(), bw = Math.min(260, W - 28);
-  g.fillStyle = "#e86a7e"; g.fillRect(14, 50, bw, 10); g.fillStyle = "#5eead4"; g.fillRect(14, 50, bw * senal, 10);
+  g.fillStyle = "#2b2440"; g.fillRect(11, 47, bw + 6, 16);
+  g.fillStyle = "#d1495b"; g.fillRect(14, 50, bw, 10); g.fillStyle = "#3fbfae"; g.fillRect(14, 50, bw * senal, 10);
   g.font = "700 12px system-ui,sans-serif"; g.fillStyle = "#c9b8d8";
-  g.fillText(`SEÑAL ${Math.round(senal*100)}%  ·  combo máx. x${m.maxCombo}`, 14, 76);
+  g.fillText(`SEÑAL ${Math.round(senal*100)}%  ·  combo máx. x${m.maxCombo}`, 14, 78);
   if (t < 0 && t > -4000) {
-    g.textAlign = "center"; g.font = "900 72px system-ui,sans-serif"; g.fillStyle = "#facc15";
+    g.textAlign = "center"; g.font = "300 96px system-ui,sans-serif"; g.fillStyle = "#fbf6ee";
     g.fillText(String(Math.ceil(-t / 1000)), W/2, H * 0.45);
   }
 }

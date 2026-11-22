@@ -151,7 +151,7 @@ screen tarjeta_evidencia(p, nodo, cabecera=None, color_borde="#00000000"):
         if nodo == p.pista_carta and nodo not in p.slots:
             add Solid("#22c55e") xysize PUZZLE_CARTA at pista_brillo
         elif nodo in p.candidatos_pista and nodo not in p.slots:
-            add Solid("#facc15") xysize PUZZLE_CARTA at pista_brillo
+            add Solid("#e8b04b") xysize PUZZLE_CARTA at pista_brillo
         frame:
             xysize (PUZZLE_CARTA[0] - 10, PUZZLE_CARTA[1] - 10)
             align (0.5, 0.5)
@@ -193,20 +193,20 @@ screen puzzle_rastreo_ui(p, rumor):
         ypos 34
         spacing 40
         vbox:
-            text "TIEMPO" size 16 color "#a7a5f2"
+            text "TIEMPO" size 16 color "#c9b8d8"
             bar:
                 xsize 260
                 ysize 18
                 value StaticValue(p.restante(), p.tiempo_total)
-                left_bar Solid("#e86a7e" if p.restante() < 20 else "#a7a5f2")
+                left_bar Solid("#d1495b" if p.restante() < 20 else "#c9b8d8")
                 right_bar Solid("#3a3350")
             text "%d s" % int(p.restante()) size 26 bold True color "#fbf6ee"
         vbox:
-            text "COMPROBACIONES" size 16 color "#a7a5f2"
+            text "COMPROBACIONES" size 16 color "#c9b8d8"
             hbox:
                 spacing 8
                 for i in range(p.comprobaciones):
-                    add circulo("#facc15" if i < p.comprobaciones_restantes() else "#3a3350", "#fbf6ee", 13)
+                    add circulo("#e8b04b" if i < p.comprobaciones_restantes() else "#3a3350", "#fbf6ee", 13)
 
     # ---- Cadena: origen -> difusion -> publicacion viral ----
     for i in range(p.eslabones):
@@ -217,7 +217,7 @@ screen puzzle_rastreo_ui(p, rumor):
             ypos PUZZLE_FILA_Y - 34
             size 20
             bold True
-            color ("#facc15" if i == p.eslabones - 1 else "#c9b8d8")
+            color ("#e8b04b" if i == p.eslabones - 1 else "#c9b8d8")
         $ estado_flecha = p.revision[i]
         $ color_flecha = "#2f9e8f" if estado_flecha else "#e04f5f" if estado_flecha is False else "#fbf6ee"
         fixed:
@@ -239,7 +239,7 @@ screen puzzle_rastreo_ui(p, rumor):
         xpos x_viral + (PUZZLE_HUECO[0] - PUZZLE_CARTA[0]) // 2
         ypos PUZZLE_FILA_Y + (PUZZLE_HUECO[1] - PUZZLE_CARTA[1]) // 2
         xysize PUZZLE_CARTA
-        use tarjeta_evidencia(p, p.inicio, "SE HIZO VIRAL", "#e86a7e")
+        use tarjeta_evidencia(p, p.inicio, "SE HIZO VIRAL", "#d1495b")
 
     draggroup:
         for i in range(p.eslabones):
@@ -253,7 +253,7 @@ screen puzzle_rastreo_ui(p, rumor):
                 clicked Function(puzzle_click_hueco, p, i)
                 fixed:
                     xysize PUZZLE_HUECO
-                    add Solid("#2f9e8f" if revision_hueco else "#e04f5f" if revision_hueco is False else "#a7a5f2" if p.seleccionada else "#fbf6ee66") xysize PUZZLE_HUECO
+                    add Solid("#2f9e8f" if revision_hueco else "#e04f5f" if revision_hueco is False else "#c9b8d8" if p.seleccionada else "#fbf6ee66") xysize PUZZLE_HUECO
                     add Solid("#2a2238") xysize (PUZZLE_HUECO[0] - 8, PUZZLE_HUECO[1] - 8) align (0.5, 0.5)
                     if p.slots[i] is None:
                         text ("Suelta aquí" if not p.seleccionada else "Colocar aquí") size 22 color "#8b84a8" align (0.5, 0.5)
@@ -271,7 +271,7 @@ screen puzzle_rastreo_ui(p, rumor):
                 ypos y_carta
                 fixed:
                     xysize PUZZLE_CARTA
-                    use tarjeta_evidencia(p, carta, None, "#facc15" if p.seleccionada == carta else "#00000000")
+                    use tarjeta_evidencia(p, carta, None, "#e8b04b" if p.seleccionada == carta else "#00000000")
 
     # ---- Conclusion ----
     text "CONCLUSIÓN: ¿quién empezó el rumor?":

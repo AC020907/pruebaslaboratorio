@@ -15,7 +15,7 @@ init python:
         "infectado":  "#ef4444",
         "cuarentena": "#38bdf8",
         "protegido":  "#22c55e",
-        "rastro":     "#facc15",
+        "rastro":     "#e8b04b",
     }
 
     def mezclar(c1, c2, t):
@@ -190,8 +190,8 @@ init python:
                         self.sacudida = 0.4
                         sonar(SONIDO_AVISO["alerta"])
                 elif tipo == "rastro":
-                    self.flotar(x, y - 50, "RASTRO +%d" % ev["puntos"], "#facc15", 26)
-                    self.anillo(x, y, "#facc15", 120, 0.6)
+                    self.flotar(x, y - 50, "RASTRO +%d" % ev["puntos"], "#e8b04b", 26)
+                    self.anillo(x, y, "#e8b04b", 120, 0.6)
                     sonar(SONIDO_AVISO["info"])
                 elif tipo == "rastro_falso":
                     self.flotar(x, y - 50, "PISTA FALSA  -%ds" % self.sim.cfg["penalizacion_rastro"], "#f87171", 24)
@@ -259,7 +259,7 @@ init python:
                     x1, y1 = self.pos[rastro[i]]
                     x2, y2 = self.pos[rastro[i + 1]]
                     largo = math.hypot(x2 - x1, y2 - y1)
-                    haz = Transform(Solid("#facc15", xysize=(int(largo), 6)),
+                    haz = Transform(Solid("#e8b04b", xysize=(int(largo), 6)),
                                     rotate=math.degrees(math.atan2(y2 - y1, x2 - x1)))
                     self.poner(r, haz, (x1 + x2) / 2.0, (y1 + y2) / 2.0, st, at)
 
@@ -321,7 +321,7 @@ init python:
                 self.poner(r, aro("#ffffff", radio + 6, 3), x, y, st, at)
             if self.rastreo:
                 if nodo == sim.actual() and sim.jugando():
-                    self.poner(r, aro("#facc15", radio + 14, 3), x, y, st, at)
+                    self.poner(r, aro("#e8b04b", radio + 14, 3), x, y, st, at)
                 if nodo == sim.pista_nodo and sim.transcurrido < sim.pista_hasta and int(st * 6) % 2 == 0:
                     self.poner(r, aro("#ffffff", radio + 16, 5), x, y, st, at)
                 if nodo == sim.inicio:
@@ -334,7 +334,7 @@ init python:
         def dibujar_hud(self, r, st, at):
             sim = self.sim
             self.poner(r, Solid("#120d1cf0", xysize=(1920, 150)), 0, 0, st, at, (0, 0))
-            self.poner(r, self.texto(self.titulo, 40, "#facc15" if self.rastreo else "#f87171", True), 40, 18, st, at, (0, 0))
+            self.poner(r, self.texto(self.titulo, 40, "#e8b04b" if self.rastreo else "#f87171", True), 40, 18, st, at, (0, 0))
             if self.rastreo:
                 objetivo = "Sigue el rastro hasta la cuenta que INICIÓ el rumor"
                 controles = "CLIC cuenta: seguir rastro  -  CLIC DERECHO: retroceder  -  H: pista (-%ds)  -  CLIC rumor: frenarlo  -  ESPACIO: onda" % sim.cfg["costo_pista"]
@@ -360,7 +360,7 @@ init python:
             self.poner(r, self.texto("PUNTOS", 16, "#94a3b8"), 1510, 18, st, at, (0, 0))
             self.poner(r, self.texto(formato_num(sim.puntos), 36, "#f8fafc", True), 1510, 40, st, at, (0, 0))
             if sim.combo >= 2:
-                self.poner(r, self.texto("COMBO x%d" % sim.combo, 22 + sim.combo * 2, "#facc15", True), 1510, 88, st, at, (0, 0))
+                self.poner(r, self.texto("COMBO x%d" % sim.combo, 22 + sim.combo * 2, "#e8b04b", True), 1510, 88, st, at, (0, 0))
 
             self.poner(r, self.texto("ONDAS", 16, "#94a3b8"), 1720, 18, st, at, (0, 0))
             for i in range(sim.cfg["max_ondas"]):
@@ -368,7 +368,7 @@ init python:
                 self.poner(r, circulo(color_o, aclarar(color_o, 50), 12), 1732 + i * 32, 56, st, at)
             if self.rastreo:
                 estado = "RASTRO: %d cuentas" % len(sim.rastro)
-                color_e = "#facc15"
+                color_e = "#e8b04b"
             elif sim.cooldown > 0:
                 estado = "CUARENTENA %.1fs" % sim.cooldown
                 color_e = "#64748b"
@@ -388,7 +388,7 @@ init python:
         def dibujar_intro(self, r, st, at):
             self.poner(r, Solid("#000000c0"), 0, 0, st, at, (0, 0))
             numero = int(math.ceil(self.sim.intro))
-            self.poner(r, self.texto(self.titulo, 64, "#facc15" if self.rastreo else "#f87171", True), 960, 300, st, at)
+            self.poner(r, self.texto(self.titulo, 64, "#e8b04b" if self.rastreo else "#f87171", True), 960, 300, st, at)
             if self.rastreo:
                 lineas = ["El rumor ya se está extendiendo. Encuentra quién lo empezó.",
                           "Haz clic (o apunta y pulsa A) en la cuenta que se lo envio a la amarilla.",
@@ -470,7 +470,7 @@ init python:
                 ganados = sim.interceptar(mejor)
                 self.flotar(x, y - 20, "+%d" % ganados, "#fde68a", 22 + 3 * sim.combo, 0.8)
                 if sim.combo >= 2:
-                    self.flotar(x, y - 50, "x%d" % sim.combo, "#facc15", 30, 0.8)
+                    self.flotar(x, y - 50, "x%d" % sim.combo, "#e8b04b", 30, 0.8)
                 self.anillo(x, y, "#fde68a", 50, 0.3)
                 sonar(SONIDO_INTERCEPCION)
                 return

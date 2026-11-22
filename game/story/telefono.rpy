@@ -11,7 +11,7 @@ init python:
     def estilo_opcion(etiqueta):
         e = etiqueta.lower()
         if e.startswith("compartir"):
-            return "#e86a7e"
+            return "#d1495b"
         if e.startswith("ignorar"):
             return "#8b84a8"
         if "falsa" in e or "falso" in e or "reportar" in e or "propaganda" in e or "exagerado" in e or "fabricado" in e:
@@ -60,7 +60,7 @@ screen telefono_civitas(sesion):
 
             hbox:
                 spacing 10
-                text "CIVITAS" size 30 bold True color "#a7a5f2" kerning 3
+                text "CIVITAS" size 30 bold True color "#c9b8d8" kerning 3
                 text "Ciudad Nova" size 16 color "#8b84a8" yalign 0.7
             frame:
                 xfill True
@@ -78,8 +78,8 @@ screen telefono_civitas(sesion):
                     text pub.contenido size 23 color "#ece6ff"
                     hbox:
                         spacing 26
-                        text "%s reposts" % formato_num(reposts) size 17 bold True color "#e86a7e"
-                        text "%s me gusta" % formato_num(me_gusta) size 17 color "#a7a5f2"
+                        text "%s reposts" % formato_num(reposts) size 17 bold True color "#d1495b"
+                        text "%s me gusta" % formato_num(me_gusta) size 17 color "#c9b8d8"
                     if pub.nivel_riesgo >= 55:
                         text "TENDENCIA EN TU ZONA" size 14 bold True color "#f59e0b" kerning 2
 

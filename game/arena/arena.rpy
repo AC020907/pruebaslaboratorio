@@ -17,7 +17,7 @@ init -5 python:
     ARENA_RONDAS = 5
     ARENA_SEGUNDOS = 25
     ARENA_ICONO_TIPO = {"ciudadano": "ciudadano", "candidato": "influencer", "fuente": "medio", "jugador": "jugador"}
-    ARENA_COLOR_ROL = {"ciudadano": "#2f9e8f", "periodista": "#5b5bd6", "influencer": "#d6457a", "candidato": "#c58a1b"}
+    ARENA_COLOR_ROL = {"ciudadano": "#2f9e8f", "periodista": "#3d7ea6", "influencer": "#d6457a", "candidato": "#c58a1b"}
     ARENA_CENTRO_ZONA = {"colegio": (1290, 290), "barrio": (1290, 470), "parque": (1035, 645),
                          "plaza": (1545, 645), "alcaldia": (1545, 830)}
 
@@ -528,9 +528,9 @@ screen arena_cabecera(c):
                         spacing 8
                         xsize 372
                         text AR.NOMBRE_INDICADOR[k] size 17 color ("#f4b6c2" if k in AR.NEGATIVOS else "#c9f2ea") min_width 200 yalign 0.5
-                        bar value StaticValue(ind[k], 100) xsize 70 ysize 12 yalign 0.5 left_bar Solid("#e86a7e" if k in AR.NEGATIVOS else "#5eead4") right_bar Solid("#3a3350")
+                        bar value StaticValue(ind[k], 100) xsize 70 ysize 12 yalign 0.5 left_bar Solid("#d1495b" if k in AR.NEGATIVOS else "#3fbfae") right_bar Solid("#3a3350")
                         text "%d" % ind[k] size 17 color "#fbf6ee" yalign 0.5 min_width 34
-                        text (("%+d" % delta[k]) if delta.get(k) else "") size 17 bold True color ("#5eead4" if (delta.get(k, 0) > 0) != (k in AR.NEGATIVOS) else "#f4b6c2") yalign 0.5
+                        text (("%+d" % delta[k]) if delta.get(k) else "") size 17 bold True color ("#3fbfae" if (delta.get(k, 0) > 0) != (k in AR.NEGATIVOS) else "#f4b6c2") yalign 0.5
             textbutton "AYUDA" style "arena_link_claro" yalign 0.5 action Show("ayuda_civitas", pestana="arena")
 
 screen arena_ronda(c):
@@ -561,7 +561,7 @@ screen arena_ronda(c):
                     hbox:
                         spacing 12
                         text ("En pausa" if pausado else "Tiempo restante: %d s" % int(restante + 0.99)) size 28 bold True color ("#c0392b" if restante <= 5 and not pausado else "#2b2440")
-                        bar value StaticValue(restante, max(1, r["segundos"])) xsize 260 ysize 16 yalign 0.5 left_bar Solid("#c0392b" if restante <= 5 else "#5b5bd6") right_bar Solid("#d9d2e9")
+                        bar value StaticValue(restante, max(1, r["segundos"])) xsize 260 ysize 16 yalign 0.5 left_bar Solid("#c0392b" if restante <= 5 else "#3d7ea6") right_bar Solid("#d9d2e9")
                 if c.ya_decidi():
                     text "Decisión enviada. Esperando al resto de la sala…" size 24 color "#2f9e8f"
                 elif nodo:
@@ -587,12 +587,12 @@ screen arena_mapa(zona_activa, estados, resaltadas, autor, titulo):
     $ g, pos = arena_grafo_ronda(autor)
     $ zonas_g = AR.construir_grafo_ciudad()
     text titulo size 22 color "#fbf6ee" xpos 780 ypos 116
-    add capa_aristas(zonas_g, ARENA_CENTRO_ZONA, {(a, b): "#facc15" for a, b in AR.CALLES if zona_activa in (a, b)}, (), 1920)
+    add capa_aristas(zonas_g, ARENA_CENTRO_ZONA, {(a, b): "#e8b04b" for a, b in AR.CALLES if zona_activa in (a, b)}, (), 1920)
     for z, (x, y) in ARENA_CENTRO_ZONA.items():
         frame:
             pos (x, y - 128)
             xanchor 0.5
-            background Frame(Solid("#facc15" if z == zona_activa else "#3a3350"), 0, 0)
+            background Frame(Solid("#e8b04b" if z == zona_activa else "#3a3350"), 0, 0)
             padding (14, 4)
             text AR.NOMBRE_ZONA[z].upper() size 18 bold True color ("#1b1426" if z == zona_activa else "#fbf6ee")
     if g:
@@ -677,7 +677,7 @@ screen arena_final(c):
                     hbox:
                         spacing 12
                         text nombre size 22 bold (cid == f["ganador"]) color "#2b2440" min_width 220 yalign 0.5
-                        bar value StaticValue(f["votos"][cid], total) xsize 380 ysize 22 yalign 0.5 left_bar Solid("#8c2f4b" if cid == f["ganador"] else "#a7a5f2") right_bar Solid("#ece6f5")
+                        bar value StaticValue(f["votos"][cid], total) xsize 380 ysize 22 yalign 0.5 left_bar Solid("#8c2f4b" if cid == f["ganador"] else "#c9b8d8") right_bar Solid("#ece6f5")
                         text ("1 voto" if f["votos"][cid] == 1 else "%d votos" % f["votos"][cid]) size 20 color "#2b2440" yalign 0.5
                 text "Abstención: %d ciudadanos" % f["abstencion"] style "arena_nota"
                 text "¿Por qué ganó?" size 24 bold True color "#2b2440"
@@ -742,10 +742,10 @@ style arena_link is default:
     padding (6, 4)
 style arena_link_text is default:
     size 20
-    color "#5b5bd6"
+    color "#3d7ea6"
     hover_color "#8c2f4b"
     underline True
 style arena_link_claro is arena_link
 style arena_link_claro_text is arena_link_text:
-    color "#facc15"
+    color "#e8b04b"
     hover_color "#ffffff"

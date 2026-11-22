@@ -65,6 +65,7 @@ init python:
                       "documento", "antena_off", "antena_on"):
                 self.img[n] = Transform(PLAT_V2 + n + ".png", zoom=0.5)
             self.img["archivo"] = Transform(PLAT_V2 + "archivo.png", zoom=0.5)
+            self.img["halo"] = Transform(PLAT_V2 + "halo.png", zoom=0.5)
             for n in ("idle_0", "idle_1", "corre_0", "corre_1", "corre_2", "corre_3", "corre_4", "corre_5",
                       "salto", "cae", "recoge", "dano", "victoria"):
                 self.img[n] = PLAT_V2 + "av_" + n + ".png"
@@ -74,6 +75,8 @@ init python:
             self.lejos = PLAT_V2 + "fondo_lejos.png"
             self.medio = PLAT_V2 + "fondo_medio.png"
             self.cables = PLAT_V2 + "primer_plano.png"
+            self.cielo = PLAT_V2 + "cielo.png"         # remaster 3: noche en bandas y la senal de NOVA (fijo)
+            self.vineta = PLAT_V2 + "vineta.png"
             self.aterrizo_st = -9.0       # squash al aterrizar
             self.recoge_st = -9.0         # pose de recoger evidencia
             self.dano_st = -9.0           # sacudida y estatica al ser detectado
@@ -173,7 +176,7 @@ init python:
                 if tipo == "evidencia":
                     self.recoge_st = st
                     sfx("pista")
-                    self.aviso = (PL.FRAGMENTOS[dato % len(PL.FRAGMENTOS)], "#facc15", st)
+                    self.aviso = (PL.FRAGMENTOS[dato % len(PL.FRAGMENTOS)], "#e8b04b", st)
                 elif tipo == "dano":
                     self.dano_st = st
                     sfx("error")
@@ -181,7 +184,7 @@ init python:
                 elif tipo == "control":
                     self.control_st = st
                     sfx("decision")
-                    self.aviso = ("Punto de control", "#5eead4", st)
+                    self.aviso = ("Punto de control", "#3fbfae", st)
                 elif tipo == "meta":
                     sfx("logro")
                 elif tipo == "tiempo":
@@ -218,8 +221,8 @@ init python:
             cam_v = cam + sac
             y0 = PLAT_SUELO_Y - n.alto * lado
 
-            # Tres planos: Ciudad Nova entintada (0.12), torres de NOVA (0.35) y, al final, cables (1.25).
-            r.blit(renpy.render(Solid("#120d1c"), 1920, 1080, st, at), (0, 0))
+            # Cielo fijo y tres planos: Ciudad Nova a lo lejos (0.12), torres de NOVA (0.35) y, al final, cables (1.25).
+            poner(self.cielo, 0, 0)
             for capa, fac, yy in ((self.lejos, 0.12, 0), (self.medio, 0.35, 40)):
                 off = -(cam_v * fac) % 3840
                 poner(capa, off, yy)
@@ -255,6 +258,7 @@ init python:
                         if n.evidencias.index((fx, fy)) not in p.recogidas:
                             flota = 0 if persistent.reducir_movimiento else math.sin(st * 3 + fx) * 6
                             gira = 0 if persistent.reducir_movimiento else math.sin(st * 2 + fx) * 6
+                            poner(self.img["halo"], x + lado / 2 - 72, y + lado / 2 - 72 + flota)
                             poner(Transform(self.img["documento"], rotate=gira), x - 8, y + flota - 8)
                     elif ch == PL.CONTROL:
                         on = p.control == (fx, fy)
@@ -305,6 +309,7 @@ init python:
             off = -(cam_v * 1.25) % 3840
             poner(self.cables, off, 0)
             poner(self.cables, off - 3840, 0)
+            poner(self.vineta, 0, 0)
             # Deteccion: estatica breve en franjas (sin destellos a pantalla completa).
             if st - self.dano_st < 0.22 and not persistent.reducir_movimiento:
                 for i, yy in enumerate((180, 420, 700, 900)):
@@ -359,7 +364,7 @@ init python:
             if self.tactil:
                 poner(self.flecha_izq, PLAT_ZONAS[PL.IZQ][0] + 30, PLAT_ZONAS[PL.IZQ][1] + 30)
                 poner(self.flecha, PLAT_ZONAS[PL.DER][0] + 30, PLAT_ZONAS[PL.DER][1] + 30)
-                poner(self.texto("SALTO", 40, "#facc15"), PLAT_ZONAS[PL.SALTO][0] + 50, PLAT_ZONAS[PL.SALTO][1] + 90)
+                poner(self.texto("SALTO", 40, "#e8b04b"), PLAT_ZONAS[PL.SALTO][0] + 50, PLAT_ZONAS[PL.SALTO][1] + 90)
             if self.resultado_listo() and not self.fin_avisado:
                 self.fin_avisado = True
                 renpy.restart_interaction()
@@ -424,9 +429,11 @@ init python:
 screen plataformas_tutorial(extra_s=0):
     modal True
     zorder 46
+    add PLAT_V2 + "cielo.png"
     add PLAT_V2 + "fondo_lejos.png"
     add PLAT_V2 + "fondo_medio.png" ypos 40
-    add Solid("#120d1cc0")
+    add PLAT_V2 + "vineta.png"
+    add Solid("#120d1ca8")
     frame:
         align (0.5, 0.5)
         xsize 1240
@@ -435,8 +442,10 @@ screen plataformas_tutorial(extra_s=0):
         has vbox
         spacing 14
         xfill True
-        text "RUTA DE LA VERDAD" size 46 bold True color "#8c2f4b" xalign 0.5
-        text "INFILTRACIÓN NOVA" size 24 bold True color "#6d5bd0" xalign 0.5
+        text "INFILTRACIÓN NOVA" style "civ_etiqueta" xalign 0.5
+        text "Ruta de la Verdad" style "civ_titulo" size 64 xalign 0.5
+        add Solid("#d1495b", xysize=(120, 5)) xalign 0.5
+        null height 6
         text "El rumor ya corre por toda la ciudad. La única forma de pararlo es entrar al sistema de NOVA y traer la evidencia original." size 22 color "#2b2440" xalign 0.5 text_align 0.5
         hbox:
             xalign 0.5
@@ -462,7 +471,7 @@ screen plataformas_ui(vista):
     zorder 45
     add vista
     if vista.p.jugando() and not vista.pausa:
-        textbutton "Pausa" style "boton_vn_compacto" text_style "boton_vn_text" xalign 0.99 ypos 96 action Function(vista.pausar)
+        textbutton "Pausa" style "civ_ficha" text_style "civ_ficha_text" xalign 0.985 ypos 96 action Function(vista.pausar)
     if vista.pausa:
         add Solid("#000000b8")
         frame:
@@ -471,7 +480,8 @@ screen plataformas_ui(vista):
             padding (56, 40)
             vbox:
                 spacing 16
-                text "PAUSA" size 44 bold True color "#2b2440" xalign 0.5
+                text "Pausa" style "civ_titulo" xalign 0.5
+                add Solid("#d1495b", xysize=(100, 5)) xalign 0.5
                 textbutton "Continuar" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.reanudar) default_focus True
                 if vista.reinicio:
                     textbutton "Reiniciar desde el principio" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Function(vista.reiniciar)

@@ -47,31 +47,56 @@ def guardar(img, nombre):
 
 
 # ------------------------------------------------------------------ tiles solidos (autotiling 4 bits)
+CUERPO = (58, 48, 84, 255)       # parte alta del bloque (bajo la pasarela)
+CUERPO_M = (50, 41, 74, 255)
+HONDO = (40, 33, 60, 255)         # interior: mas oscuro, para que las masas grandes tengan profundidad
+JUNTA = (32, 26, 50, 255)
+LUZ = (84, 72, 118, 255)          # canto iluminado (luz de las pantallas, desde la izquierda)
+SOMBRA = (30, 24, 46, 255)
+PASARELA = (222, 212, 234, 255)
+
+
 def solido(arriba, izq, der, abajo, variante):
-    """Bloque de la infraestructura de NOVA. Los lados expuestos llevan contorno; los internos no (sin costuras)."""
+    """Bloque de la infraestructura de NOVA (remaster 3). Con pasarela clara arriba, cuerpo en bandas
+    planas que oscurecen hacia dentro, racks de servidor y cantos con luz y sombra. Los lados internos
+    no llevan contorno: los bloques se unen sin costura."""
     im = lienzo(T, T)
     d = ImageDraw.Draw(im)
-    d.rectangle([0, 0, T, T], fill=MORADO)
-    # ranuras de servidor: lineas horizontales continuas de tile a tile
-    for y in (52, 96):
-        d.rectangle([0, y, T, y + 5], fill=MORADO2)
-    # remaches/LED en patron alterno para que no se note la repeticion
-    rnd = random.Random(variante)
-    for x in (24, 72, 120):
-        if rnd.random() < 0.45:
-            d.ellipse([x - 5, 70, x + 5, 80], fill=TINTA)
-    if variante % 3 == 0:
-        d.rectangle([96, 112, 114, 118], fill=TEAL)
+    rnd = random.Random(variante * 7 + 3)
     if arriba:
-        d.rectangle([0, 0, T, 30], fill=LILA)
-        d.rectangle([0, 30, T, 30 + L], fill=TINTA)
-        for x in range(10, T, 36):
-            d.rectangle([x, 10, x + 16, 16], fill=(230, 220, 238, 255))
+        d.rectangle([0, 0, T, T], fill=HONDO)
+        d.rectangle([0, 0, T, 96], fill=CUERPO_M)
+        d.rectangle([0, 0, T, 60], fill=CUERPO)
+    else:
+        d.rectangle([0, 0, T, T], fill=HONDO)
+    # rack: dos unidades por bloque, con ranura y LED
+    for k, y in enumerate((44, 100)):
+        if arriba and y < 40:
+            continue
+        d.rectangle([14, y, T - 14, y + 30], fill=JUNTA)
+        d.rectangle([20, y + 6, T - 20, y + 10], fill=SOMBRA)
+        d.rectangle([20, y + 18, T - 54, y + 22], fill=SOMBRA)
+        led = rnd.random()
+        col = TEAL if led < 0.30 else (AMBAR if led < 0.38 else (60, 52, 88, 255))
+        d.rectangle([T - 44, y + 16, T - 32, y + 24], fill=col)
+    # juntas verticales entre bloques (sutiles, siempre en el mismo sitio: no se nota la repeticion)
+    d.rectangle([0, 0, 3, T], fill=JUNTA)
+    if arriba:
+        d.rectangle([0, 0, T, 34], fill=PASARELA)
+        d.rectangle([0, 26, T, 34], fill=(186, 170, 206, 255))
+        d.rectangle([0, 34, T, 34 + L], fill=TINTA)
+        for x in range(8, T, 36):
+            d.rectangle([x, 9, x + 18, 14], fill=(244, 238, 248, 255))
+        if variante % 2 == 0:
+            d.rectangle([T // 2 - 6, 40 + L, T // 2 + 6, 46 + L], fill=TEAL)
     if izq:
+        d.rectangle([L, 0, L + 8, T], fill=LUZ)
         d.rectangle([0, 0, L, T], fill=TINTA)
     if der:
+        d.rectangle([T - L - 10, 0, T - L, T], fill=SOMBRA)
         d.rectangle([T - L, 0, T, T], fill=TINTA)
     if abajo:
+        d.rectangle([0, T - L - 8, T, T - L], fill=SOMBRA)
         d.rectangle([0, T - L, T, T], fill=TINTA)
     if arriba:
         d.rectangle([0, 0, T, L], fill=TINTA)
@@ -268,63 +293,139 @@ def avatar(pose, fase=0.0):
     return im
 
 
-# ------------------------------------------------------------------ fondos con parallax (1920 x 1080, enlazables)
+# ------------------------------------------------------------------ fondos con parallax (remaster 3)
+def bandas(d, w, y0, y1, colores):
+    """Degradado en bandas planas (posterizado): profundidad sin romper el estilo plano."""
+    n = len(colores)
+    for i, c in enumerate(colores):
+        d.rectangle([0, int(y0 + (y1 - y0) * i / n), w, int(y0 + (y1 - y0) * (i + 1) / n) + 1], fill=c)
+
+
+def cielo():
+    """Plano fijo: noche de Ciudad Nova en bandas y, al fondo, la senal de NOVA (disco con ondas)."""
+    W, H = 1920, 1080
+    im = Image.new("RGBA", (W, H), NOCHE)
+    d = ImageDraw.Draw(im)
+    bandas(d, W, 0, 760, [(18, 13, 28, 255), (22, 16, 36, 255), (28, 20, 44, 255), (36, 25, 52, 255),
+                          (46, 30, 60, 255), (58, 36, 66, 255), (72, 42, 70, 255)])
+    d.rectangle([0, 760, W, H], fill=(72, 42, 70, 255))
+    cx, cy = 1340, 330
+    capa = lienzo(W, H)
+    c = ImageDraw.Draw(capa)
+    for r, a in ((300, 18), (240, 26), (190, 34)):
+        c.ellipse([cx - r, cy - r, cx + r, cy + r], outline=(201, 184, 216, a), width=4)
+    c.ellipse([cx - 140, cy - 140, cx + 140, cy + 140], fill=(201, 184, 216, 46))
+    c.ellipse([cx - 104, cy - 104, cx + 104, cy + 104], fill=(209, 73, 91, 40))
+    c.ellipse([cx - 30, cy - 30, cx + 30, cy + 30], fill=(251, 246, 238, 70))
+    im.alpha_composite(capa)
+    rnd = random.Random(3)
+    for _ in range(90):
+        x, y = rnd.randint(0, W), rnd.randint(0, 520)
+        t = rnd.choice((2, 2, 3))
+        d.rectangle([x, y, x + t, y + t], fill=(201, 184, 216, rnd.randint(60, 140)))
+    return im
+
+
+def silueta(d, x, w, top, base, color, ventanas, rnd):
+    d.rectangle([x, top, x + w, base], fill=color)
+    if rnd.random() < 0.4:
+        d.rectangle([x + w // 4, top - rnd.randint(30, 70), x + w // 4 + 8, top], fill=color)
+    for yy in range(top + 24, base - 20, 34):
+        for xx in range(x + 12, x + w - 16, 26):
+            v = rnd.random()
+            if v < ventanas:
+                d.rectangle([xx, yy, xx + 10, yy + 14], fill=(232, 176, 75, 150) if v < ventanas * 0.35 else (201, 184, 216, 90))
+
+
 def fondo_lejos():
-    """Ciudad Nova (el panorama oficial del juego) entintada: el sistema de NOVA es un espejo de la ciudad."""
-    pan = Image.open(os.path.join(RAIZ, "game", "images", "bg", "panorama.jpg")).convert("L")
-    pan = ImageOps.autocontrast(pan, cutoff=2)
-    color = ImageOps.colorize(pan, black=(22, 16, 36), white=(112, 96, 150))
-    color = color.filter(ImageFilter.GaussianBlur(1.2))
-    im = color.convert("RGBA")
-    velo = Image.new("RGBA", im.size, (18, 13, 28, 120))
-    im.alpha_composite(velo)
-    # se refleja para enlazar sin costura al repetir
-    doble = Image.new("RGBA", (3840, 1080))
-    doble.paste(im, (0, 0))
-    doble.paste(ImageOps.mirror(im), (1920, 0))
-    return doble
-
-
-def fondo_medio():
-    """Torres de NOVA: servidores y pantallas con publicaciones en bucle. Planas, con contorno."""
+    """Ciudad Nova a lo lejos (silueta en dos planos, la torre del cerro), con bruma en el horizonte.
+    Enlaza sin costura: 3840 px, se dibuja dos veces."""
     W, H = 3840, 1080
     im = lienzo(W, H)
     d = ImageDraw.Draw(im)
+    for base in (0, 1920):
+        d.polygon([(base + 900, 760), (base + 1180, 560), (base + 1420, 600), (base + 1700, 760)], fill=(46, 32, 62, 255))
+        d.rectangle([base + 1178, 330, base + 1186, 560], fill=(46, 32, 62, 255))
+        d.rectangle([base + 1166, 420, base + 1198, 438], fill=(46, 32, 62, 255))
+        d.ellipse([base + 1176, 318, base + 1188, 330], fill=(209, 73, 91, 200))
+    for fila, (color, alto, vent) in enumerate((((44, 31, 60, 255), (160, 330), 0.10), ((34, 25, 50, 255), (120, 260), 0.16))):
+        rnd = random.Random(40 + fila)
+        x = -60
+        while x < W:
+            w = rnd.randint(70, 170)
+            top = 760 + fila * 60 - rnd.randint(*alto)
+            silueta(d, x, w, top, H, color, vent, rnd)
+            x += w + rnd.randint(-10, 24)
+    # bruma: bandas claras sobre la base de la ciudad
+    for i, a in enumerate((36, 26, 16)):
+        d.rectangle([0, 760 + i * 40, W, 800 + i * 40], fill=(201, 184, 216, a))
+    return im
+
+
+def fondo_medio():
+    """Torres de NOVA (plano medio, 0.35): oscuras, con canto iluminado, ventanas y pantallas del rumor
+    que brillan. Sin velo encima: el contraste lo dan los colores."""
+    W, H = 3840, 1080
+    im = lienzo(W, H)
+    brillo = lienzo(W, H)
+    d = ImageDraw.Draw(im)
+    g = ImageDraw.Draw(brillo)
     rnd = random.Random(11)
-    f = ImageFont.truetype(FUENTE, 26)
-    x = 0
     textos = ("#AguaEnvenenada", "COMPARTE YA", "Los medios callan", "18.900 reposts", "NO LA TOMEN")
-    while x < W:
-        w = rnd.randint(150, 260)
-        h = rnd.randint(360, 720)
+    x = 0
+    while x < W - 200:
+        w = rnd.randint(170, 280)
+        h = rnd.randint(380, 700)
         top = H - h
-        d.rectangle([x, top, x + w, H], fill=(46, 39, 70, 255), outline=TINTA, width=6)
-        d.rectangle([x, top, x + w, top + 22], fill=(64, 55, 94, 255), outline=TINTA, width=6)
-        for yy in range(top + 50, H - 40, 46):
-            for xx in range(x + 18, x + w - 24, 34):
-                if rnd.random() < 0.55:
-                    d.rectangle([xx, yy, xx + 18, yy + 8], fill=(30, 24, 48, 255))
-                elif rnd.random() < 0.15:
-                    d.rectangle([xx, yy, xx + 18, yy + 8], fill=(85, 150, 140, 255))
-        if rnd.random() < 0.55 and w > 170:
-            # pantalla con una publicacion del rumor (misma tarjeta de CivitasNet)
-            sy = top + 70
-            d.rectangle([x + 16, sy, x + w - 16, sy + 110], fill=(225, 216, 230, 255), outline=TINTA, width=6)
-            d.rectangle([x + 16, sy, x + 26, sy + 110], fill=(170, 70, 90, 255))
+        d.rectangle([x, top, x + w, H], fill=(29, 22, 44, 255), outline=TINTA, width=6)
+        d.rectangle([x + 6, top + 6, x + 14, H], fill=(58, 48, 86, 255))
+        d.rectangle([x, top, x + w, top + 18], fill=(40, 32, 60, 255), outline=TINTA, width=6)
+        for yy in range(top + 46, H - 30, 40):
+            for xx in range(x + 26, x + w - 26, 30):
+                v = rnd.random()
+                if v < 0.07:
+                    d.rectangle([xx, yy, xx + 14, yy + 18], fill=(38, 112, 104, 255))
+                elif v < 0.11:
+                    d.rectangle([xx, yy, xx + 14, yy + 18], fill=(150, 112, 62, 255))
+                elif v < 0.55:
+                    d.rectangle([xx, yy, xx + 14, yy + 18], fill=(22, 16, 34, 255))
+        if rnd.random() < 0.6 and w > 190:
+            sy = top + 64
+            g.rectangle([x + 2, sy - 16, x + w - 2, sy + 126], fill=(209, 73, 91, 46))
+            g.rectangle([x + 10, sy - 8, x + w - 10, sy + 118], fill=(209, 73, 91, 40))
+            d.rectangle([x + 18, sy, x + w - 18, sy + 110], fill=(238, 230, 242, 255), outline=TINTA, width=6)
+            d.rectangle([x + 18, sy, x + 30, sy + 110], fill=RUMOR)
             t = rnd.choice(textos)
-            fs = 26
-            while fs > 12 and d.textlength(t, font=ImageFont.truetype(FUENTE, fs)) > w - 64:
+            fs = 28
+            while fs > 12 and d.textlength(t, font=ImageFont.truetype(FUENTE, fs)) > w - 70:
                 fs -= 2
-            d.text((x + 36, sy + 18), "@verdad.oculta", font=ImageFont.truetype(FUENTE, 18), fill=(140, 47, 75, 255))
-            d.text((x + 36, sy + 52), t, font=ImageFont.truetype(FUENTE, fs), fill=TINTA)
-        if rnd.random() < 0.35:
-            d.line([(x + w // 2, top), (x + w // 2, top - 70)], fill=TINTA, width=6)
-            d.ellipse([x + w // 2 - 12, top - 92, x + w // 2 + 12, top - 68], fill=(170, 70, 90, 255), outline=TINTA, width=5)
-        x += w + rnd.randint(30, 90)
-    # Capa media apagada: que no compita con la zona de juego.
-    velo = Image.new("RGBA", im.size, (18, 13, 28, 255))
-    velo.putalpha(im.split()[3].point(lambda v: int(v * 0.42)))
-    im.alpha_composite(velo)
+            d.text((x + 42, sy + 16), "@verdad.oculta", font=ImageFont.truetype(FUENTE, 18), fill=VINO)
+            d.text((x + 42, sy + 50), t, font=ImageFont.truetype(FUENTE, fs), fill=TINTA)
+        if rnd.random() < 0.45:
+            d.line([(x + w // 2, top), (x + w // 2, top - 80)], fill=TINTA, width=6)
+            g.ellipse([x + w // 2 - 26, top - 106, x + w // 2 + 26, top - 54], fill=(209, 73, 91, 60))
+            d.ellipse([x + w // 2 - 11, top - 91, x + w // 2 + 11, top - 69], fill=RUMOR, outline=TINTA, width=4)
+        x += w + rnd.randint(40, 110)
+    brillo.alpha_composite(im)
+    return brillo
+
+
+def vineta():
+    """Vineta suave hacia las esquinas: centra la mirada en la zona de juego."""
+    g = Image.radial_gradient("L").resize((960, 540), Image.BILINEAR)
+    a = g.point(lambda v: 0 if v < 150 else min(140, int((v - 150) / 105.0 * 140)))
+    im = Image.new("RGBA", (960, 540), (18, 13, 28, 255))
+    im.putalpha(a)
+    return im.resize((1920, 1080), Image.LANCZOS)
+
+
+def halo():
+    """Aura del documento: tres anillos planos en ambar (se ve antes que el documento, sin destello)."""
+    im = lienzo(T * 2, T * 2)
+    d = ImageDraw.Draw(im)
+    c = T
+    for r, a in ((128, 30), (100, 46), (74, 64)):
+        d.ellipse([c - r, c - r, c + r, c + r], fill=(232, 176, 75, a))
     return im
 
 
@@ -368,6 +469,9 @@ def main():
         guardar(avatar("corre", i / 6.0), "av_corre_%d" % i)
     for p in ("salto", "cae", "recoge", "dano", "victoria"):
         guardar(avatar(p, 0.25), "av_" + p)
+    guardar(cielo(), "cielo")
+    guardar(vineta(), "vineta")
+    guardar(halo(), "halo")
     guardar(fondo_lejos(), "fondo_lejos")
     guardar(fondo_medio(), "fondo_medio")
     guardar(primer_plano(), "primer_plano")

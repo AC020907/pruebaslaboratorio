@@ -111,7 +111,7 @@ screen intro_notificaciones():
             padding (22, 12)
             hbox:
                 spacing 10
-                add circulo("#e86a7e", "#fbf6ee", 9) yalign 0.5
+                add circulo("#d1495b", "#fbf6ee", 9) yalign 0.5
                 text texto size 22 color "#2b2440"
     timer 3.6 action Return()
     key "dismiss" action Return()

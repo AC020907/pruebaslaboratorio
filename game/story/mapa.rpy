@@ -269,6 +269,11 @@ init python:
 style mapa_texto is default:
     color "#fbf6ee"
 
+## Remaster 3: los paneles del mapa son fichas de papel con contorno de tinta (como el HUD y CivitasNet).
+init python:
+    def mapa_ficha(franja=None):
+        return Frame(ficha_fondo(240, 140, franja=franja, franja_w=12, sombra=8, borde=3), 26, 20, 26, 28)
+
 screen mapa_ciudad():
     zorder 103
     modal True
@@ -342,26 +347,20 @@ screen mapa_cuerpo(vista, obligatorio):
         xfill True
         ysize 76
         padding (40, 10, 40, 10)
-        background Solid("#120d1ceb")
+        background Fixed(Solid("#120d1ceb"), Solid("#d1495b", xysize=(1920, 4), ypos=72))
         hbox:
             xfill True
             yalign 0.5
-            vbox:
+            hbox:
                 yalign 0.5
-                text "MAPA" size 16 color "#a7a5f2" kerning 3
-                text "Ciudad Nova" size 32 bold True style "mapa_texto"
+                spacing 18
+                text "MAPA" size 15 bold True color "#c9b8d8" kerning 4 yalign 0.5
+                text "Ciudad Nova" font CIV_FUENTE_FINA size 40 style "mapa_texto" yalign 0.5
             if not obligatorio:
-                button:
+                hbox:
                     xalign 1.0
                     yalign 0.5
-                    xsize 138
-                    ysize 44
-                    background Frame("gui/telefono_boton.png", 30, 30)
-                    hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
-                    hover_sound "assets/audio/sfx/menu_hover.ogg"
-                    activate_sound "assets/audio/sfx/ui_click.wav"
-                    action Hide("mapa_ciudad")
-                    text "Volver" size 16 bold True color "#fbf6ee" align (0.5, 0.5)
+                    use civ_cerrar(Hide("mapa_ciudad"), "VOLVER")
 
     ## Mision activa
     $ mision = mision_destino()
@@ -370,60 +369,68 @@ screen mapa_cuerpo(vista, obligatorio):
         xalign 1.0
         xoffset -36
         ypos 100
-        xsize 520
-        padding (24, 18)
-        background Solid("#120d1ceb")
+        xsize 540
+        padding (40, 20, 28, 30)
+        background mapa_ficha("#e8b04b")
         vbox:
             spacing 6
-            text ("VIAJE · MISIÓN PRINCIPAL" if obligatorio else "MISIÓN PRINCIPAL") size 14 color "#facc15" kerning 3
+            text ("VIAJE · MISIÓN PRINCIPAL" if obligatorio else "MISIÓN PRINCIPAL") size 14 bold True color "#b07a1c" kerning 3
             if mision:
-                text mision["titulo"] size 26 bold True style "mapa_texto"
-                text mision["descripcion"] size 18 color "#c9b8d8"
-                null height 4
-                text "Destino: [destino_nombre]" size 18 bold True color "#a7a5f2"
+                text mision["titulo"] font CIV_FUENTE_FINA size 34 color "#2b2440"
+                text mision["descripcion"] size 18 color "#5b4f72"
+                null height 6
+                frame:
+                    background Solid("#2b2440")
+                    padding (10, 3)
+                    text "Destino: [destino_nombre]" size 16 bold True color "#fbf6ee"
             else:
-                text "Sin misiones pendientes" size 22 bold True style "mapa_texto"
-                text "Explora la ciudad cuando quieras." size 18 color "#c9b8d8"
+                text "Sin misiones pendientes" font CIV_FUENTE_FINA size 32 color "#2b2440"
+                text "Explora la ciudad cuando quieras." size 18 color "#5b4f72"
 
     ## Controles
     frame:
         xpos 40
         yalign 1.0
         yoffset -40
-        padding (24, 16)
-        background Solid("#120d1ceb")
+        padding (26, 16, 26, 26)
+        background mapa_ficha()
         vbox:
             spacing 6
-            text "CONTROLES" size 14 color "#a7a5f2" kerning 3
-            text "Flechas, WASD o cruceta: conducir" size 20 style "mapa_texto"
-            text ("Enter o A: llegar al destino" if obligatorio else "Enter o A: entrar al lugar") size 20 style "mapa_texto"
-            text ("Esc: menú" if obligatorio else "Esc: volver") size 20 style "mapa_texto"
+            text "CONTROLES" size 14 bold True color "#8c2f4b" kerning 4
+            text "Flechas, WASD o cruceta: conducir" size 19 color "#2b2440"
+            text ("Enter o A: llegar al destino" if obligatorio else "Enter o A: entrar al lugar") size 19 color "#2b2440"
+            text ("Esc: menú" if obligatorio else "Esc: volver") size 19 color "#2b2440"
 
     ## Tarjeta del lugar cercano
     if vista.cerca:
         $ nombre_lugar, texto_lugar, _centro = UBICACIONES[vista.cerca]
         $ disponible = ubicacion_disponible(vista.cerca)
+        $ es_destino = disponible and mision and mision["ubicacion"] == vista.cerca
         frame:
             xalign 0.5
             yalign 1.0
             yoffset -40
-            xsize 640
-            padding (28, 18)
-            background Solid("#120d1cf2")
+            xsize 660
+            padding (40, 18, 28, 30)
+            background mapa_ficha("#e8b04b" if es_destino else ("#d1495b" if not disponible else "#c9b8d8"))
             vbox:
                 spacing 4
                 xalign 0.5
-                text nombre_lugar.upper() size 30 bold True color "#fbf6ee" xalign 0.5 kerning 2
-                text texto_lugar size 20 color "#c9b8d8" xalign 0.5
-                null height 6
-                if disponible and mision and mision["ubicacion"] == vista.cerca:
-                    text "Es el destino de tu misión · Pulsa Enter o A" size 20 bold True color "#facc15" xalign 0.5
+                text nombre_lugar font CIV_FUENTE_FINA size 42 color "#2b2440" xalign 0.5
+                text texto_lugar size 19 color "#5b4f72" xalign 0.5
+                null height 8
+                if es_destino:
+                    frame:
+                        xalign 0.5
+                        background Solid("#2b2440")
+                        padding (14, 4)
+                        text "Es el destino de tu misión · Pulsa Enter o A" size 18 bold True color "#e8b04b"
                 elif obligatorio:
-                    text "Aquí no pasa nada por ahora" size 20 bold True color "#c9b8d8" xalign 0.5
+                    text "Aquí no pasa nada por ahora" size 18 bold True color "#8b84a8" xalign 0.5
                 elif disponible:
-                    text "Pulsa Enter o A para entrar" size 20 bold True color "#a7a5f2" xalign 0.5
+                    text "Pulsa Enter o A para entrar" size 18 bold True color "#8c2f4b" xalign 0.5
                 else:
-                    text "No disponible en el Modo Feria" size 20 bold True color "#e86a7e" xalign 0.5
+                    text "No disponible en el Modo Feria" size 18 bold True color "#d1495b" xalign 0.5
 
 
 ## La historia llama a este label antes de cada escena que ocurre en un lugar del mapa.

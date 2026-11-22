@@ -248,7 +248,7 @@ screen pantalla_resultados(final_actual, resultado, final_nuevo=False):
         hbox:
             xfill True
             vbox:
-                text "FINAL" size 22 bold True color "#e86a7e" kerning 6
+                text "FINAL" size 22 bold True color "#d1495b" kerning 6
                 text destino["titulo"] size 60 bold True color "#2b2440" at resultado_fila(0.1)
                 text destino["descripcion"] size 22 color "#5b4f72" xmaximum 820 at resultado_fila(0.2)
                 if final_nuevo:
@@ -256,7 +256,7 @@ screen pantalla_resultados(final_actual, resultado, final_nuevo=False):
             vbox:
                 xalign 1.0
                 text "PUNTUACIÓN CÍVICA" size 20 bold True color "#8c2f4b" xalign 1.0 kerning 3
-                text str(resultado["total"]) size 96 bold True color "#5b5bd6" xalign 1.0 at resultado_fila(0.25)
+                text str(resultado["total"]) size 96 bold True color "#3d7ea6" xalign 1.0 at resultado_fila(0.25)
                 text "de 1000" size 20 color "#8b84a8" xalign 1.0
         hbox:
             spacing 26
@@ -267,7 +267,7 @@ screen pantalla_resultados(final_actual, resultado, final_nuevo=False):
                     xsize 220
                     text etiqueta size 18 color "#5b4f72" xalign 0.5
                     text ("%d / %d" % (resultado[clave], puntuacion.MAXIMOS[clave])) size 30 bold True color "#2b2440" xalign 0.5
-                    bar value StaticValue(resultado[clave], puntuacion.MAXIMOS[clave]) xsize 200 ysize 8 xalign 0.5 left_bar Solid("#5b5bd6") right_bar Solid("#e6e0f2")
+                    bar value StaticValue(resultado[clave], puntuacion.MAXIMOS[clave]) xsize 200 ysize 8 xalign 0.5 left_bar Solid("#3d7ea6") right_bar Solid("#e6e0f2")
         hbox:
             xalign 0.5
             spacing 40

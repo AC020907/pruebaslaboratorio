@@ -124,13 +124,13 @@ screen arena_duelo_intro(s):
     vbox:
         align (0.5, 0.45)
         spacing 20
-        text "DUELO DE FRECUENCIAS" size 72 bold True color "#facc15" xalign 0.5 outlines [(4, "#8c2f4b", 0, 0)] at arena_pulso
+        text "DUELO DE FRECUENCIAS" size 72 bold True color "#e8b04b" xalign 0.5 outlines [(4, "#8c2f4b", 0, 0)] at arena_pulso
         text "FINAL DEL TORNEO" size 34 bold True color "#fbf6ee" xalign 0.5
         text "NOVA secuestra la transmisión. Todos juegan la misma canción con el mismo chart: %d notas en 4 carriles." % s["notas"] size 24 color "#c9b8d8" xalign 0.5
         hbox:
             xalign 0.5
             spacing 36
-            for j, col in (("PERFECT", "#facc15"), ("GREAT", "#5eead4"), ("GOOD", "#f4b6c2"), ("MISS", "#8b84a8")):
+            for j, col in (("PERFECT", "#e8b04b"), ("GREAT", "#3fbfae"), ("GOOD", "#f4b6c2"), ("MISS", "#8b84a8")):
                 text j size 30 bold True color col
         text "Teclas D F J K, flechas o el mando. El combo se rompe con GOOD o MISS." size 22 color "#c9b8d8" xalign 0.5
         textbutton "¡LISTO!" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return() default_focus True
@@ -162,7 +162,7 @@ screen arena_resumen_prueba(c):
                         hbox:
                             spacing 12
                             text (fila["nombre"] if fila else jid) size 22 bold True color (ARENA_COLOR_ROL[fila["rol"]] if fila else "#2b2440") min_width 230
-                            bar value StaticValue(res["normalizado"], 1000) xsize 300 ysize 20 yalign 0.5 left_bar Solid("#8c2f4b" if jid == r["ganador"] else "#a7a5f2") right_bar Solid("#ece6f5")
+                            bar value StaticValue(res["normalizado"], 1000) xsize 300 ysize 20 yalign 0.5 left_bar Solid("#8c2f4b" if jid == r["ganador"] else "#c9b8d8") right_bar Solid("#ece6f5")
                             text "%d" % res["normalizado"] size 22 bold True color "#2b2440"
                         text "   " + res["resumen"] size 18 color "#5b4f72"
                 null height 6
@@ -215,7 +215,7 @@ screen arena_final_torneo(c):
                     hbox:
                         spacing 10
                         text nombre size 20 bold (cid == f["ganador"]) color "#2b2440" min_width 200 yalign 0.5
-                        bar value StaticValue(f["votos"][cid], total) xsize 300 ysize 18 yalign 0.5 left_bar Solid("#8c2f4b" if cid == f["ganador"] else "#a7a5f2") right_bar Solid("#ece6f5")
+                        bar value StaticValue(f["votos"][cid], total) xsize 300 ysize 18 yalign 0.5 left_bar Solid("#8c2f4b" if cid == f["ganador"] else "#c9b8d8") right_bar Solid("#ece6f5")
                         text "%d" % f["votos"][cid] size 18 color "#2b2440" yalign 0.5
                 text "Ciudad: %s (%d/100)" % (f["ciudad"]["titulo"], f["ciudad"]["indice"]) size 24 bold True color "#2f9e8f"
                 text t["mensaje"] style "arena_texto"

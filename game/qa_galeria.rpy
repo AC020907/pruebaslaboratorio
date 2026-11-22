@@ -602,7 +602,7 @@ screen qa_hoja_personaje(nombre):
             xysize (310, 640)
             add Solid("#2b2440")
             add retrato_escena(nombre, e) xalign 0.5 yalign 1.0 zoom 0.55
-            text e size 22 color "#facc15" xalign 0.5 yalign 0.0
+            text e size 22 color "#e8b04b" xalign 0.5 yalign 0.0
         add retrato_lado(nombre, e) xpos 60 + i * 315 ypos 760
     text "Línea guía: base común de los sprites" size 18 color "#c9b8d8" xpos 30 ypos 1020
 
