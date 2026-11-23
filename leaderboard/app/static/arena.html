@@ -758,7 +758,8 @@ function iniciarCentral(d, cuerpo){
 }
 function panelCentral(panel, yo){
   const m = yo.m, M = m.m, act = m.emergencias.filter(e => ["espera","asignada","atendiendo","traslado"].includes(e.estado));
-  let h = `<div class="ce-cab">A TIEMPO <b>${m.resumen().a_tiempo}</b> · TURNO <b>${ceT(m.fin_tick - m.tick)}</b> · FASE ${m.fase}</div>`;
+  const quedan = Math.ceil((m.fin_tick - m.tick) / 30);
+  let h = `<div class="ce-cab">A TIEMPO <b>${m.resumen().a_tiempo}</b> · QUEDAN <b style="color:${quedan <= 5 ? "#d1495b" : "#e8b04b"}">${quedan} s</b> · FASE ${m.fase}</div>`;
   if (yo.opciones.length) {
     h += `<div class="ce-sec">${yo.destino[0] === "em" ? "ELIGE LA RUTA" : yo.destino[0] === "hosp" ? "RUTA AL HOSPITAL" : "DESVÍO"}</div>`;
     yo.opciones.forEach((o, j) => { const evita = j > 0 && yo.opciones[0][2].some(i => m.g.aviso[i]);
@@ -839,13 +840,22 @@ function dibujarCentral(cv, yo, escala, posAmb, ahora){
     g.fillStyle = a.k === yo.sel ? "#8c2f4b" : "#2b2440"; g.fillRect(x + 16, y + 12, 30, 22); g.fillStyle = "#fbf6ee"; g.font = "800 14px system-ui"; g.textAlign = "center"; g.fillText(M.amb[a.k][0], x + 31, y + 28);
     if (a.estado === "detenida" || a.bloqueo_avisado) { g.fillStyle = "#d1495b"; g.beginPath(); g.arc(x - 28, y - 28, 14, 0, 7); g.fill(); g.fillStyle = "#fff"; g.font = "900 18px system-ui"; g.fillText("!", x - 28, y - 22); }
   }
-  if (yo.banner && ahora - yo.banner.ts < 3000 && yo.banner.f) {
+  if (yo.banner && ahora - yo.banner.ts < 1800 && yo.banner.f) {
     g.fillStyle = "#2b2440ee"; g.fillRect(300, 380, 760, 112); g.fillStyle = "#d1495b"; g.fillRect(300, 380, 760, 6);
     g.fillStyle = "#e8b04b"; g.font = "800 22px system-ui"; g.textAlign = "left"; g.fillText(yo.banner.f.titulo.toUpperCase(), 330, 420);
     g.fillStyle = "#fbf6ee"; g.font = "300 40px system-ui"; g.fillText(yo.banner.f.subtitulo, 330, 466);
   }
+  /* Ultimos 5 segundos del turno de 30: numero grande que late y borde rojo (igual que en Ren'Py). */
+  const resta = (m.fin_tick - m.tick) / 30;
+  if (m.jugando() && resta > 0 && resta <= 5) {
+    const fr = resta - Math.floor(resta), pulso = MOV_REDUCIDO ? 0 : Math.max(0, fr - 0.6) / 0.4;
+    g.strokeStyle = `rgba(209,73,91,${0.3 + 0.45 * pulso})`; g.lineWidth = 14; g.strokeRect(7, 7, 1346, 886);
+    g.save(); g.translate(680, 300); g.scale(1 + 0.25 * pulso, 1 + 0.25 * pulso);
+    g.font = "300 190px system-ui"; g.textAlign = "center"; g.lineWidth = 8; g.strokeStyle = "#d1495b"; g.fillStyle = "#fbf6ee";
+    const txt = String(Math.ceil(resta)); g.strokeText(txt, 0, 66); g.fillText(txt, 0, 66); g.restore();
+  }
   let ya = 900 - 52;
-  for (const av of yo.avisos.slice().reverse()) { if (ahora - av.ts > 5000) continue;
+  for (const av of yo.avisos.slice().reverse()) { if (ahora - av.ts > 3200) continue;
     g.font = "700 20px system-ui"; const w = g.measureText(av.t).width;
     g.fillStyle = "#fbf6ee"; g.fillRect(18, ya, w + 40, 36); g.fillStyle = av.c; g.fillRect(18, ya, 8, 36);
     g.fillStyle = "#2b2440"; g.textAlign = "left"; g.fillText(av.t, 38, ya + 25); ya -= 46; }

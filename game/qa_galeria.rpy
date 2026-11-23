@@ -276,8 +276,9 @@ label qa_gal_minijuegos:
     ## Central de Emergencias (sustituye a Caza-Rumores): turno de Feria con el despachador automatico.
     ## A pasa la presentacion; despues no se pulsa nada hasta el resultado (A podria activar botones del panel).
     $ qa_central_auto = 1.0
-    $ qa_pad_programar([(1.5, "foto:j05_central_intro", None), (0.3, "a", "press"), (20.0, "foto:j06_central_juego", None),
-                        (40.0, "foto:j07_central_crisis", None), (56.0, "foto:j08_central_resultado", None)]
+    ## Turno de 30 s (+2 s de cuenta atras): fase 2 hacia los 12 s, crisis hacia los 24 s, resultado al acabar.
+    $ qa_pad_programar([(1.5, "foto:j05_central_intro", None), (0.3, "a", "press"), (12.0, "foto:j06_central_juego", None),
+                        (12.0, "foto:j07_central_crisis", None), (10.0, "foto:j08_central_resultado", None)]
                        + qa_pad_repetir("a", 30, 1.0))
     call minijuego_contencion(aplicar=False, ajustes={"modo": "feria"})
     $ qa_central_auto = None

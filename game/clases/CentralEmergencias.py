@@ -54,7 +54,7 @@ for _f, _y in enumerate(_FILAS):
         NODOS.append((_x + dx, _y + dy, _barrio(_c, _f)))
 
 # Calles: (a, b, tipo, nombre). Tipos: avenida (rapida), calle, puente.
-VELOCIDAD = {"avenida": 92, "calle": 62, "puente": 70}     # px por segundo sin trafico
+VELOCIDAD = {"avenida": 380, "calle": 270, "puente": 300}  # px/s sin trafico: cruzar la ciudad lleva ~4 s (turno de 30 s)
 _SIN = {((0, 0), (0, 1)), ((5, 0), (6, 0)), ((1, 1), (1, 2)), ((5, 1), (5, 2)), ((2, 3), (3, 3)), ((5, 3), (6, 3)),
         ((6, 1), (6, 2)), ((3, 4), (4, 4))}
 _NOMBRE_FILA = ("Calle 1", "Calle 9", "Av. Central", "Calle del Río", "Calle Sur")
@@ -79,7 +79,7 @@ CALLES.append((_ID[(1, 0)], _ID[(2, 1)], "calle", "Diagonal del Parque"))
 
 HOSPITALES = (  # (nombre, nodo, camas)
     ("Hospital Central", _ID[(2, 1)], 2),
-    ("Clínica del Sur", _ID[(5, 4)], 2),
+    ("Clínica del Sur", _ID[(5, 4)], 1),
     ("Puesto Oeste", _ID[(0, 3)], 1),
 )
 AMBULANCIAS = (  # (numero, nodo de salida)
@@ -89,16 +89,18 @@ AMBULANCIAS = (  # (numero, nodo de salida)
 )
 NIVELES_TRAFICO = (100, 160, 240)          # % del tiempo base: fluido, denso, atasco
 GRAVEDAD = {  # nombre visible, puntos base, tiempo limite (s) por defecto
-    "critico": ("Crítico", 300, 38),
-    "grave": ("Grave", 220, 52),
-    "moderado": ("Moderado", 160, 70),
+    "critico": ("Crítico", 300, 9),
+    "grave": ("Grave", 220, 12),
+    "moderado": ("Moderado", 160, 15),
 }
-RECOGER, ENTREGA = 60, 45                  # ticks en la escena y en la puerta del hospital
-AUTO_HOSPITAL = 180                        # si nadie elige hospital en 6 s, la tripulacion va al mas rapido con cama
-DESPEJE = 90                               # una mediacion tarda 3 s en abrir una calle
-PRIORIDAD = 600                            # ruta prioritaria: 20 s sin pagar el trafico
-CAMA_CADA = 900                            # cada 30 s un hospital libera una cama (hasta su maximo)
-AVISO = 240                                # las protestas se anuncian 8 s antes
+# Turno arcade de 30 s: todo esta medido para esa duracion (no es una partida larga cortada).
+RECOGER, ENTREGA = 18, 12                  # ticks en la escena (0,6 s) y en la puerta del hospital (0,4 s)
+AUTO_HOSPITAL = 60                         # si nadie elige hospital en 2 s, la tripulacion va al mas rapido con cama
+DESPEJE = 45                               # una mediacion tarda 1,5 s en abrir una calle
+PRIORIDAD = 180                            # ruta prioritaria: 6 s sin pagar el trafico
+CAMA_CADA = 300                            # cada 10 s un hospital libera una cama (hasta su maximo)
+AVISO = 75                                 # las protestas se anuncian 2,5 s antes
+DURACION_S = 30                            # duracion del turno en TODOS los modos (Historia, Feria y Arena)
 
 
 def _largo(a, b):
@@ -226,28 +228,27 @@ CANDIDATOS = {
     "Alcaldía": [_n(5, 2), _n(6, 3), _n(4, 3), _n(6, 2)],
     "Sur": [_n(1, 4), _n(2, 4), _n(3, 4), _n(4, 4), _n(6, 4)],
 }
-MODOS = {
-    # duracion (s); fases: (inicio s, titulo, subtitulo); emergencias: (s, barrio, gravedad);
-    # protestas: (s, calle_candidatas, duracion s o None = hasta despejar); trafico: (s, calles, nivel); refuerzos: (s, ambulancia)
-    "historia": {"duracion": 150, "recursos": {"despejar": 2, "prioridad": 2},
-                 "fases": ((0, "Fase 1", "Primera emergencia"), (32, "Fase 2", "Ciudad congestionada"), (76, "Fase 3", "Crisis")),
-                 "refuerzos": ((32, 1), (76, 2)),
-                 "emergencias": ((2, "Norte", "grave"), (34, "Medios", "critico"), (36, "Oeste", "moderado"),
-                                 (78, "Sur", "critico"), (82, "Norte", "grave"), (92, "Medios", "moderado"),
-                                 (100, "Centro", "critico")),
-                 "protestas": ((9, "ruta:0:0", 40), (38, "ruta:1:1", 40), (46, "puentes", 45), (80, "aislar", None),
-                               (102, "ruta:0:6", 40)),
-                 "trafico": ((32, "avenida", 2), (32, "libertad", 1), (60, "avenida", 1), (96, "libertad", 2))},
-    "feria": {"duracion": 110, "recursos": {"despejar": 1, "prioridad": 1},
-              "fases": ((0, "Fase 1", "Primera emergencia"), (26, "Fase 2", "Ciudad congestionada"), (58, "Fase 3", "Crisis")),
-              "refuerzos": ((26, 1), (58, 2)),
-              "emergencias": ((2, "Norte", "grave"), (27, "Medios", "critico"), (29, "Oeste", "moderado"),
-                              (60, "Sur", "critico"), (64, "Norte", "grave"), (72, "Centro", "critico")),
-              "protestas": ((8, "ruta:0:0", 30), (31, "ruta:1:1", 30), (36, "puentes", 35), (61, "aislar", None),
-                            (74, "ruta:0:5", 30)),
-              "trafico": ((26, "avenida", 2), (26, "libertad", 1), (70, "libertad", 2))},
-}
-MODOS["arena"] = dict(MODOS["historia"], duracion=140)
+# Un solo diseno de 30 s para Historia, Feria y Arena (todos juegan igual). Tres fases de ~10 s:
+#   1 (0-9 s)    una ambulancia, un paciente grave y una protesta anunciada sobre su ruta mas probable;
+#   2 (9-19 s)   llega la Ambulancia 7: un critico y un moderado casi a la vez (hay que priorizar), atasco en la
+#                Av. Central, una protesta corta la ruta de la 7 y otra corta los puentes;
+#   3 (19-30 s)  llega la 21: tres llamadas seguidas; el critico del Sur queda aislado (mediacion o perderlo).
+# Los limites de las ultimas llamadas se recortan para que todas se puedan resolver antes del segundo 30.
+_TURNO = {"duracion": DURACION_S, "recursos": {"despejar": 1, "prioridad": 1},
+          "fases": ((0, "Fase 1", "Primera emergencia"), (9, "Fase 2", "Ciudad congestionada"), (19, "Fase 3", "Crisis")),
+          "refuerzos": ((9, 1), (19, 2)),
+          "emergencias": ((0.4, "Norte", "grave"), (9.3, "Medios", "critico"), (10.4, "Oeste", "moderado"),
+                          (19.3, "Sur", "critico"), (20.4, "Norte", "grave"), (22.2, "Centro", "critico")),
+          "protestas": ((3.2, "ruta:0:0", 9), (11.6, "ruta:1:1", 8), (13.0, "puentes", 8), (20.2, "aislar", None),
+                        (23.6, "ruta:0:5", 5)),
+          "trafico": ((9, "avenida", 2), (9, "libertad", 1), (21, "libertad", 2))}
+MODOS = {"historia": dict(_TURNO), "feria": dict(_TURNO), "arena": dict(_TURNO)}
+
+
+def _t(seg):
+    return int(round(seg * TICKS_S))
+
+
 GRUPOS_CALLES = {
     "fase1": [i for i, c in enumerate(CALLES) if c[3] in ("Calle 9", "Carrera 7", "Diagonal del Parque")],
     "puentes": [i for i, c in enumerate(CALLES) if c[2] == "puente"],
@@ -269,8 +270,8 @@ def generar_escenario(modo, semilla, tension=0):
         opciones = [n for n in CANDIDATOS[barrio] if n not in usados and n not in [h[1] for h in HOSPITALES]]
         nodo = rng.choice(opciones)
         usados.add(nodo)
-        ev.append({"t": s * TICKS_S, "tipo": "emergencia", "id": k, "nodo": nodo, "gravedad": grav,
-                   "limite": GRAVEDAD[grav][2] * TICKS_S})
+        limite = min(GRAVEDAD[grav][2], cfg["duracion"] - s - 0.3)
+        ev.append({"t": _t(s), "tipo": "emergencia", "id": k, "nodo": nodo, "gravedad": grav, "limite": _t(limite)})
     aislar_nodo = None
     for s, grupo, dur in cfg["protestas"]:
         if grupo.startswith("ruta:"):
@@ -290,26 +291,26 @@ def generar_escenario(modo, semilla, tension=0):
         for i in calles:
             if any(x["tipo"] == "bloqueo" and x["arista"] == i for x in ev):
                 continue
-            ev.append({"t": max(0, s * TICKS_S - AVISO), "tipo": "aviso", "arista": i})
-            ev.append({"t": s * TICKS_S, "tipo": "bloqueo", "arista": i})
+            ev.append({"t": max(0, _t(s) - AVISO), "tipo": "aviso", "arista": i})
+            ev.append({"t": _t(s), "tipo": "bloqueo", "arista": i})
             if dur is not None:
-                ev.append({"t": (s + dur) * TICKS_S, "tipo": "apertura", "arista": i})
+                ev.append({"t": _t(s + dur), "tipo": "apertura", "arista": i})
     if tension:
         pool = [i for i in GRUPOS_CALLES["centro"] if not any(x["tipo"] == "bloqueo" and x["arista"] == i for x in ev)]
         rng.shuffle(pool)
         for i in sorted(pool[:tension]):
             ev.append({"t": 0, "tipo": "bloqueo", "arista": i})
-            ev.append({"t": 60 * TICKS_S, "tipo": "apertura", "arista": i})
+            ev.append({"t": _t(12), "tipo": "apertura", "arista": i})
     for s, grupo, nivel in cfg["trafico"]:
         for i in GRUPOS_CALLES[grupo]:
-            ev.append({"t": s * TICKS_S, "tipo": "trafico", "arista": i, "nivel": nivel})
+            ev.append({"t": _t(s), "tipo": "trafico", "arista": i, "nivel": nivel})
     for s, amb in cfg["refuerzos"]:
-        ev.append({"t": s * TICKS_S, "tipo": "refuerzo", "ambulancia": amb})
+        ev.append({"t": _t(s), "tipo": "refuerzo", "ambulancia": amb})
     for k, (s, titulo, sub) in enumerate(cfg["fases"]):
-        ev.append({"t": s * TICKS_S, "tipo": "fase", "fase": k + 1, "titulo": titulo, "subtitulo": sub})
+        ev.append({"t": _t(s), "tipo": "fase", "fase": k + 1, "titulo": titulo, "subtitulo": sub})
     orden = {"fase": 0, "refuerzo": 1, "trafico": 2, "aviso": 3, "apertura": 4, "bloqueo": 5, "emergencia": 6}
     ev.sort(key=lambda e: (e["t"], orden[e["tipo"]], e.get("arista", e.get("id", 0))))
-    return {"modo": modo, "semilla": semilla, "duracion": cfg["duracion"] * TICKS_S, "eventos": ev,
+    return {"modo": modo, "semilla": semilla, "duracion": _t(cfg["duracion"]), "eventos": ev,
             "recursos": dict(cfg["recursos"]), "aislado": aislar_nodo}
 
 
@@ -677,9 +678,7 @@ class Central(object):
                         if a.arista < 0:
                             a.estado = "libre"
         self.tick += 1
-        total = sum(1 for e in self.esc["eventos"] if e["tipo"] == "emergencia")
-        resueltas = sum(1 for e in self.emergencias if e.estado in ("a_tiempo", "tarde", "sin_atender"))
-        if self.tick >= self.fin_tick or (resueltas == total and not any(e["tipo"] == "emergencia" for e in self.pendientes)):
+        if self.tick >= self.fin_tick:          # el turno dura siempre lo mismo: 30 s de juego efectivo
             self._terminar()
 
     def _terminar(self):
@@ -788,7 +787,7 @@ class Despachador(object):
     def ordenes(self, p):
         if p.tick < self.proximo:
             return
-        self.proximo = p.tick + 6 + int((1 - self.h) * 150)
+        self.proximo = p.tick + 3 + int((1 - self.h) * 45)
         h, rng = self.h, self.rng
         # 1) pacientes a bordo: hospital mas rapido con cama
         for a in p.ambulancias:

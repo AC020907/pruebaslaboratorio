@@ -1,6 +1,7 @@
 ## Duelo de Frecuencias: minijuego ritmico original (motor en clases/Ritmo.py).
 ## Las notas se dibujan desde el tiempo de la cancion (posicion real del audio); los frames solo pintan.
 ##   Teclado: D F J K o flechas · Mando: cruceta o X A Y RB · Tactil: tocar el carril · Pausa: Esc / Start
+##   Dificil (5 carriles): D F Espacio J K · Mando: izquierda, abajo, A, arriba, derecha
 
 default persistent.ritmo_offset_ms = 0
 default persistent.ritmo_velocidad = 1.0
@@ -16,7 +17,12 @@ init python:
         "civ_r0": ["K_d", "K_LEFT"], "civ_r1": ["K_f", "K_DOWN"],
         "civ_r2": ["K_j", "K_UP"], "civ_r3": ["K_k", "K_RIGHT"],
         "civ_pausa": ["K_ESCAPE", "K_p"],
+        # Dificil: cinco carriles, dos manos (D F | Espacio con el pulgar | J K).
+        "civ_q0": ["K_d"], "civ_q1": ["K_f"], "civ_q2": ["K_SPACE"], "civ_q3": ["K_j"], "civ_q4": ["K_k"],
     })
+    for _ev, _carril in (("pad_dpleft_press", 0), ("pad_x_press", 0), ("pad_dpdown_press", 1), ("pad_a_press", 2),
+                         ("pad_dpup_press", 3), ("pad_y_press", 3), ("pad_dpright_press", 4), ("pad_rightshoulder_press", 4)):
+        config.pad_bindings[_ev] = list(config.pad_bindings.get(_ev, [])) + ["civ_q%d" % _carril]
     for _ev, _carril in (("pad_dpleft_press", 0), ("pad_x_press", 0), ("pad_dpdown_press", 1), ("pad_a_press", 1),
                          ("pad_dpup_press", 2), ("pad_y_press", 2), ("pad_dpright_press", 3), ("pad_rightshoulder_press", 3)):
         config.pad_bindings[_ev] = list(config.pad_bindings.get(_ev, [])) + ["civ_r%d" % _carril]
@@ -44,10 +50,16 @@ init python:
         "facil": {"chart": "facil", "ventanas": None, "umbral": Ritmo.UMBRAL_EXITO},
         # Asistido: notas en pulsos enteros, ventanas amplias y meta baja. Nadie queda fuera del duelo.
         "asistido": {"chart": "facil", "ventanas": {"perfect": 70, "good": 140, "bad": 210}, "umbral": 0.45},
+        # Dificil: cancion original a 144 BPM y 5 carriles (tools/musica/duelo_dificil.py). Mismas ventanas y meta
+        # que Normal: la dificultad esta en las notas (densidad, rafagas, dobles, cambios de carril), no en el juez.
+        "dificil": {"chart": "dificil", "archivo": "ritmo/duelo_dificil.json", "audio": "assets/audio/music/duelo_dificil.ogg",
+                    "ventanas": None, "umbral": Ritmo.UMBRAL_EXITO},
     }
+    RITMO_TECLAS_5 = ("D", "F", "ESPACIO", "J", "K")
+    RITMO_IMAGEN_5 = (0, 1, 4, 2, 3)        # circulo, rombo, hexagono (centro), triangulo, cuadrado
 
     def cargar_chart(modo, dificultad):
-        nombre = "ritmo/duelo_%s_%s.json" % (modo, DIFICULTADES[dificultad]["chart"])
+        nombre = DIFICULTADES[dificultad].get("archivo") or "ritmo/duelo_%s_%s.json" % (modo, DIFICULTADES[dificultad]["chart"])
         with renpy.open_file(nombre, encoding="utf-8") as f:
             return _json_ritmo.loads(f.read())
 
@@ -58,15 +70,22 @@ init python:
             self.modo = modo
             self.duelo = Ritmo.Duelo(cargar_chart(modo, dificultad), cfg["ventanas"], cfg["umbral"])
             self.reloj = Ritmo.RelojCancion(persistent.ritmo_offset_ms)
-            self.audio = "assets/audio/music/duelo_%s.ogg" % modo
+            self.audio = cfg.get("audio") or "assets/audio/music/duelo_%s.ogg" % modo
+            self.dificultad = dificultad
             self.arrancado = False
             self.t = 0.0
             self.pulsados = {}            # carril -> tiempo de cancion del ultimo toque (brillo del receptor)
-            self.notas = [Image("gui/ritmo/nota_%d.png" % k) for k in range(4)]
+            self.n = self.duelo.carriles
+            figuras = RITMO_IMAGEN_5 if self.n == 5 else tuple(range(4))
+            self.ancho_c = RITMO_CARRIL_W if self.n == 4 else 132
+            self.gap = RITMO_GAP if self.n == 4 else 16
+            self.x0 = 960 - (self.n * self.ancho_c + (self.n - 1) * self.gap) // 2
+            self.notas = [Image("gui/ritmo/nota_%d.png" % k) for k in figuras]
             # Las notas nacen con un fundido por debajo de la cabecera (titulo y barra de senal).
             self.notas_fundido = [[Transform(n, alpha=a / 4.0) for a in range(1, 4)] for n in self.notas]
-            self.receptores = [Image("gui/ritmo/receptor_%d.png" % k) for k in range(4)]
-            self.receptores_on = [Image("gui/ritmo/receptor_on_%d.png" % k) for k in range(4)]
+            self.receptores = [Image("gui/ritmo/receptor_%d.png" % k) for k in figuras]
+            self.receptores_on = [Image("gui/ritmo/receptor_on_%d.png" % k) for k in figuras]
+            self.hito = None              # (combo, tiempo): COMBO x25, x50... late en el centro
             self.textos = {}
             self.fondo_carril = Solid("#1b142699")
             self.estado_visto = None
@@ -80,7 +99,7 @@ init python:
             return self.textos[clave]
 
         def x_carril(self, k):
-            return RITMO_X0 + k * (RITMO_CARRIL_W + RITMO_GAP)
+            return self.x0 + k * (self.ancho_c + self.gap)
 
         # ----- ciclo -----
         def arrancar(self):
@@ -132,13 +151,14 @@ init python:
             r = renpy.Render(width, height)
             recorrido = RITMO_RECORRIDO_MS / max(0.5, persistent.ritmo_velocidad)
             # Pista (remaster): franja con contorno de tinta, separadores, linea de golpe y pulsos del compas.
-            x0p = RITMO_X0 - 26
-            x1p = self.x_carril(3) + RITMO_CARRIL_W + 26
+            x0p = self.x0 - 26
+            x1p = self.x_carril(self.n - 1) + self.ancho_c + 26
+            m_img = (self.ancho_c - 110) // 2
             r.blit(renpy.render(Solid(RITMO_TINTA), x1p - x0p + 8, 1080, st, at), (x0p - 4, 0))
             r.blit(renpy.render(Solid("#120d1cf0"), x1p - x0p, 1080, st, at), (x0p, 0))
             c = r.canvas()
-            for k in range(1, 4):
-                xs = self.x_carril(k) - RITMO_GAP // 2
+            for k in range(1, self.n):
+                xs = self.x_carril(k) - self.gap // 2
                 c.line("#3a3350", (xs, 0), (xs, 1080), 2)
             pulso = 60000.0 / self.bpm
             if d.estado in (Ritmo.PLAYING, Ritmo.PAUSED):
@@ -151,27 +171,30 @@ init python:
                         c.line("#4a3f66" if fuerte else "#2f2744", (x0p + 6, int(yb)), (x1p - 6, int(yb)), 3 if fuerte else 2)
             c.line(RITMO_TINTA, (x0p, RITMO_RECEPTOR_Y), (x1p, RITMO_RECEPTOR_Y), 12)
             c.line("#c9b8d8", (x0p, RITMO_RECEPTOR_Y), (x1p, RITMO_RECEPTOR_Y), 4)
-            for k in range(4):
+            for k in range(self.n):
                 x = self.x_carril(k)
                 edad_p = self.t - self.pulsados.get(k, -9999)
                 if 0 <= edad_p < 160 and not quieto:
                     alto = int(320 * (1 - edad_p / 160.0))
-                    r.blit(renpy.render(Transform(Solid("#fbf6ee"), xysize=(RITMO_CARRIL_W, alto), alpha=0.10), RITMO_CARRIL_W, alto, st, at),
+                    r.blit(renpy.render(Transform(Solid("#fbf6ee"), xysize=(self.ancho_c, alto), alpha=0.10), self.ancho_c, alto, st, at),
                            (x, RITMO_RECEPTOR_Y - alto))
                 brillo = edad_p < 110
                 rec = (self.receptores_on if brillo else self.receptores)[k]
-                r.blit(renpy.render(rec, 110, 110, st, at), (x + 20, RITMO_RECEPTOR_Y - 55))
+                r.blit(renpy.render(rec, 110, 110, st, at), (x + m_img, RITMO_RECEPTOR_Y - 55))
+                if self.n == 5:
+                    tecla = renpy.render(self.texto(RITMO_TECLAS_5[k], 22, "#fbf6ee" if brillo else "#c9b8d8"), 200, 40, st, at)
+                    r.blit(tecla, (x + self.ancho_c // 2 - tecla.get_size()[0] // 2, RITMO_RECEPTOR_Y + 64))
             for n in (d.visibles(self.t, recorrido) if d.estado in (Ritmo.PLAYING, Ritmo.PAUSED) else ()):
                 y = RITMO_RECEPTOR_Y - (n["time_ms"] - self.t) / recorrido * (RITMO_RECEPTOR_Y + 60)
                 if y < RITMO_NACE_Y:
                     continue
                 nivel = int((y - RITMO_NACE_Y) / RITMO_FUNDIDO_PX * 4)
                 img = self.notas[n["lane"]] if nivel >= 3 else self.notas_fundido[n["lane"]][nivel]
-                r.blit(renpy.render(img, 110, 110, st, at), (self.x_carril(n["lane"]) + 20, int(y) - 55))
+                r.blit(renpy.render(img, 110, 110, st, at), (self.x_carril(n["lane"]) + m_img, int(y) - 55))
             for t_j, carril, juicio in d.ultimos:
                 edad = self.t - t_j
                 if 0 <= edad < 450:
-                    cx = self.x_carril(carril) + RITMO_CARRIL_W // 2
+                    cx = self.x_carril(carril) + self.ancho_c // 2
                     # Anillo en el receptor: doble (perfecto), simple (bien/justo), cruz (fallo).
                     if juicio != "miss":
                         k_a = edad / 450.0
@@ -183,12 +206,14 @@ init python:
                         c.line("#8b84a8", (cx - 22, RITMO_RECEPTOR_Y - 22), (cx + 22, RITMO_RECEPTOR_Y + 22), 6)
                         c.line("#8b84a8", (cx + 22, RITMO_RECEPTOR_Y - 22), (cx - 22, RITMO_RECEPTOR_Y + 22), 6)
                     zoom_j = 1.0 if quieto else (1.25 - 0.25 * min(1.0, edad / 120.0))
-                    txt = renpy.render(Transform(self.texto(texto_juicio(juicio), 38, COLOR_JUICIO[juicio]), zoom=zoom_j), 500, 80, st, at)
+                    txt = renpy.render(Transform(self.texto(texto_juicio(juicio), 38 if self.n == 4 else 27, COLOR_JUICIO[juicio]), zoom=zoom_j), 500, 80, st, at)
                     w, _h = txt.get_size()
                     subida = 0 if quieto else int(edad / 12)
                     r.blit(txt, (cx - w // 2, RITMO_RECEPTOR_Y - 140 - subida))
             if d.combo > self.combo_visto:
                 self.combo_t = self.t
+                if d.combo // 25 > self.combo_visto // 25:
+                    self.hito = (d.combo // 25 * 25, self.t)
             self.combo_visto = d.combo
             if d.combo >= 5:
                 late = 1.0 if quieto else (1.0 + 0.18 * max(0.0, 1 - (self.t - self.combo_t) / 140.0))
@@ -198,6 +223,12 @@ init python:
                 xc = x0p - 40 - max(etq.get_size()[0], num.get_size()[0])
                 r.blit(etq, (xc, 470))
                 r.blit(num, (xc - 4, 494))
+            if self.hito and 0 <= self.t - self.hito[1] < 700:
+                k_h = (self.t - self.hito[1]) / 700.0
+                txt_h = renpy.render(Transform(Text("COMBO x%d" % self.hito[0], font="fonts/Roboto-Light.ttf", size=88, color="#e8b04b",
+                                                    outlines=[(4, RITMO_TINTA, 0, 0)]), zoom=1.0 if quieto else 1.0 + 0.2 * (1 - k_h),
+                                               alpha=1 - k_h * k_h), 900, 160, st, at)
+                r.blit(txt_h, (960 - txt_h.get_size()[0] // 2, 300))
             if self.arrancado and d.estado == Ritmo.PLAYING:
                 primera = d.chart["notes"][0]["time_ms"]
                 if self.t < primera:
@@ -220,13 +251,14 @@ init python:
 
         def event(self, ev, x, y, st):
             if self.duelo.estado == Ritmo.PLAYING:
-                for k in range(4):
-                    if renpy.map_event(ev, "civ_r%d" % k):
+                prefijo = "civ_q%d" if self.n == 5 else "civ_r%d"
+                for k in range(self.n):
+                    if renpy.map_event(ev, prefijo % k):
                         self.pulsar(k)
                         raise renpy.IgnoreEvent()
                 if ev.type == pygame.MOUSEBUTTONDOWN and ev.button == 1:
-                    for k in range(4):
-                        if self.x_carril(k) <= x < self.x_carril(k) + RITMO_CARRIL_W and y > 300:
+                    for k in range(self.n):
+                        if self.x_carril(k) <= x < self.x_carril(k) + self.ancho_c and y > 300:
                             self.pulsar(k)
                             raise renpy.IgnoreEvent()
                 if renpy.map_event(ev, "civ_pausa") or renpy.map_event(ev, "game_menu"):
@@ -362,7 +394,9 @@ screen duelo_tutorial(modo):
             textbutton "Normal" style "boton_vn_compacto" text_style "boton_vn_text" action Return("normal") default_focus (not renpy.variant("touch"))
             textbutton "Fácil" style "boton_vn_compacto" text_style "boton_vn_text" action Return("facil") default_focus renpy.variant("touch")
             textbutton "Asistido" style "boton_vn_compacto" text_style "boton_vn_text" action Return("asistido")
+            textbutton "Difícil" style "boton_vn_compacto" text_style "boton_vn_text" action Return("dificil")
         text "Asistido: menos notas y más margen para acertar. El duelo cuenta igual para la historia." size 16 italic True color "#8b84a8" xalign 0.5
+        text "Difícil: cinco carriles con D · F · ESPACIO · J · K (mando: izquierda, abajo, A, arriba, derecha), canción propia a 144 BPM, ráfagas y notas dobles." size 16 italic True color "#8c2f4b" xalign 0.5 text_align 0.5
 
 
 label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, dificultad=None, **kwargs):
@@ -378,8 +412,12 @@ label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, dificultad=Non
         $ dificultad_duelo = _return
     else:
         $ dificultad_duelo = dificultad   # Arena: todos el mismo chart, sin elegir
+    $ duelo_competitivo_previo = duelo_competitivo
+    if dificultad_duelo == "dificil":
+        $ duelo_competitivo = True         # PERFECT / GREAT / GOOD / MISS
     $ vista_duelo = VistaDuelo(modo, dificultad_duelo)
     call screen duelo_pantalla(vista_duelo, aliado)
+    $ duelo_competitivo = duelo_competitivo_previo
     $ resultado_duelo = dict(_return, dificultad=dificultad_duelo)
     $ renpy.music.stop(channel="ritmo", fadeout=0.6)
     $ quick_menu = quick_menu_previo

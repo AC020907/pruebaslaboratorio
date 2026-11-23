@@ -68,13 +68,8 @@ def perilla(tam, centro):
 
 
 def main():
-    # Boton de novela y del menu principal (406 x 86): idle papel, hover con franja roja, feria en rojo.
-    guardar(ficha(406, 86, PAPEL), "boton_menu_idle.png")
-    guardar(ficha(406, 86, PAPEL_HOVER, franja=RUMOR, franja_w=14), "boton_menu_hover.png")
-    guardar(ficha(406, 86, (236, 123, 140, 255)), "boton_menu_feria.png")
-    # Boton oscuro de CivitasNet y paneles de juego (480 x 64): tinta con borde lila; hover vino.
-    guardar(ficha(480, 64, TINTA, borde=LILA, grosor=3, radio=8, sombra=0), "telefono_boton.png")
-    guardar(ficha(480, 64, VINO, borde=PAPEL, grosor=3, radio=8, sombra=0), "telefono_boton_hover.png")
+    # Los botones (boton_menu_*, telefono_boton*) volvieron a su diseno original (commit 76af0ef) por decision
+    # del equipo: este generador ya no los toca. Las fichas del remaster 3 siguen en el historial (commit 739b74b).
     # Marco general (Frame 30,30): papel con contorno de tinta y sombra plana.
     guardar(ficha(300, 300, (251, 246, 238, 250), grosor=5, radio=12, sombra=8), "frame.png")
     # Deslizadores, barras y barras de desplazamiento.

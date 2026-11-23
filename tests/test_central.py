@@ -149,7 +149,7 @@ class Simulacion(unittest.TestCase):
         ruta = CE.Grafo().dijkstra(o, d)[2]
         cortada = ruta[2]
         esc = escenario_simple([{"t": 0, "tipo": "emergencia", "id": 0, "nodo": d, "gravedad": "moderado", "limite": 80 * CE.TICKS_S},
-                                {"t": 2 * CE.TICKS_S, "tipo": "bloqueo", "arista": cortada}])
+                                {"t": 12, "tipo": "bloqueo", "arista": cortada}])
         p = CE.Central(esc)
         p.avanzar()
         p.ordenar("despachar", 0, 0, 0)
@@ -224,7 +224,8 @@ class Simulacion(unittest.TestCase):
         a = p.ambulancias[0]
         self.assertIsNone(a.objetivo)                           # la ambulancia deja de ir hacia alli
         self.assertEqual(a.ruta, [])
-        self.assertFalse(p.jugando())                           # ya no queda nada por resolver
+        while p.jugando():
+            p.avanzar()
         self.assertEqual(p.resumen()["score_normalized"], 0)
         self.assertFalse(p.exito())
 
@@ -251,6 +252,38 @@ class Simulacion(unittest.TestCase):
                 aislado = esc["aislado"] in p.g.aislados()
             self.assertTrue(aislado, semilla)
             self.assertEqual(p.fase, 3)
+
+
+class Turno30(unittest.TestCase):
+    def test_el_turno_dura_exactamente_30_segundos_en_todos_los_modos(self):
+        """30 s de juego efectivo (900 ticks), se juegue bien, mal o nada; y lo mismo en Historia, Feria y Arena."""
+        for modo in ("historia", "feria", "arena"):
+            esc = CE.generar_escenario(modo, 4)
+            self.assertEqual(esc["duracion"], 30 * CE.TICKS_S)
+            for jugada in (CE.jugar_bot(esc, random.Random(1), 1.0), CE.jugar_bot(esc, random.Random(1), 0.2), CE.rejugar(esc, [])):
+                self.assertEqual(jugada.tick, 30 * CE.TICKS_S, modo)
+                self.assertEqual(jugada.resumen()["segundos"], 30)
+
+    def test_cada_llamada_cabe_en_el_turno_y_hay_tres_fases(self):
+        for semilla in range(1, 6):
+            esc = CE.generar_escenario("feria", semilla)
+            ems = [e for e in esc["eventos"] if e["tipo"] == "emergencia"]
+            self.assertEqual(len(ems), 6)
+            for e in ems:
+                self.assertLessEqual(e["t"] + e["limite"], esc["duracion"])      # se puede resolver antes del final
+                self.assertGreaterEqual(e["limite"], 7 * CE.TICKS_S)              # y con tiempo para decidir
+            fases = [e["t"] for e in esc["eventos"] if e["tipo"] == "fase"]
+            self.assertEqual(fases, [0, 9 * CE.TICKS_S, 19 * CE.TICKS_S])
+            self.assertTrue(any(e["tipo"] == "bloqueo" for e in esc["eventos"] if e["t"] < 10 * CE.TICKS_S))
+
+    def test_bloqueos_y_ambulancias_actuan_durante_los_30_segundos(self):
+        esc = CE.generar_escenario("feria", 2)
+        p = CE.jugar_bot(esc, random.Random(2), 1.0)
+        tipos = [(t, tipo) for t, tipo, _d in p.eventos]
+        for tipo in ("bloqueo", "despacho", "entregado", "refuerzo", "apertura"):
+            self.assertTrue(any(x == tipo for _t, x in tipos), tipo)
+        self.assertTrue(any(x == "bloqueo" and t > 19 * CE.TICKS_S for t, x in tipos))    # tambien en la crisis
+        self.assertGreaterEqual(len(p.ordenes), 8)                                      # muchas decisiones en 30 s
 
 
 class Puntuacion(unittest.TestCase):

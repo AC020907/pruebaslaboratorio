@@ -24,6 +24,11 @@ init python:
     def ce_caja(color, tam):
         return Transform(Solid(color), xysize=(max(1, int(tam[0])), max(1, int(tam[1]))))
 
+    def ce_seg(ticks):
+        """Segundos legibles de una constante del motor (1,5 s; 6 s)."""
+        v = ticks / float(CE.TICKS_S)
+        return ("%d" % v) if v == int(v) else ("%.1f" % v).replace(".", ",")
+
     def ce_t(ticks):
         s = max(0, int(ticks) // CE.TICKS_S)
         return "%d:%02d" % (s // 60, s % 60)
@@ -60,6 +65,7 @@ init python:
             self.entrega_hecha = False
             self.ultima_pos = {}
             self.marcas = {}               # emergencia -> instante en que se resolvio (para el desvanecido)
+            self.ultimo_segundo = None     # cuenta atras final: un tic por segundo en los ultimos 5
             if not inicial:
                 renpy.restart_interaction()
 
@@ -99,7 +105,7 @@ init python:
             renpy.restart_interaction()
 
         def resultado_listo(self):
-            return not self.p.jugando() and self.fin_st is not None and self.st - self.fin_st > 1.2
+            return not self.p.jugando() and self.fin_st is not None and self.st - self.fin_st > 0.35
 
         # ---------- ordenes desde la interfaz ----------
         def amb(self, k):
@@ -289,6 +295,10 @@ init python:
             for tick, tipo, dato in self.p.eventos[self.vistos:]:
                 self.evento(tipo, dato)
             self.vistos = len(self.p.eventos)
+            resta = (self.p.fin_tick - self.p.tick + CE.TICKS_S - 1) // CE.TICKS_S
+            if 0 < resta <= 5 and resta != self.ultimo_segundo:
+                self.ultimo_segundo = resta
+                renpy.sound.play("assets/audio/sfx/rastreo_paso.wav")
 
         def evento(self, tipo, dato):
             p = self.p
@@ -309,9 +319,9 @@ init python:
                 renpy.sound.play("assets/audio/sfx/decision.ogg")
                 if tipo == "mediacion":
                     self.despejar = False
-                    self.aviso("Mediación en %s: la calle abrirá en 3 s." % CE.CALLES[dato][3], CE_TEAL)
+                    self.aviso("Mediación en %s: la calle abrirá en %s s." % (CE.CALLES[dato][3], ce_seg(CE.DESPEJE)), CE_TEAL)
                 if tipo == "prioridad":
-                    self.aviso("Ruta prioritaria: la Ambulancia %d no paga el tráfico durante 20 s." % CE.AMBULANCIAS[dato][0], CE_TEAL)
+                    self.aviso("Ruta prioritaria: la Ambulancia %d no paga el tráfico durante %s s." % (CE.AMBULANCIAS[dato][0], ce_seg(CE.PRIORIDAD)), CE_TEAL)
             elif tipo == "apertura":
                 self.aviso("%s vuelve a estar abierta." % CE.CALLES[dato][3], CE_TEAL)
             elif tipo == "paciente_a_bordo":
@@ -563,15 +573,15 @@ init python:
                     poner(etiqueta, obj[0] - 22, yy + 3)
 
             # --- cartel de fase y avisos ---
-            if self.banner and st - self.banner[2] < 3.0:
-                k = min(1.0, (st - self.banner[2]) / 0.3, (3.0 - (st - self.banner[2])) / 0.3)
+            if self.banner and st - self.banner[2] < 1.8:
+                k = min(1.0, (st - self.banner[2]) / 0.25, (1.8 - (st - self.banner[2])) / 0.25)
                 poner(Transform(Solid(CE_TINTA), xysize=(760, 112), alpha=0.92 * k), mx + 300, my + 380)
                 poner(Transform(Solid(CE_RUMOR), xysize=(760, 6), alpha=k), mx + 300, my + 380)
                 poner(Transform(self.texto(self.banner[0].upper(), 22, CE_AMBAR), alpha=k), mx + 330, my + 396)
                 poner(Transform(self.texto(self.banner[1], 40, CE_PAPEL, False, True), alpha=k), mx + 330, my + 428)
             y_aviso = my + 900 - 52
             for texto, col, t0 in reversed(self.avisos):
-                if st - t0 > 5.0:
+                if st - t0 > 3.2:
                     continue
                 cr = renpy.render(self.texto(texto, 20, CE_TINTA), 1300, 40, st, at)
                 poner(ce_caja(CE_TINTA, (cr.width + 40, 40)), mx + 16, y_aviso - 2)
@@ -579,6 +589,17 @@ init python:
                 poner(ce_caja(col, (8, 36)), mx + 18, y_aviso)
                 poner(self.texto(texto, 20, CE_TINTA), mx + 38, y_aviso + 6)
                 y_aviso -= 46
+            # Ultimos 5 segundos: numero grande que late con cada segundo y borde rojo que pulsa.
+            resta_t = (p.fin_tick - p.tick) / float(CE.TICKS_S)
+            if p.jugando() and self.cuenta <= 0 and 0 < resta_t <= 5.0:
+                fr = resta_t - int(resta_t)
+                pulso = 0.0 if persistent.reducir_movimiento else max(0.0, fr - 0.6) / 0.4
+                a_borde = 0.25 + 0.45 * pulso
+                for x_b, y_b, w_b, h_b in ((mx, my, 1360, 14), (mx, my + 886, 1360, 14), (mx, my, 14, 900), (mx + 1346, my, 14, 900)):
+                    poner(Transform(Solid(CE_RUMOR), xysize=(w_b, h_b), alpha=a_borde), x_b, y_b)
+                numero = Text("%d" % (int(resta_t) + (1 if fr > 0 else 0)), font="fonts/Roboto-Light.ttf", size=190,
+                              color=CE_PAPEL, outlines=[(6, CE_RUMOR, 0, 0)])
+                poner(Transform(numero, zoom=1.0 + 0.25 * pulso, alpha=0.88), mx + 680, my + 300, True)
             if self.cuenta > 0:
                 poner(Transform(Solid("#120d1c"), xysize=(1360, 900), alpha=0.5), mx, my)
                 poner(self.texto(str(int(self.cuenta) + 1), 150, CE_PAPEL), mx + 680, my + 450, True)
@@ -714,7 +735,7 @@ screen central_intro(modo="historia"):
                     text titulo size 21 bold True color "#2b2440" xalign 0.5
                     text texto size 17 color "#5b4f72" xalign 0.5 text_align 0.5
         text "Rutas: A es la más rápida ahora. B es una alternativa (evita las protestas anunciadas con megáfono). El tráfico denso (ámbar) y los atascos (rojo) cambian los tiempos." size 19 color "#2b2440" xalign 0.5 text_align 0.5
-        text "Tres fases: primera emergencia, ciudad congestionada y crisis. Cuentan los pacientes que llegan a tiempo y lo urgentes que eran." size 19 color "#5b4f72" xalign 0.5 text_align 0.5
+        text "Un turno de 30 segundos en tres fases de unos 10: primera emergencia, ciudad congestionada y crisis. El reloj empieza cuando tengas el control. Cuentan los pacientes que llegan a tiempo y lo urgentes que eran." size 19 color "#5b4f72" xalign 0.5 text_align 0.5
         textbutton "EMPEZAR EL TURNO" style "boton_vn" text_style "boton_vn_text" xalign 0.5 action Return() default_focus True
 
 screen central_ui(vista):
@@ -739,7 +760,7 @@ screen central_ui(vista):
             null width 30
             $ r_ = p.resumen()
             for etiqueta, valor, col in (("A TIEMPO", r_["a_tiempo"], "#2f9e8f"), ("EN CURSO", sum(1 for e in p.emergencias if e.estado in ("espera", "asignada", "atendiendo", "traslado")), "#2b2440"),
-                                         ("SIN ATENDER", sum(1 for e in p.emergencias if e.estado == "sin_atender"), "#8b84a8"), ("TURNO", ce_t(p.fin_tick - p.tick), "#d1495b" if p.fin_tick - p.tick < 15 * CE.TICKS_S else "#2b2440")):
+                                         ("SIN ATENDER", sum(1 for e in p.emergencias if e.estado == "sin_atender"), "#8b84a8"), ("QUEDAN", "%d s" % ((p.fin_tick - p.tick + CE.TICKS_S - 1) // CE.TICKS_S), "#d1495b" if p.fin_tick - p.tick <= 5 * CE.TICKS_S else "#2b2440")):
                 vbox:
                     yalign 0.5
                     text etiqueta style "ce_etiqueta"
@@ -814,7 +835,7 @@ screen central_ui(vista):
                     spacing 8
                     textbutton ("Mediación (%d)" % p.recursos["despejar"]) style "ce_boton" text_style "ce_boton_text" action Function(vista.alternar_despejar) sensitive p.recursos["despejar"] > 0 selected vista.despejar
                     textbutton ("Ruta prioritaria (%d)" % p.recursos["prioridad"]) style "ce_boton" text_style "ce_boton_text" action Function(vista.usar_prioridad) sensitive p.recursos["prioridad"] > 0
-                text "Mediación: toca una barricada y la calle abre en 3 s. Prioritaria: la ambulancia elegida no paga el tráfico 20 s." size 14 color "#c9b8d8"
+                text "Mediación: toca una barricada y la calle abre en [ce_seg(CE.DESPEJE)] s. Prioritaria: la ambulancia elegida no paga el tráfico [ce_seg(CE.PRIORIDAD)] s." size 14 color "#c9b8d8"
     # --- caja de opciones / tutorial (sobre el mapa, abajo a la derecha) ---
     $ paso = vista.paso_tutorial()
     if vista.opciones:

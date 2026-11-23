@@ -61,5 +61,5 @@ screen ayuda_mando():
         spacing 4
         label _("Mando")
         for fila in (_("Cruceta / palanca: moverse y elegir"), _("A: aceptar · B: menú / cerrar"),
-                     _("X: onda · Y: pista · LB: volver un paso"), _("Start: pausa")):
+                     _("X: aprobar · Y: pista · LB: volver un paso"), _("Start: pausa")):
             text fila size 20 color "#5b4f72"

@@ -157,7 +157,7 @@ label qa_mando:
     ## 3. Central de Emergencias: A en EMPEZAR EL TURNO; el turno lo juega el despachador automatico (las ordenes
     ##    son las de una persona); A en CONTINUAR termina. Comprueba que el mando entra y sale del minijuego.
     $ qa_central_auto = 1.0
-    $ qa_pad_programar([(3.5, None, None), (0.3, "a", "press"), (116.0, None, None)] + qa_pad_repetir("a", 30, 1.0))
+    $ qa_pad_programar([(3.5, None, None), (0.3, "a", "press"), (34.0, None, None)] + qa_pad_repetir("a", 30, 1.0))
     call minijuego_contencion(aplicar=False, ajustes={"modo": "feria"})
     $ qa_central_auto = None
     $ qa_pad_obs["contencion"] = {k: _return.get(k) for k in ("exito", "calificacion", "a_tiempo")}

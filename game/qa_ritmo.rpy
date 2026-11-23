@@ -1,6 +1,7 @@
 ## QA del Duelo de Frecuencias dentro del motor real: audio real, reloj real, pantallas reales.
 ## Un jugador automatico pulsa segun el reloj de la cancion. Inerte salvo con ALCALDE_QA=ritmo.
-##   ALCALDE_QA_PASOS = perfecto | mitad | nada      ALCALDE_QA_MODO = historia | feria
+##   ALCALDE_QA_PASOS = perfecto | mitad | nada | teclado | mando      ALCALDE_QA_MODO = historia | feria
+##   ALCALDE_QA_DIFICULTAD = normal | facil | asistido | dificil (5 carriles: teclas reales D F Espacio J K)
 
 init python:
     import json as _qar_json
@@ -33,9 +34,11 @@ init python:
                             if not n.get("_qa_enviada"):
                                 n["_qa_enviada"] = True
                                 if perfil == "mando":
-                                    qa_pad_evento(("dpleft", "dpdown", "dpup", "dpright")[n["lane"]], "press")
+                                    botones = ("dpleft", "dpdown", "a", "dpup", "dpright") if self.n == 5 else ("dpleft", "dpdown", "dpup", "dpright")
+                                    qa_pad_evento(botones[n["lane"]], "press")
                                 else:
-                                    qa_pad_evento("key:K_" + "dfjk"[n["lane"]], None)
+                                    teclas = ("K_d", "K_f", "K_SPACE", "K_j", "K_k") if self.n == 5 else ("K_d", "K_f", "K_j", "K_k")
+                                    qa_pad_evento("key:" + teclas[n["lane"]], None)
                         elif perfil == "perfecto" or i % 2 == 0:
                             self.pulsar(n["lane"])
             # renpy.screenshot congela ~400 ms: con ALCALDE_QA_SIN_CAPTURAS se mide el juego sin ese tiron.
@@ -58,7 +61,9 @@ label qa_ritmo_motor:
     $ modo_qar = _qa_os.environ.get("ALCALDE_QA_MODO", "feria")
     $ qar_instalar(perfil_qar)
     $ preparar_partida(feria=(modo_qar == "feria"))
-    $ vista_qar = VistaDuelo(modo_qar, "normal")
+    $ dificultad_qar = _qa_os.environ.get("ALCALDE_QA_DIFICULTAD", "normal")
+    $ duelo_competitivo = dificultad_qar == "dificil"
+    $ vista_qar = VistaDuelo(modo_qar, dificultad_qar)
     show screen duelo_pantalla(vista_qar, "claudia")
     $ inicio_qar = _time_ritmo.time()
     while vista_qar.duelo.estado not in ("results", "aborted") and _time_ritmo.time() - inicio_qar < 150:
@@ -67,7 +72,8 @@ label qa_ritmo_motor:
     python:
         d = vista_qar.duelo
         qar_obs.update({"estado": d.estado, "resultado": d.resultado(), "drift_max_ms": round(vista_qar.reloj.drift_max(), 1),
-                        "segundos": round(_time_ritmo.time() - inicio_qar, 1), "notas": len(d.notas),
+                        "segundos": round(_time_ritmo.time() - inicio_qar, 1), "notas": len(d.notas), "carriles": d.carriles,
+                        "dificultad": dificultad_qar,
                         "fallos": [(n["time_ms"], n["lane"]) for n in d.notas if n["estado"] == "miss"]})
         with open(QA_SALIDA, "w", encoding="utf-8") as f:
             _qar_json.dump(qar_obs, f, ensure_ascii=False, indent=1)

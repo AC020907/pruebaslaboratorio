@@ -19,11 +19,11 @@ Es la consecuencia temática de la cinemática de apertura (la ambulancia atrapa
    - **A** es la más rápida ahora (Dijkstra).
    - **B** es la alternativa. Si la ruta A pasa por una calle con **protesta anunciada** (megáfono con cuenta atrás), la B la esquiva.
 4. La ambulancia circula por las calles. Si una protesta corta su ruta, se detiene antes de la barricada y hay que **DESVIARLA**.
-5. Con el paciente a bordo, elige **hospital**. Cada uno muestra su tiempo estimado y sus **camas libres**. Si nadie elige, la tripulación va al más rápido con cama a los 6 s.
+5. Con el paciente a bordo, elige **hospital**. Cada uno muestra su tiempo estimado y sus **camas libres**. Si nadie elige, la tripulación va al más rápido con cama a los 2 s.
 
 **Recursos limitados:**
 - **Mediación:** toca una barricada y la calle abre en 3 s.
-- **Ruta prioritaria:** durante 20 s, la ambulancia elegida no paga el tráfico.
+- **Ruta prioritaria:** durante 6 s, la ambulancia elegida no paga el tráfico.
 
 Cada recurso usado resta 15 puntos.
 
@@ -33,21 +33,36 @@ Cada recurso usado resta 15 puntos.
 
 **Tutorial:** la fase 1 incluye un tutorial integrado. Unos anillos con «AQUÍ» señalan el siguiente paso y una caja «Cómo se juega» lo explica en una línea. Antes de empezar se muestra una presentación de cuatro pasos.
 
+## Turno arcade de 30 segundos
+
+Desde el 2026-11-23 el minijuego está **diseñado para 30 s de juego efectivo**; no es una partida larga cortada.
+
+- **El reloj** empieza cuando el jugador tiene el control: tras la presentación y la cuenta atrás de 2 s. Cuenta exactamente 900 ticks a 30 ticks/s.
+- **El turno nunca termina antes**, aunque se resuelva todo.
+- **Los últimos 5 segundos** muestran un número grande que late en el centro del mapa, un borde rojo que pulsa y un tic por segundo. El marcador «QUEDAN» se pone rojo.
+- **Al llegar a 0** aparecen los resultados (puntos, pacientes a tiempo, tarde y sin atender, respuesta media, desvíos y recursos) en 0,35 s.
+- **Ritmo ajustado para los 30 s:**
+  - calles ~3,5 veces más rápidas: cruzar la ciudad lleva ~3 s;
+  - recogida 0,6 s y entrega 0,4 s;
+  - elección automática de hospital a los 2 s;
+  - mediación 1,5 s y ruta prioritaria 6 s;
+  - una cama libre cada 10 s y protestas anunciadas 2,5 s antes;
+  - límites de 9, 12 y 15 s (crítico, grave y moderado).
+
+  Las últimas llamadas recortan su límite para que siempre se puedan resolver antes del segundo 30.
+- **Historia, Feria y Arena** usan el mismo turno, así que todos juegan bajo las mismas condiciones y la misma duración, también en la Arena local y online.
+
 ## Fases
 
 | Fase | Qué cambia | Decisión nueva |
 |---|---|---|
-| 1 · Primera emergencia | 1 ambulancia, 1 paciente grave. Hay una protesta anunciada sobre la ruta más probable. | Aprender a despachar; leer el aviso y elegir B, o desviar si cortan la calle |
-| 2 · Ciudad congestionada | Llega la Ambulancia 7. Un paciente crítico y otro moderado a la vez. La Av. Central se atasca. Una protesta corta un puente. | Priorizar: no se puede atender a los dos a la vez. La ruta corta deja de ser la rápida |
-| 3 · Crisis | Llega la Ambulancia 21. Hay varias llamadas seguidas. Una protesta **aísla** al paciente crítico del Sur (todas sus calles cortadas, sin reapertura) y hay más cortes en el centro. | Detectar la zona aislada (BFS) y gastar la mediación donde hace falta; coordinar tres ambulancias; elegir hospital según camas |
+| 1 · Primera emergencia (0-9 s) | 1 ambulancia, 1 paciente grave. Hay una protesta anunciada sobre la ruta más probable | Despachar; leer el aviso y elegir B, o desviar si cortan la calle |
+| 2 · Ciudad congestionada (9-19 s) | Llega la Ambulancia 7. Un crítico y un moderado casi a la vez. La Av. Central se atasca. Una protesta corta la ruta de la 7 y otra corta los puentes | Priorizar: no se puede atender a los dos a la vez. La ruta corta deja de ser la rápida |
+| 3 · Crisis (19-30 s) | Llega la Ambulancia 21. Tres llamadas seguidas. El crítico del Sur queda **aislado** (todas sus calles cortadas) y hay otro corte en el centro | Detectar la zona aislada (BFS) y gastar la única mediación donde hace falta; coordinar tres ambulancias; elegir hospital según camas |
 
-La dificultad sube con las decisiones (más llamadas que ambulancias, tráfico, protestas, aislamiento, camas), no recortando tiempos.
-
-| Modo | Duración máxima | Pacientes | Recursos |
+| Modo | Duración | Pacientes | Recursos |
 |---|---|---|---|
-| Historia | 150 s (suele acabar en 120-140 s) | 7 | 2 mediaciones, 2 rutas prioritarias |
-| Feria | 110 s (suele acabar en 85-100 s) | 6 | 1 y 1 |
-| Arena | 140 s | 7 | 2 y 2 |
+| Historia, Feria y Arena | 30 s exactos | 6 | 1 mediación, 1 ruta prioritaria |
 
 ## Algoritmos y estructuras de datos
 
@@ -95,11 +110,11 @@ normalizada 0-1000 = bruta · 1000 / máximo posible
 
 **Equilibrio** (despachador automático, 8 escenarios por fila; resultados al terminar de ajustar):
 
-| Habilidad | Feria | Arena / Historia |
+| Habilidad | Turno de 30 s (8 escenarios) | |
 |---|---|---|
-| 1,0 | 5-6/6, S-A | 6-7/7, S-A |
-| 0,4 | 4-6/6, S-B | 5-7/7, S-B |
-| 0,15 | 2-5/6, A-D | 4-6/7, A-D |
+| 1,0 | 5-6/6, S-A | unas 13 órdenes por turno |
+| 0,4 | 3-5/6, A-D | |
+| 0,15 | 3-4/6, B-D | reacciona tarde, sin prioridad |
 
 Hay un gradiente real: priorizar, desviar a tiempo, elegir hospital y usar la mediación en la zona aislada cambian el resultado.
 
@@ -188,3 +203,12 @@ Capturas en `docs/remaster/minijuegos/`.
 - La jugabilidad se verificó con clics automáticos y un despachador automático, **no con personas**. Falta ver si un jugador nuevo entiende el tutorial sin ayuda y si la fase 3 resulta abrumadora.
 - El mapa es plano e ilustrado con la paleta del juego, no con el estilo de los fondos oficiales.
 - La versión web de la Arena Online necesita el Manual Deploy en Render para estar disponible.
+
+## Verificación del turno de 30 s (2026-11-23)
+
+| Comprobación | Resultado |
+|---|---|
+| `tests/test_central.py` (22) | Incluye las pruebas nuevas: el turno dura **900 ticks** en Historia, Feria y Arena, se juegue bien, mal o nada; cada llamada cabe en el turno; tres fases a los 0, 9 y 19 s; bloqueos, despachos, entregas, refuerzos y aperturas ocurren dentro de los 30 s (también un bloqueo en la crisis) |
+| `tests/test_central_web.py` | Paridad Python/JS tick a tick con el turno nuevo |
+| Juego real (`qa_visual.py galeria --etapas central`) | Historia: **900 ticks en 29,99 s** de reloj de pared, A, 5/6 a tiempo. Feria: **900 ticks en 30,02 s**, S, 6/6. Resultados visibles 0,35 s después del final. Capturas de la cuenta atrás final (`ce13_ultimos_5_*`) |
+| Arena local (4 participantes) y Arena Online (2, 3 y 4 jugadores) | OK con el turno de 30 s |

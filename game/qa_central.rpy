@@ -29,6 +29,17 @@ init python:
             return None
         v = s.scope["vista"]
         p = v.p
+        # Duracion efectiva: reloj de pared desde el primer tick con control hasta el fin del turno.
+        clave_t0, clave_t1 = "t0_" + qa_ce["modo"], "t1_" + qa_ce["modo"]
+        if p.tick > 0 and clave_t0 not in qa_ce:
+            qa_ce[clave_t0] = ahora - p.tick / float(CE.TICKS_S)
+        if not p.jugando() and clave_t1 not in qa_ce:
+            qa_ce[clave_t1] = ahora
+            qa_ce["ticks_" + qa_ce["modo"]] = p.tick
+        if p.jugando() and 2 * CE.TICKS_S < p.fin_tick - p.tick < 4 * CE.TICKS_S:
+            qa_ce_foto("ce13_ultimos_5_%s" % qa_ce["modo"])
+        if v.resultado_listo() and "res_visible_" + qa_ce["modo"] not in qa_ce and clave_t1 in qa_ce:
+            qa_ce["res_visible_" + qa_ce["modo"]] = round(ahora - qa_ce[clave_t1], 2)
         if v.resultado_listo():
             if qa_ce.get("res_desde") is None:
                 qa_ce["res_desde"] = ahora
@@ -99,6 +110,10 @@ label qa_gal_central:
     $ qa_central_auto = None
     $ qa_gal["eventos"].append(("central_feria", _return["exito"], _return["calificacion"], _return["a_tiempo"],
                                 _return["total"], _return["desvios"], _return["recursos"], qa_ce.get("fps_feria")))
+    python:
+        for _m in ("historia", "feria"):
+            qa_gal["eventos"].append(("duracion_" + _m, qa_ce.get("ticks_" + _m),
+                                      round(qa_ce.get("t1_" + _m, 0) - qa_ce.get("t0_" + _m, 0), 2), qa_ce.get("res_visible_" + _m)))
     $ qa_gal["eventos"].extend(qa_ce["eventos"])
     $ qa_gal_volcar(etapa="central", ok=True)
     $ renpy.quit()

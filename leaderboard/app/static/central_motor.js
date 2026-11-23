@@ -381,13 +381,7 @@
       }
     }
     this.tick += 1;
-    var resueltas = 0, quedan = false;
-    for (k = 0; k < this.emergencias.length; k++) {
-      var s = this.emergencias[k].estado;
-      if (s === "a_tiempo" || s === "tarde" || s === "sin_atender") resueltas++;
-    }
-    for (k = 0; k < this.pendientes.length; k++) if (this.pendientes[k].tipo === "emergencia") quedan = true;
-    if (this.tick >= this.fin_tick || (resueltas === this.total && !quedan)) this._terminar();
+    if (this.tick >= this.fin_tick) this._terminar();     // el turno dura siempre lo mismo (30 s)
   };
   C._terminar = function () {
     for (var k = 0; k < this.emergencias.length; k++) {

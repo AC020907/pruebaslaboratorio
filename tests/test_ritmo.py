@@ -39,7 +39,8 @@ class Charts(unittest.TestCase):
 
     def test_charts_del_juego_validos_y_sincronizados_con_el_audio(self):
         import soundfile as sf
-        archivos = sorted(glob.glob(os.path.join(RAIZ, "game", "ritmo", "duelo_*.json")))
+        # Los cuatro charts de 120 BPM (Normal y Facil); el Dificil tiene sus pruebas en test_ritmo_dificil.py.
+        archivos = sorted(glob.glob(os.path.join(RAIZ, "game", "ritmo", "duelo_*_*.json")))
         self.assertEqual(len(archivos), 4)
         for ruta in archivos:
             with open(ruta, encoding="utf-8") as f:

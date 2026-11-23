@@ -136,3 +136,25 @@ Sigue muy por encima de 60.
 | Versión web (`web_build` + `postbuild`) | 479 archivos revisados: los del juego son idénticos; solo difieren `index.html`, el manifiesto, el service worker y el presplash, que modifica el postbuild. En el servidor local carga el menú y el Archivo de Destinos remasterizados, sin errores en consola |
 
 Moderación Express aparece unas veces como victoria y otras como derrota en la galería: el piloto automático alterna borrar y aprobar sobre comentarios con semilla aleatoria. Ya ocurría antes de estos cambios.
+
+## 9. Botones clásicos recuperados (2026-11-23)
+
+Se recuperó la estética de botones anterior al remaster, sacada del historial de Git (commit `76af0ef`, igual byte a byte que `tools/arte/respaldo_v1/gui`). Solo cambian los botones:
+
+- **Gráficos:**
+  - `boton_menu_idle`, `boton_menu_hover` y `boton_menu_feria`;
+  - `telefono_boton` y su hover.
+- **Color de hover:** `gui.hover_color` vuelve a `#5b5bd6`.
+- **`civ_ficha` y `civ_ficha_oscura`:** vuelven a los bordes de 9 parches y al relleno de los gráficos clásicos. El texto en hover de la ficha clara usa `#2b2440` para mantener el contraste.
+- **`tools/arte/gui_civitas.py`** ya no regenera esos botones. Las fichas del remaster siguen disponibles en el commit `739b74b`.
+
+**Sin cambios:**
+- textos, acciones, foco de teclado y mando, y accesibilidad;
+- el resto del remaster: fondos, menús, tipografía y Archivo de Destinos.
+
+**Comparativas:** las capturas del juego real están en `remaster/botones/`, con «REDISEÑADOS» frente a «RECUPERADOS»:
+- `botones_m01_menu_principal.jpg`
+- `botones_m03_preferencias.jpg`
+- `botones_m07_ayuda.jpg`
+- `botones_m09_confirmar.jpg`
+- `estados_idle_hover_feria_telefono.png`: todos los estados, uno al lado del otro.

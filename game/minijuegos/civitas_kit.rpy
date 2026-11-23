@@ -25,11 +25,13 @@ init -1 python:
             capas.append(Solid(franja, xysize=(franja_w, h - 2 * borde), pos=(borde, borde)))
         return Fixed(*capas, xysize=(w, h + sombra))
 
+## Botones: estetica original de Civitas (pildora de papel con sombra suave; hover lavanda), recuperada del
+## commit 76af0ef. Bordes del Frame iguales a boton_vn_compacto para que la curva no se deforme.
 style civ_ficha is default:
-    background Frame("gui/boton_menu_idle.png", 20, 16, 20, 22)
-    hover_background Frame("gui/boton_menu_hover.png", 22, 16, 20, 22)
-    insensitive_background Frame("gui/boton_menu_idle.png", 20, 16, 20, 22)
-    padding (30, 12, 30, 18)
+    background Frame("gui/boton_menu_idle.png", 34, 24)
+    hover_background Frame("gui/boton_menu_hover.png", 34, 24)
+    insensitive_background Frame("gui/boton_menu_idle.png", 34, 24)
+    padding (34, 14, 34, 18)
     hover_sound "assets/audio/sfx/menu_hover.ogg"
     activate_sound "assets/audio/sfx/ui_click.wav"
 
@@ -37,15 +39,15 @@ style civ_ficha_text is default:
     size 20
     bold True
     color "#2b2440"
-    hover_color "#8c2f4b"
+    hover_color "#2b2440"
     insensitive_color "#8b84a8"
     xalign 0.5
     text_align 0.5
 
 style civ_ficha_oscura is civ_ficha:
-    background Frame("gui/telefono_boton.png", 12, 12)
-    hover_background Frame("gui/telefono_boton_hover.png", 12, 12)
-    padding (26, 12)
+    background Frame("gui/telefono_boton.png", 30, 30)
+    hover_background Frame("gui/telefono_boton_hover.png", 30, 30)
+    padding (30, 12)
 
 style civ_ficha_oscura_text is civ_ficha_text:
     color "#fbf6ee"

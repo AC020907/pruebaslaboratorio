@@ -7,7 +7,8 @@ Motor del Duelo de Frecuencias (minijuego ritmico original). Logica pura, sin Re
 - Maquina de estados: countdown -> playing <-> paused -> results (o aborted).
 """
 
-CARRILES = 4
+CARRILES = 4                    # Normal, Facil, Asistido y Arena; el chart Dificil declara "lanes": 5
+MAX_CARRILES = 5
 TIPOS = ("tap",)
 SEPARACION_MIN_MS = 90          # dos notas del mismo carril mas juntas son injugables
 VENTANAS_MS = {"perfect": 45, "good": 90, "bad": 135}
@@ -33,6 +34,10 @@ def validar_chart(chart):
     notas = chart["notes"]
     if not notas:
         errores.append("chart sin notas")
+    carriles = chart.get("lanes", CARRILES)
+    if carriles not in range(1, MAX_CARRILES + 1):
+        errores.append("numero de carriles invalido")
+        return errores
     ultima_por_carril = {}
     previo = -1
     for i, n in enumerate(notas):
@@ -40,7 +45,7 @@ def validar_chart(chart):
         if not isinstance(t, (int, float)) or t < 0 or t > chart["duration_ms"]:
             errores.append("nota %d: tiempo fuera de rango" % i)
             continue
-        if lane not in range(CARRILES):
+        if lane not in range(carriles):
             errores.append("nota %d: carril invalido" % i)
             continue
         if tipo not in TIPOS:
@@ -123,6 +128,7 @@ class Duelo(object):
         if errores:
             raise ValueError("chart invalido: " + "; ".join(errores[:3]))
         self.chart = chart
+        self.carriles = chart.get("lanes", CARRILES)
         self.v = dict(VENTANAS_MS, **(ventanas or {}))
         self.umbral = umbral
         self.notas = [dict(n, estado=None) for n in chart["notes"]]
