@@ -24,7 +24,7 @@
     }
     this.evidencias.sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; });
     this.tick = 0; this.estado = "jugando"; this.recogidas = []; this.muertes = 0;
-    this.control = this.inicio; this.respawn = 0; this.eventos = []; this.traza = []; this.saltoPrevio = false;
+    this.control = this.inicio; this.respawn = 0; this.eventos = []; this.traza = []; this.saltoPrevio = false; this.impulsado = false;
     this._colocar(this.inicio);
   }
   var P = Partida.prototype;
@@ -37,8 +37,10 @@
   P.activo = function (tick) { return piso(tick, this.c.PARPADEO) % 2 === 0; };
   P.solido = function (fx, fy, tick) {
     var ch = this.tile(fx, fy);
-    return ch === "#" || (ch === "~" && this.activo(tick));
+    return ch === "#" || ch === "J" || (ch === "~" && this.activo(tick));
   };
+  P.escanerFase = function (tick, fx) { return (tick + fx * this.c.ESCANER_DESFASE) % this.c.ESCANER_CICLO; };
+  P.escanerActivo = function (tick, fx) { return this.escanerFase(tick, fx) < this.c.ESCANER_ACTIVO; };
   P._colocar = function (t) {
     var c = this.c;
     this.x = t[0] * c.T + piso(c.T - c.ANCHO, 2);
@@ -81,7 +83,8 @@
       this.vy = c.V_SALTO; this.buffer = 0; this.coyote = 0; this.enSuelo = false;
       this.eventos.push([this.tick, "salto", null]);
     }
-    if (!salto && this.vy < c.V_CORTE) this.vy = c.V_CORTE;
+    if (this.vy >= 0) this.impulsado = false;
+    if (!salto && this.vy < c.V_CORTE && !this.impulsado) this.vy = c.V_CORTE;
     this.saltoPrevio = salto;
     this.vy = Math.min(c.V_CAIDA_MAX, this.vy + c.GRAVEDAD);
 
@@ -107,16 +110,34 @@
       else if (this.vy < 0) ny = (piso(ny, c.T) + 1) * c.T;
       else ny = this.y;
       if (this._choca(this.x, ny)) ny = this.y;
-      if (this.enSuelo && !estabaEnSuelo) this.eventos.push([this.tick, "aterriza", null]);
       this.vy = 0;
     }
+    var px0 = piso(this.x, c.T), px1 = piso(this.x + c.ANCHO - 1, c.T), q;
+    if (this.vy > 0) {                                   // pasarela '=': solo frena cayendo desde arriba
+      var pie0 = this.y + c.ALTO, pie1 = ny + c.ALTO;
+      buscar: for (var gy = piso(pie0, c.T); gy <= piso(pie1, c.T); gy++) {
+        var borde = gy * c.T;
+        if (pie0 <= borde && borde < pie1) for (q = px0; q <= px1; q++) if (this.tile(q, gy) === "=") {
+          ny = borde - c.ALTO; this.enSuelo = true; this.vy = 0; break buscar;
+        }
+      }
+    }
+    if (this.enSuelo && !estabaEnSuelo) this.eventos.push([this.tick, "aterriza", null]);
     this.y = ny;
+    if (this.enSuelo) {                                  // impulsor 'J' bajo los pies
+      var gy2 = piso(this.y + c.ALTO, c.T), fx0i = piso(this.x, c.T), fx1i = piso(this.x + c.ANCHO - 1, c.T);
+      for (q = fx0i; q <= fx1i; q++) if (this.tile(q, gy2) === "J") {
+        this.vy = c.V_IMPULSO; this.enSuelo = false; this.impulsado = true; this.coyote = 0; this.buffer = 0;
+        this.eventos.push([this.tick, "impulso", null]); break;
+      }
+    }
 
     if (this.y > this.alto * c.T || this._choca(this.x, this.y)) return this._morir();
     var fx0 = piso(this.x, c.T), fx1 = piso(this.x + c.ANCHO - 1, c.T), fy0 = piso(this.y, c.T), fy1 = piso(this.y + c.ALTO - 1, c.T);
     for (var fy = fy0; fy <= fy1; fy++) for (var fx = fx0; fx <= fx1; fx++) {
       var ch = this.tile(fx, fy);
       if (ch === "^" && this._toca(fx, fy, c.MARGEN_PINCHO)) return this._morir();
+      if (ch === "L" && this.escanerActivo(this.tick, fx) && this._toca(fx, fy, c.MARGEN_ESCANER)) return this._morir();
       if (ch === "E") {
         var i = -1;
         for (var k = 0; k < this.evidencias.length; k++) if (this.evidencias[k][0] === fx && this.evidencias[k][1] === fy) i = k;
@@ -127,6 +148,7 @@
     }
   };
   P._morir = function () {
+    this.impulsado = false;
     this.muertes += 1; this.respawn = this.c.RESPAWN_TICKS;
     this.eventos.push([this.tick, "dano", null]);
     this._colocar(this.control);

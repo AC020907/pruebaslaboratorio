@@ -7,7 +7,7 @@ init -4 python:
 
     ARENA_MODOS = (("completo", "Torneo completo"), ("feria", "Torneo Feria"), ("clasica", "Solo Consejo"))
     ARENA_DESCRIPCION_MODO = {
-        "completo": "5 rondas del Consejo Cívico y después 5 pruebas: Moderación Express, Rastreador, Caza-Rumores, Ruta de la Verdad (plataformas) y el Duelo de Frecuencias como final. Unos 25 minutos.",
+        "completo": "5 rondas del Consejo Cívico y después 5 pruebas: Moderación Express, Rastreador, Central de Emergencias, Ruta de la Verdad (plataformas) y el Duelo de Frecuencias como final. Unos 25 minutos.",
         "feria": "Versión corta para la feria: 2 rondas del Consejo y las 5 pruebas con menos tiempo. Unos 12 minutos.",
         "clasica": "Solo las rondas del Consejo Cívico y la elección (la Arena original).",
     }
@@ -15,7 +15,7 @@ init -4 python:
     ARENA_NOMBRE_PRUEBA = AT.NOMBRE_PRUEBA
     ARENA_COMO_SE_PUNTUA = {
         "moderador": "Borra bots y ataques; deja las críticas reales. Censurar a una persona real resta más que dejar pasar un bot.",
-        "contencion": "Frena el rumor antes de que se vuelva viral. Cuenta cuánto se propagó y cuántos rumores interceptaste.",
+        "contencion": "Despacho en paralelo: todos reciben las mismas llamadas, bloqueos y recursos en su propia central. Puntúan los pacientes que llegan a tiempo, su gravedad y el margen; cada recurso usado resta 15.",
         "rastreador": "Reconstruye la cadena hasta la fuente. Encontrarla vale 620; el tiempo que te sobre suma hasta 380. Las pistas y las comprobaciones extra restan.",
         "plataformas": "Plataformas: recoge los fragmentos de evidencia y llega al archivo. Las evidencias y la meta son lo que más vale; el tiempo y las detecciones solo ajustan.",
         "ritmo": "Mismo chart para todos (Normal). Precisión 85 % y combo máximo 15 %: PERFECT 100 %, GREAT 70 %, GOOD 30 %, MISS 0 %.",
@@ -30,8 +30,8 @@ init -4 python:
         except OSError:
             pass   # queda pendiente: al reconectar se reenvia con el mismo id (el servidor no lo duplica)
 
-    def arena_datos_arcade(sim):
-        return {"reposts": int(sim.reposts), "interceptados": int(sim.interceptados), "exito": bool(sim.exito())}
+    def arena_datos_central(partida):
+        return {"ordenes": [list(o) for o in partida.ordenes]}
 
     def arena_datos_rastreo(p):
         return {"intentos": [[list(s), c] for s, c in p.intentos], "pistas": int(p.pistas_usadas),
@@ -57,8 +57,8 @@ label arena_jugar_prueba:
         call minijuego_moderador(spec_ar["semilla"], False, spec_ar["cantidad"])
         $ datos_ar = {"decisiones": [bool(b) for _p, b, _ok in moderacion.historial]}
     elif clave_ar == "contencion":
-        call minijuego_contencion(spec_ar["focos"], spec_ar["semilla"], False, spec_ar["ajustes"])
-        $ datos_ar = arena_datos_arcade(contencion)
+        call minijuego_contencion(None, spec_ar["semilla"], False, dict(spec_ar["ajustes"], escenario=AT.escenario_central(spec_ar)))
+        $ datos_ar = arena_datos_central(central)
     elif clave_ar == "rastreador":
         call minijuego_rastreador(spec_ar["semilla"], False, spec_ar["ajustes"])
         $ datos_ar = arena_datos_rastreo(puzzle_rastreo)

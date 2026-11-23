@@ -12,7 +12,7 @@ import pytest
 
 from clases import Plataformas as PL
 from clases.arena import campana as CA
-from clases.arena import caza_web as CW
+from clases import CentralEmergencias as CE
 from clases.arena import duelo_online as DO
 
 ROLES = ["ciudadano", "periodista", "influencer", "candidato"]
@@ -106,10 +106,12 @@ def jugar_reto(client, reloj, codigo, tokens, niveles=(0.95, 0.75, 0.5, 0.25)):
             assert r.status_code == 200, r.text
             assert r.json()["estado"] == "victoria" and r.json()["resultado"]["normalizado"] > 0
         elif clave == "contencion":
-            datos = CW.toques_bot(reto["config"], nivel, rng)
+            # Central de Emergencias: el cliente envia ORDENES; el servidor rejuega e ignora cualquier total enviado.
+            partida = CE.jugar_bot(reto["config"]["escenario"], rng, nivel)
+            datos = {"ordenes": partida.ordenes, "score_normalized": 1000}
             r = post(client, codigo, "reto", token=t, id="c%d" % i, datos=datos)
             assert r.status_code == 200, r.text
-            assert r.json()["resultado"]["normalizado"] == CW.puntuar(reto["config"], datos)["normalizado"]
+            assert r.json()["resultado"]["normalizado"] == partida.resumen()["score_normalized"]
         elif clave == "plataformas":
             carrera = PL.bot(reto["config"]["nivel"], rng, nivel)
             r = post(client, codigo, "reto", token=t, id="p%d" % i, datos={"traza": carrera.traza, "score_normalized": 1000})
@@ -253,9 +255,9 @@ def test_resultados_manipulados_y_antes_de_tiempo(client, reloj):
         cfg = v["reto"]["config"]
         avanzar(client, reloj, codigo, tokens, v["reto"]["inicio_en_ms"] / 1000.0 + 1)
         if objetivo == "contencion":
-            completo = CW.toques_bot(cfg, 1.0, random.Random(1))
+            completo = {"ordenes": CE.jugar_bot(cfg["escenario"], random.Random(1), 1.0).ordenes}
             assert post(client, codigo, "reto", token=tokens[0], datos=completo).status_code == 409        # aun no pasaron sus ticks
-            malos = [{"toques": [[5, 0, 1, 1]], "fallos": 0}, {"toques": "x"}, {"toques": [], "fallos": -1}]
+            malos = [{"ordenes": [[5, "volar", 0, 0, 0]]}, {"ordenes": "x"}, {"ordenes": [[9, "despachar", 0, 0, 0], [3, "despachar", 0, 0, 0]]}]
         else:
             carrera = PL.bot(cfg["nivel"], random.Random(1), 1.0)
             assert post(client, codigo, "reto", token=tokens[0], datos={"traza": carrera.traza}).status_code == 409   # mas larga que el tiempo real
@@ -263,7 +265,8 @@ def test_resultados_manipulados_y_antes_de_tiempo(client, reloj):
         avanzar(client, reloj, codigo, tokens, v["reto"]["duracion_ms"] / 1000.0)
         for datos in malos:
             assert post(client, codigo, "reto", token=tokens[0], datos=datos).status_code == 409, datos
-        bueno = CW.toques_bot(cfg, 0.9, random.Random(2)) if objetivo == "contencion" else {"traza": PL.bot(cfg["nivel"], random.Random(2), 0.9).traza}
+        bueno = ({"ordenes": CE.jugar_bot(cfg["escenario"], random.Random(2), 0.9).ordenes} if objetivo == "contencion"
+                 else {"traza": PL.bot(cfg["nivel"], random.Random(2), 0.9).traza})
         assert post(client, codigo, "reto", token=tokens[0], id="ok", datos=bueno).status_code == 200
         assert post(client, codigo, "reto", token=tokens[0], id="ok", datos=bueno).status_code == 200      # idempotente
         assert post(client, codigo, "reto", token=tokens[0], id="otra", datos=bueno).status_code == 409    # segunda entrega

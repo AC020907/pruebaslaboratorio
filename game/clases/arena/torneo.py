@@ -6,9 +6,9 @@ Python puro: lo usan el servidor TCP (LAN) y la sala online. El servidor es la u
 - recibe de cada cliente las DECISIONES que tomo (no su puntuacion) y las vuelve a puntuar:
     Moderacion  -> rejuega la cola con la misma semilla y las decisiones recibidas (ColaModeracion).
     Rastreador  -> rejuega los intentos de cadena sobre el mismo puzzle (PuzzleEvidencias).
-    Caza-Rumores / Gran Viralizacion -> reconstruye la simulacion (CazaRumores) para conocer la base y el
-                   umbral, valida coherencia y calcula la viralidad. (El tiempo real no se puede rejugar:
-                   limitacion documentada.)
+    Central de Emergencias -> rejuega la lista de ordenes del jugador (despachos, hospitales, desvios,
+                   recursos) sobre el mismo escenario con CentralEmergencias.rejugar y puntua el resultado.
+    Ruta de la Verdad -> rejuega la traza de entradas (Plataformas.rejugar).
     Duelo       -> recalcula precision, combo y puntos nota a nota con el chart del servidor (Ritmo).
 - normaliza cada prueba a 0-1000 y el Consejo Civico a 0-2000;
 - aplica consecuencias colectivas a Ciudad Nova (los mismos indicadores del Consejo, sin reiniciarlos).
@@ -18,7 +18,7 @@ import os
 import random
 
 from clases.ConfigMinijuegos import MODOS as MODOS_ARCADE
-from clases.CazaRumores import CazaRumores
+from clases import CentralEmergencias as CE
 from clases import Plataformas as PL
 from clases.Moderador import ColaModeracion
 from clases.PuzzleEvidencias import PuzzleEvidencias
@@ -28,21 +28,21 @@ from clases.moderacion_datos import publicaciones_moderacion
 from clases.arena.reglas import NOMBRE_INDICADOR
 
 PRUEBAS = ("moderador", "rastreador", "contencion", "plataformas", "ritmo")   # el Duelo cierra el torneo
-NOMBRE_CORTO = {"moderador": "Moderación", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
+NOMBRE_CORTO = {"moderador": "Moderación", "contencion": "Central", "rastreador": "Rastreador",
                 "plataformas": "Ruta", "ritmo": "Duelo"}
-NOMBRE_PRUEBA = {"moderador": "Moderación Express", "contencion": "Caza-Rumores", "rastreador": "Rastreador",
+NOMBRE_PRUEBA = {"moderador": "Moderación Express", "contencion": "Central de Emergencias", "rastreador": "Rastreador",
                  "plataformas": "Ruta de la Verdad", "ritmo": "Duelo de Frecuencias"}
 MAX_PRUEBA = 1000
 MAX_CONSEJO = 2000     # 5 pruebas x 1000 + Consejo 2000 = 7000. El Consejo pesa ~29% (mas que cualquier prueba, 14%).
 
 MODOS_TORNEO = {
     "completo": {"rondas_civicas": 5, "segundos": 25, "moderador": {"cantidad": 12},
-                 "contencion": {"duracion": 40.0}, "plataformas": {"nivel": "arena"},
+                 "contencion": {"modo": "arena"}, "plataformas": {"nivel": "arena"},
                  "rastreador": {"eslabones": 3, "senuelos": 3, "tiempo": 120.0},
                  "ritmo": {"modo": "historia"}},
     # Feria: 2 rondas civicas (arbol, grafo, propagacion y roles siguen presentes) y retos mas cortos.
     "feria": {"rondas_civicas": 2, "segundos": 20, "moderador": {"cantidad": 8},
-              "contencion": {"duracion": 25.0}, "plataformas": {"nivel": "feria"},
+              "contencion": {"modo": "feria"}, "plataformas": {"nivel": "feria"},
               "rastreador": {"eslabones": 2, "senuelos": 2, "tiempo": 75.0},
               "ritmo": {"modo": "feria"}},
 }
@@ -74,10 +74,13 @@ def preparar_prueba(clave, modo_torneo, semilla, indicadores):
         spec["contexto"] = ("Los conflictos del Consejo (%d) llenaron los comentarios: llegan %d más." % (ind["conflictos"], extra)
                             if extra else "Comentarios en los perfiles de los candidatos tras el Consejo Cívico.")
     elif clave == "contencion":
-        n_focos = 3 if ind["desinformacion"] >= 50 else 2
-        spec["focos"] = random.Random("focos|%s" % semilla).sample(CANDIDATOS_FOCO, n_focos)
-        spec["ajustes"] = {"duracion": cfg["duracion"]}
-        spec["contexto"] = ("La desinformación quedó en %d: el rumor arranca en %d focos." % (ind["desinformacion"], n_focos))
+        # Central de Emergencias: mismo mapa, emergencias, bloqueos y recursos para todos (despacho en paralelo).
+        tension = 1 if ind["desinformacion"] >= 50 else 0
+        spec["focos"] = None
+        spec["ajustes"] = {"modo": cfg["modo"], "tension": tension, "tutorial": True, "reinicio": False}
+        spec["contexto"] = ("La desinformación quedó en %d: %s Cada uno dirige su propia central con las mismas llamadas."
+                            % (ind["desinformacion"], "una protesta ya corta el centro al empezar." if tension
+                               else "las calles amanecen abiertas, por ahora."))
     elif clave == "plataformas":
         # Misma geometria y mismo tiempo para todos: el contexto del Consejo solo cambia el relato, no la dificultad.
         nivel = PL.Nivel(cfg["nivel"])
@@ -101,7 +104,7 @@ def limite_segundos(spec):
     if c == "moderador":
         return 15 + spec["cantidad"] * 5
     if c == "contencion":
-        return spec["ajustes"]["duracion"] + 45
+        return CE.MODOS[spec["ajustes"]["modo"]]["duracion"] + 45
     if c == "plataformas":
         return spec["limite_s"] + 45
     if c == "rastreador":
@@ -144,20 +147,21 @@ def puntuar_moderador(spec, datos):
                                                     ", %d críticas legítimas borradas" % censuras if censuras else "")}
 
 
-def _sim_arcade(spec):
-    return CazaRumores(crear_red_civitas(), "contencion", spec["focos"], spec["semilla"], spec["ajustes"])
+def escenario_central(spec):
+    return CE.generar_escenario(spec["ajustes"]["modo"], spec["semilla"], spec["ajustes"].get("tension", 0))
 
 
-def puntuar_arcade(spec, datos):
-    sim = _sim_arcade(spec)
-    reposts = _entero(datos.get("reposts"), int(sim.reposts_base), 10 ** 7, "reposts")
-    interceptados = _entero(datos.get("interceptados"), 0, 600, "interceptados")
-    exito = datos.get("exito")
-    if not isinstance(exito, bool):
-        raise ResultadoInvalido("Falta el resultado.")
-    v = min(1.0, (reposts - sim.reposts_base) / float(sim.cfg["umbral_viral"]))
-    if exito and v >= 1.0:
-        raise ResultadoInvalido("Resultado incoherente: superó el umbral viral y dice haber contenido el rumor.")
+def puntuar_central(spec, datos):
+    """El cliente envia SUS ORDENES; el servidor rejuega la partida completa y puntua (no se fia de ningun total)."""
+    try:
+        p = CE.rejugar(escenario_central(spec), datos.get("ordenes"))
+    except CE.OrdenesInvalidas as e:
+        raise ResultadoInvalido(str(e))
+    r = p.resumen()
+    return {"normalizado": r["score_normalized"], "precision": round(r["a_tiempo"] / float(max(1, r["total"])), 3),
+            "detalle": r,
+            "resumen": "%d/%d pacientes a tiempo · %d desvíos · %d recursos" % (r["a_tiempo"], r["total"], r["desvios"],
+                                                                               r["recursos"])}
     norm = 650 * (1 - v) + (250 if exito else 0) + min(100, interceptados * 4)
     return {"normalizado": int(max(0, min(MAX_PRUEBA, round(norm)))), "precision": round(1 - v, 3),
             "detalle": {"viralidad": round(v, 3), "interceptados": interceptados, "contenido": exito},
@@ -234,7 +238,7 @@ def puntuar_plataformas(spec, datos):
                 r["deaths"], r["elapsed_ms"] // 1000)}
 
 
-PUNTUAR = {"moderador": puntuar_moderador, "contencion": puntuar_arcade, "plataformas": puntuar_plataformas,
+PUNTUAR = {"moderador": puntuar_moderador, "contencion": puntuar_central, "plataformas": puntuar_plataformas,
            "rastreador": puntuar_rastreador, "ritmo": puntuar_ritmo}
 
 
@@ -370,14 +374,7 @@ def payload_bot(spec, nivel, rng):
     if c == "plataformas":
         return {"traza": PL.bot(spec["nivel"], rng, nivel).traza}
     if c == "contencion":
-        sim = _sim_arcade(spec)
-        umbral = sim.cfg["umbral_viral"]
-        v = max(0.0, min(1.0, 1 - nivel + rng.uniform(-.15, .15)))
-        exito = v < .8
-        if not exito:
-            v = 1.0
-        return {"reposts": int(sim.reposts_base + v * umbral), "interceptados": int(nivel * 20 + rng.randint(0, 5)),
-                "exito": exito}
+        return {"ordenes": CE.jugar_bot(escenario_central(spec), rng, nivel).ordenes}
     if c == "rastreador":
         cfg = spec["ajustes"]
         p = PuzzleEvidencias(crear_red_civitas(), spec["semilla"], eslabones=cfg["eslabones"],

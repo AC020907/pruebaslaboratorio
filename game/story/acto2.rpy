@@ -1,5 +1,5 @@
 ## ACTO 2 - Miercoles: el Barrio Sur.
-## Rodrigo y su tienda (la familia de la foto de 2019), Caza-Rumores, el encuentro con Claudia
+## Rodrigo y su tienda (la familia de la foto de 2019), Central de Emergencias, el encuentro con Claudia
 ## y, de noche, la oferta de Resonancia a Martina (cambia el domingo y el expediente).
 
 label acto2:
@@ -92,7 +92,7 @@ label acto2:
 
     scene bg crisis with destello
     $ musica("crisis", fadein=0.5)
-    "Si no lo frenas ahora, mañana estará en toda la ciudad."
+    "Ya hay calles bloqueadas y llamadas de emergencia en el Barrio Sur. Alguien tiene que coordinar las ambulancias."
 
     call minijuego_con_reintento("minijuego_contencion")
     $ resultado_contencion = _return

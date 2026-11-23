@@ -1,0 +1,62 @@
+{
+ "galeria": {
+  "fotos": [
+   "ce00_intro_historia",
+   "ce01_tutorial_ambulancia",
+   "ce02_tutorial_emergencia",
+   "ce03_rutas_a_b",
+   "ce04_en_ruta",
+   "ce05_bloqueo",
+   "ce07_fase2",
+   "ce10_elegir_hospital",
+   "ce08_fase3",
+   "ce09_zona_aislada",
+   "ce11_resultado_historia",
+   "ce00_intro_feria",
+   "ce20_feria_crisis",
+   "ce11_resultado_feria"
+  ],
+  "eventos": [
+   [
+    "central_historia",
+    true,
+    "A",
+    6,
+    7,
+    0,
+    3,
+    118.9
+   ],
+   [
+    "central_feria",
+    true,
+    "S",
+    6,
+    6,
+    0,
+    1,
+    155.8
+   ],
+   [
+    "clic_ambulancia",
+    true,
+    0
+   ],
+   [
+    "clic_emergencia",
+    true,
+    2
+   ],
+   [
+    "ruta_elegida",
+    "B",
+    [
+     439,
+     454
+    ]
+   ]
+  ],
+  "etapa": "central",
+  "ok": true
+ }
+}

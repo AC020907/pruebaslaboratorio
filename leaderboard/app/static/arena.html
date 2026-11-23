@@ -115,6 +115,7 @@ padding:env(safe-area-inset-top,0) env(safe-area-inset-right,0) env(safe-area-in
 .tarjeta{pointer-events:auto;background:#1f1830f2;border:1px solid #3a3150;border-radius:16px;padding:18px;text-align:center;color:#fbf6ee}
 .tarjeta h2{margin:.2em 0;color:#e8b04b;letter-spacing:.05em}.tarjeta .suave{color:#c9b8d8}
 .tarjeta .grande{font-size:2.4rem;font-weight:900;color:#3fbfae;margin:.1em 0}
+.ce-wrap{position:absolute;inset:0;display:flex}.ce-mapa{position:relative;flex:1;min-width:0}.ce-panel{width:330px;overflow:auto;background:#2b2440;padding:10px;display:flex;flex-direction:column;gap:6px;font-size:.92rem}.ce-cab{color:#fbf6ee;font-size:.85rem;letter-spacing:.04em}.ce-cab b{color:#e8b04b}.ce-sec{color:#e8b04b;font-weight:900;font-size:.75rem;letter-spacing:.12em;margin-top:6px}.ce-t{position:relative;display:block;width:100%;text-align:left;background:#fbf6ee;color:#2b2440;border:0;border-radius:6px;padding:8px 10px;cursor:pointer;font:inherit}.ce-t.sel{background:#f3d9e0}.ce-t[disabled]{cursor:default}.ce-t .d{float:right;font-weight:900}.ce-t small{color:#5b4f72}.ce-t small.rojo{color:#d1495b;font-weight:800}.ce-t i{position:absolute;left:0;bottom:0;height:5px}.ce-b{display:block;width:100%;margin-top:6px;background:#2b2440;color:#fbf6ee;border:2px solid #fbf6ee;border-radius:6px;padding:7px 10px;font-weight:800;cursor:pointer;text-align:left}.ce-b.a{background:#2f9e8f}.ce-b.b{background:#b07d1e}.ce-b[disabled]{opacity:.45;cursor:default}.ce-link{background:none;border:0;color:#c9b8d8;text-decoration:underline;cursor:pointer;text-align:left}@media (max-width:820px){.ce-wrap{flex-direction:column}.ce-panel{width:auto;height:42%}}
 .flotante{position:absolute;left:50%;top:14%;transform:translateX(-50%);width:min(92vw,560px);z-index:3}
 .cuenta{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:6rem;font-weight:900;color:#e8b04b;
 text-shadow:0 4px 20px #000;pointer-events:none;z-index:4}
@@ -186,6 +187,7 @@ color:#fbf6ee;padding:0;min-height:0;user-select:none;-webkit-user-select:none}
 <script src="/static/ritmo_motor.js"></script>
 <script src="/static/plat_motor.js"></script>
 <script src="/static/caza_motor.js"></script>
+<script src="/static/central_motor.js"></script>
 <script>
 "use strict";
 const API = "/api/arena";
@@ -199,8 +201,8 @@ const PERS = {rodrigo:["Rodrigo","#2f9e8f"],claudia:["Claudia Reyes","#5b5bd6"],
   nova:["NOVA","#e11d74"],civitas:["CivitasNet","#6d5bd0"],narrador:["",""]};
 const RETRATO = {rodrigo:1,claudia:1,martina:1,tomas:1,nova:1};
 const FONDO_RETO = {moderador:"operaciones",rastreador:"evidencias",contencion:"red",plataformas:"viral",ritmo:"viral"};
-const NOMBRE_RETO = {moderador:"Moderación Express",rastreador:"Rastreador",contencion:"Caza-Rumores",plataformas:"Ruta de la Verdad",ritmo:"Duelo de Frecuencias"};
-const CORTO = {moderador:"Moder.",rastreador:"Rastr.",contencion:"Caza",plataformas:"Ruta",ritmo:"Duelo"};
+const NOMBRE_RETO = {moderador:"Moderación Express",rastreador:"Rastreador",contencion:"Central de Emergencias",plataformas:"Ruta de la Verdad",ritmo:"Duelo de Frecuencias"};
+const CORTO = {moderador:"Moder.",rastreador:"Rastr.",contencion:"Central",plataformas:"Ruta",ritmo:"Duelo"};
 const IND = {info_verificada:"Información verificada",confianza:"Confianza",convivencia:"Convivencia",bienestar:"Bienestar digital",
   participacion:"Participación",desinformacion:"Desinformación",conflictos:"Conflictos",rumores:"Rumores"};
 const NEG = ["desinformacion","conflictos","rumores"];
@@ -445,7 +447,7 @@ function pintarReto(d, t0, t1){
   if (!R || R.indice !== r.indice) {
     const cuerpo = crearCapa(d, t0, t1);
     if (R.entregado) tarjetaEspera(cuerpo, "Ya entregaste este reto", R.resultado);
-    else ({moderador:iniciarModeracion, rastreador:iniciarRastreador, contencion:iniciarCaza, plataformas:iniciarPlataformas})[r.clave](d, cuerpo);
+    else ({moderador:iniciarModeracion, rastreador:iniciarRastreador, contencion:iniciarCentral, plataformas:iniciarPlataformas})[r.clave](d, cuerpo);
   }
   hud(d);
   if (R.actualizar) R.actualizar(d);
@@ -626,7 +628,256 @@ function autoRastreo(yo, accion, dibujar){   /* pruebas: juega pidiendo pistas, 
   accion("comprobar", {slots:yo.slots, conclusion:yo.conclusion});
 }
 
-/* ---------------- Reto 3: Caza-Rumores ---------------- */
+/* ---------------- Reto 3: Central de Emergencias (sustituye a Caza-Rumores) ---------------- */
+/* Motor: central_motor.js (traduccion 1:1 de CentralEmergencias.py). El servidor rejuega las ORDENES. */
+const CE_IMGS = ["mapa","ambulancia","barricada","aviso","hospital","em_critico","em_grave","em_moderado","em_cerrada"];
+const CE_GRAV = {critico:"#d1495b", grave:"#e8b04b", moderado:"#9678be"};
+const CE_HOSP_OFF = [[34,-64],[34,26],[30,-64]];
+const CE_EST_AMB = {inactiva:"En camino a la ciudad", libre:"Libre", ruta:"En ruta", detenida:"DETENIDA: calle cortada",
+  recogiendo:"Atendiendo en la escena", esperando_hospital:"Con paciente: elige hospital", entregando:"Entregando en el hospital"};
+const CE_EST_EM = {espera:"Sin ambulancia", asignada:"Ambulancia en camino", atendiendo:"En la escena", traslado:"Traslado",
+  a_tiempo:"Llegó a tiempo", tarde:"Llegó tarde", sin_atender:"No se llegó a tiempo"};
+function ceT(ticks){ const s = Math.max(0, Math.floor(ticks / 30)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }
+function iniciarCentral(d, cuerpo){
+  const yo = R, cfg = R.cfg, m = new CentralCivitas.Central(cfg), M = m.m;
+  Object.assign(R, {m, imgs:{}, sel:null, destino:null, opciones:[], despejar:false, fin:false, avisos:[], vistos:0, panelT:0, progT:0});
+  cuerpo.insertAdjacentHTML("beforeend", `<div class="ce-wrap"><div class="ce-mapa" id="ceMapa"></div><div class="ce-panel" id="cePanel"></div></div>
+    <div class="flotante" id="ceInfo"><div class="tarjeta" style="padding:10px"><p style="margin:0">${esc(d.reto.intro)}</p>
+    <p class="suave" style="margin:.3em 0 0">Toca una ambulancia, luego la emergencia, y elige la ruta A o B. Si cortan su calle, DESVÍA. Con el paciente a bordo, elige un hospital con camas.</p></div></div>`);
+  setTimeout(() => { const i = $("#ceInfo"); if (i) i.remove(); }, 8000);
+  const cv = lienzo($("#ceMapa")), panel = $("#cePanel");
+  CE_IMGS.forEach(n => cargarImg(`/static/central/${n}.webp`).then(i => { yo.imgs[n] = i; }));
+  const escala = () => { const W = cv.clientWidth, H = cv.clientHeight, s = Math.min(W / 1360, H / 900);
+    return [s, (W - 1360 * s) / 2, (H - 900 * s) / 2]; };
+  const aviso = (t, c) => { yo.avisos.push({t, c, ts:performance.now()}); yo.avisos = yo.avisos.slice(-3); };
+  const posAmb = a => {
+    if (a.arista >= 0) { const A = M.nodos[a.nodo], B = M.nodos[a.hacia], k = Math.min(1, a.prog / Math.max(1, a.dur));
+      a._ang = Math.atan2(B[1] - A[1], B[0] - A[0]); return [A[0] + (B[0] - A[0]) * k, A[1] + (B[1] - A[1]) * k, a._ang]; }
+    const N = M.nodos[a.nodo]; return [N[0], N[1], a._ang || 0];
+  };
+  const elegirEm = id => {
+    const e = m.emergencia(id); if (!e || e.estado !== "espera") return;
+    if (yo.sel === null || m.ambulancias[yo.sel].estado !== "libre") {
+      let mejor = null;
+      for (const a of m.ambulancias) if (a.activa && a.estado === "libre") { const op = m.opciones(m.origen_de(a), e.nodo, false);
+        if (op.length && (!mejor || op[0][0] < mejor[1])) mejor = [a.k, op[0][0]]; }
+      if (!mejor) { aviso("No hay ambulancia libre con camino hasta allí.", "#d1495b"); return; }
+      yo.sel = mejor[0];
+    }
+    const a = m.ambulancias[yo.sel];
+    yo.destino = ["em", id]; yo.opciones = m.opciones(m.origen_de(a), e.nodo, m.prio(a));
+    if (!yo.opciones.length) { yo.destino = null; aviso("Zona aislada: despeja una calle.", "#d1495b"); }
+    yo.panelT = 0;
+  };
+  const elegirHosp = h => {
+    if (yo.sel === null) return; const a = m.ambulancias[yo.sel];
+    if (a.estado !== "esperando_hospital") return;
+    if (m.camas[h] <= 0) { aviso(`${M.hospitales[h][0]} no tiene camas.`, "#d1495b"); return; }
+    yo.destino = ["hosp", h]; yo.opciones = m.opciones(m.origen_de(a), M.hospitales[h][1], m.prio(a));
+    if (!yo.opciones.length) yo.destino = null;
+    yo.panelT = 0;
+  };
+  const desvio = k => {
+    const a = m.ambulancias[k]; if (!a.objetivo) return;
+    yo.sel = k; yo.destino = ["desvio", k];
+    yo.opciones = m.opciones(m.origen_de(a), m._destino(a), m.prio(a)).filter(o => o[1].slice(1).join() !== a.ruta.join());
+    if (!yo.opciones.length) { yo.destino = null; aviso("No hay otra ruta abierta: despeja una calle.", "#d1495b"); }
+    yo.panelT = 0;
+  };
+  const confirmar = j => {
+    if (!yo.destino) return;
+    const [tipo, x] = yo.destino;
+    if (tipo === "em") m.ordenar("despachar", yo.sel, x, j);
+    else if (tipo === "hosp") m.ordenar("hospital", yo.sel, x, j);
+    else { const a = m.ambulancias[x], todas = m.opciones(m.origen_de(a), m._destino(a), m.prio(a));
+      const idx = todas.findIndex(o => o[1].join() === yo.opciones[j][1].join()); if (idx >= 0) m.ordenar("desviar", x, idx); }
+    yo.destino = null; yo.opciones = []; yo.panelT = 0;
+  };
+  yo.acc = {elegirEm, elegirHosp, desvio, confirmar};
+  cv.addEventListener("pointerdown", ev => {
+    ev.preventDefault();
+    if (yo.fin || cuentaAtras(cuerpo) > 0) return;
+    const rc = cv.getBoundingClientRect(), [s, ox, oy] = escala();
+    const x = (ev.clientX - rc.left - ox) / s, y = (ev.clientY - rc.top - oy) / s;
+    if (yo.despejar) {
+      let mejor = null;
+      M.calles.forEach((c, i) => { if (!m.g.bloqueada[i]) return; const A = M.nodos[c[0]], B = M.nodos[c[1]];
+        const dd = Math.hypot((A[0] + B[0]) / 2 - x, (A[1] + B[1]) / 2 - y); if (dd < 70 && (!mejor || dd < mejor[1])) mejor = [i, dd]; });
+      if (mejor) { m.ordenar("despejar", mejor[0]); yo.despejar = false; } else aviso("Toca una barricada.", "#e8b04b");
+      yo.panelT = 0; return;
+    }
+    for (const a of m.ambulancias) if (a.activa) { const [ax, ay] = posAmb(a); if (Math.hypot(ax - x, ay - y) < 40) {
+      yo.sel = yo.sel === a.k ? null : a.k; yo.destino = null; yo.opciones = []; yo.panelT = 0; return; } }
+    for (let h = 0; h < M.hospitales.length; h++) { const N = M.nodos[M.hospitales[h][1]];
+      if (Math.hypot(N[0] + CE_HOSP_OFF[h][0] - x, N[1] + CE_HOSP_OFF[h][1] - y) < 44 && yo.sel !== null) { elegirHosp(h); return; } }
+    for (const e of m.emergencias) if (e.estado === "espera") { const N = M.nodos[e.nodo];
+      if (Math.hypot(N[0] - x, N[1] - y) < 44) { elegirEm(e.id); return; } }
+    yo.destino = null; yo.opciones = []; yo.panelT = 0;
+  }, {passive:false});
+  panel.addEventListener("click", ev => {
+    const b = ev.target.closest("[data-a]"); if (!b || yo.fin) return;
+    const a = b.dataset.a, v = +b.dataset.v;
+    if (a === "em") elegirEm(v); else if (a === "amb") { yo.sel = yo.sel === v ? null : v; yo.destino = null; yo.opciones = []; }
+    else if (a === "hosp") { yo.sel = +b.dataset.k; elegirHosp(v); } else if (a === "ruta") confirmar(v);
+    else if (a === "desvio") desvio(v); else if (a === "cancelar") { yo.destino = null; yo.opciones = []; yo.despejar = false; }
+    else if (a === "despejar") { yo.despejar = !yo.despejar; yo.destino = null; yo.opciones = []; }
+    else if (a === "prioridad") { if (yo.sel === null) aviso("Primero elige una ambulancia.", "#e8b04b"); else m.ordenar("prioridad", yo.sel); }
+    yo.panelT = 0;
+  });
+  const piloto = AUTO ? pilotoCentral(m) : null;
+  const bucle = () => {
+    if (R !== yo) return;
+    const falta = cuentaAtras(cuerpo), ahora = performance.now();
+    if (falta <= 0 && !yo.fin) {
+      const objetivo = Math.min(m.fin_tick, Math.floor((ahora - inicioLocal()) * 30 / 1000));
+      let n = 0;
+      while (m.tick < objetivo && m.jugando() && n++ < 12) { if (piloto) piloto(); m.avanzar(); }
+      for (const e of m.eventos.slice(yo.vistos)) {
+        if (e[1] === "emergencia") { const em = m.emergencia(e[2]); aviso(`Llamada: paciente ${M.gravedad[em.gravedad][0].toLowerCase()} en ${M.nodos[em.nodo][2]}.`, CE_GRAV[em.gravedad]); }
+        else if (e[1] === "bloqueo") aviso(`Bloqueo: ${M.calles[e[2]][3]} cerrada.`, "#d1495b");
+        else if (e[1] === "aviso") aviso(`Protesta anunciada en ${M.calles[e[2]][3]}.`, "#e8b04b");
+        else if (e[1] === "detenida" || e[1] === "ruta_bloqueada") aviso(`Ambulancia ${M.amb[e[2]][0]}: ruta cortada. Desvíala.`, "#d1495b");
+        else if (e[1] === "paciente_a_bordo") { yo.sel = e[2]; yo.destino = null; yo.opciones = []; aviso(`Ambulancia ${M.amb[e[2]][0]} con paciente: elige hospital.`, "#e8b04b"); }
+        else if (e[1] === "entregado") aviso(m.emergencia(e[2]).estado === "a_tiempo" ? "Paciente entregado a tiempo." : "Paciente entregado con retraso.", "#2f9e8f");
+        else if (e[1] === "fase") { const f = cfg.escenario.eventos.find(x => x.tipo === "fase" && x.fase === e[2]); yo.banner = {f, ts:ahora}; }
+        yo.panelT = 0;
+      }
+      yo.vistos = m.eventos.length;
+      if (yo.destino && (yo.destino[0] === "em" || yo.destino[0] === "hosp") && ahora - (yo.recalc || 0) > 300) {
+        yo.recalc = ahora; if (yo.destino[0] === "em") elegirEm(yo.destino[1]); else elegirHosp(yo.destino[1]); }
+      if (!m.jugando()) { yo.fin = true; entregar({ordenes: m.ordenes}); }
+      if (ahora - yo.progT > 1000) { yo.progT = ahora; const r = m.resumen(); progreso(r.score_normalized, r.a_tiempo, m.tick / m.fin_tick); }
+    }
+    dibujarCentral(cv, yo, escala, posAmb, ahora);
+    if (ahora - yo.panelT > 250) { yo.panelT = ahora; panelCentral(panel, yo); }
+    if (yo.fin) tarjetaEspera(cuerpo, "Turno terminado", yo.resultado);
+    yo.raf = requestAnimationFrame(bucle);
+  };
+  R.cerrar = () => cancelAnimationFrame(yo.raf);
+  bucle();
+}
+function panelCentral(panel, yo){
+  const m = yo.m, M = m.m, act = m.emergencias.filter(e => ["espera","asignada","atendiendo","traslado"].includes(e.estado));
+  let h = `<div class="ce-cab">A TIEMPO <b>${m.resumen().a_tiempo}</b> · TURNO <b>${ceT(m.fin_tick - m.tick)}</b> · FASE ${m.fase}</div>`;
+  if (yo.opciones.length) {
+    h += `<div class="ce-sec">${yo.destino[0] === "em" ? "ELIGE LA RUTA" : yo.destino[0] === "hosp" ? "RUTA AL HOSPITAL" : "DESVÍO"}</div>`;
+    yo.opciones.forEach((o, j) => { const evita = j > 0 && yo.opciones[0][2].some(i => m.g.aviso[i]);
+      h += `<button class="ce-b ${j ? "b" : "a"}" data-a="ruta" data-v="${j}">Ruta ${"AB"[j]} · ${ceT(o[0])}${j === 0 ? " · más rápida" : evita ? " · evita la protesta" : " · alternativa"}</button>`; });
+    h += `<button class="ce-link" data-a="cancelar">Cancelar</button>`;
+  } else if (yo.despejar) h += `<div class="ce-sec">Toca una barricada en el mapa</div><button class="ce-link" data-a="cancelar">Cancelar</button>`;
+  h += `<div class="ce-sec">EMERGENCIAS</div>`;
+  if (!act.length) h += `<p class="suave">Sin llamadas pendientes.</p>`;
+  for (const e of act) { const fr = Math.max(0, (e.limite - m.tick) / Math.max(1, e.limite - e.aparece));
+    h += `<button class="ce-t" data-a="em" data-v="${e.id}" ${e.estado !== "espera" ? "disabled" : ""} style="border-left:8px solid ${CE_GRAV[e.gravedad]}">
+      <b>${M.gravedad[e.gravedad][0]} · ${esc(M.nodos[e.nodo][2])}</b><span class="d">${ceT(e.limite - m.tick)}</span><br><small>${CE_EST_EM[e.estado]}${e.ambulancia >= 0 ? " · Amb " + M.amb[e.ambulancia][0] : ""}</small>
+      <i style="width:${Math.round(fr * 100)}%;background:${fr > .5 ? "#2f9e8f" : fr > .25 ? "#e8b04b" : "#d1495b"}"></i></button>`; }
+  h += `<div class="ce-sec">AMBULANCIAS</div>`;
+  for (const a of m.ambulancias) {
+    h += `<div class="ce-t ${a.k === yo.sel ? "sel" : ""}" data-a="amb" data-v="${a.k}"><b>AMBULANCIA ${M.amb[a.k][0]}</b><br><small class="${a.estado === "detenida" ? "rojo" : ""}">${CE_EST_AMB[a.estado]}</small>`;
+    if ((a.estado === "ruta" || a.estado === "detenida") && a.objetivo) h += `<button class="ce-b" data-a="desvio" data-v="${a.k}">${a.estado === "detenida" || a.bloqueo_avisado ? "DESVIAR" : "Cambiar ruta"}</button>`;
+    if (a.estado === "esperando_hospital") for (const [hh, c, camas] of m.eta_hospitales(a))
+      h += `<button class="ce-b" data-a="hosp" data-k="${a.k}" data-v="${hh}" ${camas > 0 && c >= 0 ? "" : "disabled"}>${esc(M.hospitales[hh][0])} · ${c >= 0 ? ceT(c) : "sin camino"} · ${camas} cama${camas === 1 ? "" : "s"}</button>`;
+    h += `</div>`;
+  }
+  h += `<div class="ce-sec">RECURSOS</div><button class="ce-b" data-a="despejar" ${m.recursos.despejar > 0 ? "" : "disabled"}>Mediación (${m.recursos.despejar})</button>
+    <button class="ce-b" data-a="prioridad" ${m.recursos.prioridad > 0 ? "" : "disabled"}>Ruta prioritaria (${m.recursos.prioridad})</button>`;
+  panel.innerHTML = h;
+}
+function dibujarCentral(cv, yo, escala, posAmb, ahora){
+  const m = yo.m, M = m.m, [g, W, H] = ajustar(cv), [s, ox, oy] = escala();
+  g.fillStyle = "#120d1c"; g.fillRect(0, 0, W, H);
+  g.save(); g.translate(ox, oy); g.scale(s, s);
+  if (yo.imgs.mapa) g.drawImage(yo.imgs.mapa, 0, 0, 1360, 900); else { g.fillStyle = "#ece4d8"; g.fillRect(0, 0, 1360, 900); }
+  const seg = i => [M.nodos[M.calles[i][0]], M.nodos[M.calles[i][1]]];
+  g.lineCap = "round";
+  M.calles.forEach((c, i) => {
+    const [A, B] = seg(i);
+    if (m.g.trafico[i] && !m.g.bloqueada[i]) { g.strokeStyle = m.g.trafico[i] === 1 ? "#e8b04b" : "#d1495b"; g.lineWidth = 6; g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.stroke(); }
+    if (m.g.aviso[i]) { g.setLineDash([12, 12]); g.lineDashOffset = -ahora / 25; g.strokeStyle = "#e8b04b"; g.lineWidth = 12; g.beginPath(); g.moveTo(A[0], A[1]); g.lineTo(B[0], B[1]); g.stroke(); g.setLineDash([]); }
+    // trafico civil
+    const largo = Math.hypot(B[0] - A[0], B[1] - A[1]), nx = -(B[1] - A[1]) / largo, ny = (B[0] - A[0]) / largo, n = 1 + m.g.trafico[i] * 2;
+    for (let k = 0; k < n; k++) { const sen = k % 2 ? -1 : 1;
+      let u = m.g.bloqueada[i] ? 0.12 + 0.07 * (k >> 1) : ((ahora / 1000) * 48 / (1 + m.g.trafico[i] * 1.3) / largo + i * 0.37 + k * 0.61) % 1;
+      if (sen < 0) u = 1 - u;
+      const x = A[0] + (B[0] - A[0]) * u + nx * 6 * sen, y = A[1] + (B[1] - A[1]) * u + ny * 6 * sen;
+      g.save(); g.translate(x, y); g.rotate(Math.atan2(B[1] - A[1], B[0] - A[0])); g.fillStyle = ["#9688b0","#625c76","#3d7ea6","#e8b04b","#8c2f4b","#2f9e8f"][(i + k) % 6];
+      g.strokeStyle = "#2b2440"; g.lineWidth = 2; g.fillRect(-16, -8, 32, 16); g.strokeRect(-16, -8, 32, 16); g.restore(); }
+  });
+  for (const a of m.ambulancias) if (a.activa && a.objetivo && a.ruta.length) {
+    const [x, y] = posAmb(a); g.strokeStyle = a.k === yo.sel ? "#8c2f4b" : "#a596bd"; g.lineWidth = a.k === yo.sel ? 8 : 4;
+    g.beginPath(); g.moveTo(x, y); for (const v of a.ruta) g.lineTo(M.nodos[v][0], M.nodos[v][1]); g.stroke(); }
+  yo.opciones.slice().reverse().forEach((o, jj) => { const j = yo.opciones.length - 1 - jj;
+    g.strokeStyle = "#2b2440"; g.lineWidth = 16; g.beginPath(); o[1].forEach((v, k) => k ? g.lineTo(M.nodos[v][0], M.nodos[v][1]) : g.moveTo(M.nodos[v][0], M.nodos[v][1])); g.stroke();
+    g.strokeStyle = j ? "#e8b04b" : "#2f9e8f"; g.lineWidth = 10; g.stroke(); });
+  M.calles.forEach((c, i) => { if (!m.g.bloqueada[i]) return; const [A, B] = seg(i), xm = (A[0] + B[0]) / 2, ym = (A[1] + B[1]) / 2;
+    g.strokeStyle = "#d1495b"; g.lineWidth = 14; g.setLineDash([14, 10]); g.beginPath(); g.moveTo(A[0] + (B[0] - A[0]) * .2, A[1] + (B[1] - A[1]) * .2);
+    g.lineTo(A[0] + (B[0] - A[0]) * .8, A[1] + (B[1] - A[1]) * .8); g.stroke(); g.setLineDash([]);
+    if (yo.imgs.barricada) g.drawImage(yo.imgs.barricada, xm - 35, ym - 20, 70, 40);
+    if (yo.despejar) { g.strokeStyle = "#2f9e8f"; g.lineWidth = 4; g.beginPath(); g.arc(xm, ym, 32 + 6 * Math.sin(ahora / 120), 0, 7); g.stroke(); } });
+  M.calles.forEach((c, i) => { if (m.g.aviso[i] && !m.g.bloqueada[i] && yo.imgs.aviso) { const [A, B] = seg(i); g.drawImage(yo.imgs.aviso, (A[0] + B[0]) / 2 - 22, (A[1] + B[1]) / 2 - 22, 44, 44); } });
+  for (const k of m.g.aislados()) { const N = M.nodos[k]; g.strokeStyle = "#d1495b"; g.lineWidth = 4; g.beginPath(); g.arc(N[0], N[1], 30 + 4 * Math.sin(ahora / 200), 0, 7); g.stroke(); }
+  M.hospitales.forEach((hh, h) => { const N = M.nodos[hh[1]], x = N[0] + CE_HOSP_OFF[h][0], y = N[1] + CE_HOSP_OFF[h][1];
+    if (yo.imgs.hospital) g.drawImage(yo.imgs.hospital, x - 28, y - 28, 56, 56);
+    g.fillStyle = "#fbf6ee"; g.fillRect(x - 70, y + 30, 140, 22); g.fillStyle = "#2b2440"; g.font = "800 13px system-ui"; g.textAlign = "center"; g.fillText(hh[0].toUpperCase(), x, y + 46);
+    for (let k = 0; k < hh[2]; k++) { g.fillStyle = k < m.camas[h] ? "#2f9e8f" : "#d9d1e3"; g.beginPath(); g.arc(x - (hh[2] - 1) * 9 + k * 18, y + 66, 7, 0, 7); g.fill(); g.strokeStyle = "#2b2440"; g.lineWidth = 2; g.stroke(); } });
+  for (const e of m.emergencias) {
+    const N = M.nodos[e.nodo];
+    if (!["espera","asignada"].includes(e.estado)) continue;
+    const fr = Math.max(0, (e.limite - m.tick) / Math.max(1, e.limite - e.aparece));
+    g.strokeStyle = "#2b2440"; g.lineWidth = 9; g.beginPath(); g.arc(N[0], N[1], 36, 0, 7); g.stroke();
+    g.strokeStyle = fr > .5 ? "#2f9e8f" : fr > .25 ? "#e8b04b" : "#d1495b"; g.lineWidth = 7; g.beginPath(); g.arc(N[0], N[1], 34, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * fr); g.stroke();
+    const img = yo.imgs["em_" + e.gravedad]; if (img) g.drawImage(img, N[0] - 26, N[1] - 26, 52, 52);
+    g.fillStyle = e.gravedad === "grave" ? "#b07d1e" : CE_GRAV[e.gravedad]; g.fillRect(N[0] - 52, N[1] + 40, 104, 22);
+    g.fillStyle = "#fbf6ee"; g.font = "800 13px system-ui"; g.textAlign = "center"; g.fillText(`${M.gravedad[e.gravedad][0].toUpperCase()} ${ceT(e.limite - m.tick)}`, N[0], N[1] + 56);
+  }
+  for (const a of m.ambulancias) if (a.activa) {
+    const [x, y, ang] = posAmb(a);
+    if (a.k === yo.sel) { g.fillStyle = "#fbf6eedd"; g.strokeStyle = "#8c2f4b"; g.lineWidth = 4; g.beginPath(); g.arc(x, y, 30, 0, 7); g.fill(); g.stroke(); }
+    if (a.estado === "ruta" || a.estado === "detenida" || a.paciente >= 0) { const rojo = Math.floor(ahora / 200) % 2 === 0;
+      g.fillStyle = rojo ? "#d1495b" : "#3d7ea6"; g.beginPath(); g.arc(x + (rojo ? -10 : 10), y - 22, 8, 0, 7); g.fill(); }
+    if (yo.imgs.ambulancia) { g.save(); g.translate(x, y); g.rotate(ang); g.drawImage(yo.imgs.ambulancia, -32, -16, 64, 32); g.restore(); }
+    g.fillStyle = a.k === yo.sel ? "#8c2f4b" : "#2b2440"; g.fillRect(x + 16, y + 12, 30, 22); g.fillStyle = "#fbf6ee"; g.font = "800 14px system-ui"; g.textAlign = "center"; g.fillText(M.amb[a.k][0], x + 31, y + 28);
+    if (a.estado === "detenida" || a.bloqueo_avisado) { g.fillStyle = "#d1495b"; g.beginPath(); g.arc(x - 28, y - 28, 14, 0, 7); g.fill(); g.fillStyle = "#fff"; g.font = "900 18px system-ui"; g.fillText("!", x - 28, y - 22); }
+  }
+  if (yo.banner && ahora - yo.banner.ts < 3000 && yo.banner.f) {
+    g.fillStyle = "#2b2440ee"; g.fillRect(300, 380, 760, 112); g.fillStyle = "#d1495b"; g.fillRect(300, 380, 760, 6);
+    g.fillStyle = "#e8b04b"; g.font = "800 22px system-ui"; g.textAlign = "left"; g.fillText(yo.banner.f.titulo.toUpperCase(), 330, 420);
+    g.fillStyle = "#fbf6ee"; g.font = "300 40px system-ui"; g.fillText(yo.banner.f.subtitulo, 330, 466);
+  }
+  let ya = 900 - 52;
+  for (const av of yo.avisos.slice().reverse()) { if (ahora - av.ts > 5000) continue;
+    g.font = "700 20px system-ui"; const w = g.measureText(av.t).width;
+    g.fillStyle = "#fbf6ee"; g.fillRect(18, ya, w + 40, 36); g.fillStyle = av.c; g.fillRect(18, ya, 8, 36);
+    g.fillStyle = "#2b2440"; g.textAlign = "left"; g.fillText(av.t, 38, ya + 25); ya -= 46; }
+  g.restore();
+}
+/* Solo pruebas locales (?autoplay=1): despachador sencillo con las mismas ordenes que una persona. */
+function pilotoCentral(m){
+  return () => {
+    if (m.tick % 10) return;
+    for (const a of m.ambulancias) {
+      if (a.estado === "esperando_hospital") { let mejor = null;
+        for (const [h, c, camas] of m.eta_hospitales(a)) if (camas > 0 && c >= 0 && (!mejor || c < mejor[1])) mejor = [h, c];
+        if (mejor) m.ordenar("hospital", a.k, mejor[0], 0);
+        else for (const [v, i] of m.m.ady[m.origen_de(a)]) if (m.g.bloqueada[i]) { m.ordenar("despejar", i); break; } }
+      if (a.estado === "detenida") { if (m.opciones(m.origen_de(a), m._destino(a), false).length) m.ordenar("desviar", a.k, 0);
+        else if (a.ruta.length) m.ordenar("despejar", m.m.arista_entre(a.nodo, a.ruta[0])); }
+    }
+    const libres = m.ambulancias.filter(a => a.activa && a.estado === "libre");
+    const espera = m.emergencias.filter(e => e.estado === "espera").sort((x, y) => x.limite - y.limite || x.id - y.id);
+    const aisl = m.g.aislados();
+    for (const e of espera) {
+      if (!libres.length) break;
+      if (aisl.includes(e.nodo)) { for (const [v, i] of m.m.ady[e.nodo]) if (m.g.bloqueada[i]) { m.ordenar("despejar", i); break; } continue; }
+      let mejor = null;
+      for (const a of libres) { const op = m.opciones(m.origen_de(a), e.nodo, false); if (op.length && (!mejor || op[0][0] < mejor[1])) mejor = [a, op[0][0]]; }
+      if (!mejor) continue;
+      m.ordenar("despachar", mejor[0].k, e.id, 0); libres.splice(libres.indexOf(mejor[0]), 1);
+    }
+  };
+}
+
+/* ---------------- Caza-Rumores (retirado del torneo; se conserva el codigo, ver docs/CENTRAL_EMERGENCIAS.md) ---------------- */
 function iniciarCaza(d, cuerpo){
   const yo = R, cfg = R.cfg, motor = new CazaCivitas.Caza(cfg);
   Object.assign(R, {motor, toques:[], fallos:0, anillos:[], fin:false});
@@ -710,7 +961,9 @@ const PLAT_IMGS = [   /* arte v2: el mismo que Ren'Py (tools/arte/plataformas_ar
   ...Array.from({length:32}, (_, k) => "solido_" + (k >> 1) + "_" + (k & 1)),
   "barrera_0","barrera_1","barrera_2","inestable_on","inestable_aviso","inestable_off","documento","antena_off","antena_on","archivo",
   "av_idle_0","av_idle_1","av_corre_0","av_corre_1","av_corre_2","av_corre_3","av_corre_4","av_corre_5",
-  "av_salto","av_cae","av_recoge","av_dano","av_victoria","fondo_lejos","fondo_medio","primer_plano","cielo","vineta","halo"];
+  "av_salto","av_cae","av_recoge","av_dano","av_victoria","fondo_lejos","fondo_medio","primer_plano","cielo","vineta","halo",
+  "pasarela_00","pasarela_01","pasarela_10","pasarela_11","impulsor_0","impulsor_1","escaner_off","escaner_aviso","escaner_on",
+  "emisor_0","emisor_1","meta_haz"];
 function iniciarPlataformas(d, cuerpo){
   const yo = R, cfg = R.cfg, p = new PlatCivitas.Partida(cfg);
   Object.assign(R, {p, imgs:{}, teclas:new Set(), tactil:{}, acum:0, ultimo:null, fin:false, cam:0, vistos:0, aviso:null, part:[], finT:null});
@@ -745,9 +998,10 @@ function iniciarPlataformas(d, cuerpo){
       const paso = 1000 / cfg.ticks_s;
       while (yo.acum >= paso && p.jugando()) { yo.acum -= paso; p.avanzar(piloto ? piloto() : mascara()); }
       for (const e of p.eventos.slice(yo.vistos)) {
-        const PC = {evidencia:["#e8b04b",18,420], dano:["#d1495b",22,380], aterriza:["#c9b8d8",6,160], salto:["#c9b8d8",4,120], control:["#2f9e8f",14,300], meta:["#fbf6ee",36,520]}[e[1]];
+        const PC = {evidencia:["#e8b04b",18,420], dano:["#d1495b",22,380], aterriza:["#c9b8d8",6,160], salto:["#c9b8d8",4,120], control:["#2f9e8f",14,300], meta:["#fbf6ee",36,520], impulso:["#3fbfae",16,360]}[e[1]];
         if (e[1] === "aterriza") yo.aterrizoT = ahora; else if (e[1] === "evidencia") yo.recogeT = ahora;
         else if (e[1] === "dano") yo.danoT = ahora; else if (e[1] === "control") yo.controlT = ahora;
+        else if (e[1] === "impulso") yo.impulsoT = ahora;
         if (PC) { const suelo = e[1] === "aterriza" || e[1] === "salto";
           const cx = (p.x + p.c.ANCHO / 2) / cfg.sub, cy = (p.y + (suelo ? p.c.ALTO : p.c.ALTO / 2)) / cfg.sub;
           for (let k = 0; k < PC[1]; k++) { const a = suelo ? Math.PI + Math.random() * Math.PI : Math.random() * 2 * Math.PI, v = (0.4 + Math.random() * 0.6) * PC[2] / 72;
@@ -789,8 +1043,11 @@ function dibujarPlat(cv, yo, cfg, ahora){
   const p = yo.p, [g, W, H] = ajustar(cv), I = yo.imgs, filas = p.alto, quieto = MOV_REDUCIDO;
   const lado = Math.max(24, Math.min(64, Math.floor(H / (filas + 0.6)))), e = lado / cfg.tile;
   const px = p.x / cfg.sub * e, py = p.y / cfg.sub * e, anchoMundo = p.ancho * lado;
-  const objetivo = Math.max(0, Math.min(anchoMundo - W, px - W * 0.38 + p.mira * W * 0.12));
-  yo.cam += (objetivo - yo.cam) * (quieto ? 1 : 0.2);
+  /* Camara: suavizado por tiempo (no por cuadro) y anticipacion que gira despacio, como en Ren'Py. */
+  const dtc = Math.min(100, Math.max(0, ahora - (yo.tCam || ahora))) / 1000; yo.tCam = ahora;
+  yo.miraS = yo.miraS === undefined ? p.mira : yo.miraS + (p.mira - yo.miraS) * (quieto ? 1 : 1 - Math.exp(-dtc * 2.6));
+  const objetivo = Math.max(0, Math.min(anchoMundo - W, px - W * 0.38 + yo.miraS * W * 0.12));
+  yo.cam += (objetivo - yo.cam) * (quieto ? 1 : 1 - Math.exp(-dtc * 8.5));
   const sac = (!quieto && ahora - yo.danoT < 280) ? Math.round(6 * Math.sin((ahora - yo.danoT) / 14) * (1 - (ahora - yo.danoT) / 280)) : 0;
   const cam = yo.cam + sac, y0 = H - filas * lado;
   g.fillStyle = "#120d1c"; g.fillRect(0, 0, W, H);
@@ -823,7 +1080,18 @@ function dibujarPlat(cv, yo, cfg, ahora){
         g.rotate(quieto ? 0 : Math.sin(ahora / 500 + fx) * 0.1); g.drawImage(I.documento, -lado * 0.62, -lado * 0.62, lado * 1.24, lado * 1.24); g.restore(); } continue; }
     else if (ch === "C") { const on = p.control[0] === fx && p.control[1] === fy; img = on ? I.antena_on : I.antena_off;
       if (on && ahora - yo.controlT < 800) { const k = (ahora - yo.controlT) / 800; g.strokeStyle = "#2f9e8f"; g.lineWidth = 3; g.beginPath(); g.arc(x + lado / 2, y + lado * 0.25, lado * (0.3 + 1.2 * k), 0, 7); g.stroke(); } }
-    else if (ch === "M") { if (I.archivo) g.drawImage(I.archivo, x - lado * 0.25, y - lado, lado * 1.5, lado * 2); continue; }
+    else if (ch === "=") { const iz = !(fx > 0 && p.filas[fy][fx - 1] === "="), de = !(fx + 1 < p.ancho && p.filas[fy][fx + 1] === "=");
+      img = I["pasarela_" + (iz ? 1 : 0) + (de ? 1 : 0)]; }
+    else if (ch === "J") { const cerca = Math.abs(fx * p.c.T + p.c.T / 2 - (p.x + p.c.ANCHO / 2)) < p.c.T;
+      img = I["impulsor_" + ((ahora - (yo.impulsoT || -9e9) < 180 && cerca) ? 1 : 0)]; }
+    else if (ch === "L") { const fase = p.escanerFase(p.tick, fx), K = cfg.constantes;
+      let est = fase < K.ESCANER_ACTIVO ? "on" : (fase >= K.ESCANER_CICLO - K.ESCANER_AVISO ? "aviso" : "off");
+      if (est === "aviso" && !quieto && Math.floor(ahora / 83) % 2) est = "off";
+      if (I["escaner_" + est]) g.drawImage(I["escaner_" + est], x, y, lado, lado);
+      if (!(fy > 0 && p.filas[fy - 1][fx] === "L") && I["emisor_" + (est !== "off" ? 1 : 0)]) g.drawImage(I["emisor_" + (est !== "off" ? 1 : 0)], x, y - lado * 0.11, lado, lado / 2);
+      continue; }
+    else if (ch === "M") { if (I.meta_haz) { g.globalAlpha = 0.7 + 0.3 * Math.sin(ahora / 330); g.drawImage(I.meta_haz, x - lado * 0.25, y - lado - lado * 4.86, lado * 1.5, lado * 5); g.globalAlpha = 1; }
+      if (I.archivo) g.drawImage(I.archivo, x - lado * 0.25, y - lado, lado * 1.5, lado * 2); continue; }
     if (img) g.drawImage(img, x, y, lado, lado);
   }
   const cuadro = p.respawn > 0 ? "dano" : p.completado() ? "victoria" : (ahora - yo.recogeT < 350) ? "recoge"

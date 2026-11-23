@@ -21,7 +21,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 from qa_recorridos import PROYECTO, SDK_DEFECTO, GuardadoAislado  # noqa: E402
 
 ETAPAS_GALERIA = ("menus", "personajes", "escenas", "minijuegos", "ritmo", "ritmo:nada", "ritmo:abandonar", "finales",
-                  "cinematica")
+                  "cinematica", "central", "ruta")
 
 
 def lanzar(sdk, env_extra, carpeta, timeout=900):

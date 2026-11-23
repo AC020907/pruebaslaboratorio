@@ -154,12 +154,13 @@ label qa_mando:
 
     $ qa_pad_obs["etapa"] = "contencion"
     $ qa_pad_volcar()
-    ## 3. Caza-Rumores: mover la mira, disparar con A, onda con X; A en CONTINUAR termina.
-    $ qa_pad_programar([(3.5, None, None), (0.8, "dpright", "press"), (0.1, "dpright", "release"),
-                        (0.8, "dpup", "press"), (0.1, "dpup", "release")]
-                       + qa_pad_repetir("a", 10, 0.3) + [(0.3, "x", "press")] + qa_pad_repetir("a", 60, 1.0))
-    call minijuego_contencion(aplicar=False, ajustes={"duracion": 14.0})
-    $ qa_pad_obs["contencion"] = {k: _return.get(k) for k in ("exito", "calificacion", "interceptados")}
+    ## 3. Central de Emergencias: A en EMPEZAR EL TURNO; el turno lo juega el despachador automatico (las ordenes
+    ##    son las de una persona); A en CONTINUAR termina. Comprueba que el mando entra y sale del minijuego.
+    $ qa_central_auto = 1.0
+    $ qa_pad_programar([(3.5, None, None), (0.3, "a", "press"), (116.0, None, None)] + qa_pad_repetir("a", 30, 1.0))
+    call minijuego_contencion(aplicar=False, ajustes={"modo": "feria"})
+    $ qa_central_auto = None
+    $ qa_pad_obs["contencion"] = {k: _return.get(k) for k in ("exito", "calificacion", "a_tiempo")}
 
     $ qa_pad_obs["etapa"] = "rastreador"
     $ qa_pad_volcar()

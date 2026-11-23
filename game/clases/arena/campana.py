@@ -53,7 +53,7 @@ RONDAS = (
         "titulo": "Jueves · La noche del debate",
         "comun": [("narrador", "Debate de candidatos en la plaza, en directo. A los diez minutos empieza a circular un audio falso."),
                   ("tomas", "Si contestamos con otro rumor, perdemos todos. Hay que frenarlo cuenta por cuenta antes de que llegue a toda la ciudad."),
-                  ("civitas", "Alerta: un rumor salta de cuenta en cuenta por la red de Ciudad Nova.")],
+                  ("civitas", "Alerta: el audio falso lleva gente a la plaza; hay calles cortadas y llamadas al 123.")],
         "privada": {
             "ciudadano": ("rodrigo", "En el barrio el audio entra por dos o tres personas que lo reenvían todo. Si a ellos no les llega, no llega a nadie más."),
             "periodista": ("claudia", "El audio está montado: la voz se corta donde cambia la frase. Lo puedo demostrar, pero necesito que no se extienda mientras tanto."),
@@ -61,7 +61,7 @@ RONDAS = (
             "candidato": ("tomas", "El audio habla de mi campaña y es falso. No voy a pedir que lo borren por ser crítica: voy a responder con datos."),
         },
         "ausente": ("tomas", "Es un audio falso sobre un candidato. Frénenlo sin responder con otro rumor."),
-        "reto_intro": "Caza-Rumores: toca cada rumor mientras viaja por la red, antes de que contagie a otra cuenta.",
+        "reto_intro": "Central de Emergencias: el rumor cortó calles y hay pacientes esperando. Cada uno dirige su propia central con las mismas llamadas.",
         "decision_intro": "El debate terminó y esto sigue circulando sobre un candidato:",
     },
     {

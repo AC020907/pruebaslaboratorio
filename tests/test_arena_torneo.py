@@ -92,17 +92,22 @@ class TestPuntuacion(unittest.TestCase):
             with self.assertRaises(T.ResultadoInvalido):
                 T.puntuar(s, mala)
 
-    def test_arcade_incoherente_rechazado(self):
+    def test_central_rejuega_las_ordenes(self):
+        """Central de Emergencias: el servidor rejuega las ORDENES; inventar un total no sirve."""
+        from clases import CentralEmergencias as CE
         s = spec("contencion")
-        from clases.ConfigMinijuegos import MODOS
-        umbral = MODOS["contencion"].get("umbral_viral", 10000)
-        with self.assertRaises(T.ResultadoInvalido):
-            T.puntuar(s, {"reposts": umbral * 3, "interceptados": 3, "exito": True})
-        with self.assertRaises(T.ResultadoInvalido):
-            T.puntuar(s, {"reposts": -5, "interceptados": 3, "exito": False})
-        bueno = T.puntuar(s, {"reposts": int(umbral * .2), "interceptados": 20, "exito": True})
-        malo = T.puntuar(s, {"reposts": umbral * 2, "interceptados": 0, "exito": False})
-        self.assertGreater(bueno["normalizado"], malo["normalizado"])
+        esc = T.escenario_central(s)
+        bueno = CE.jugar_bot(esc, random.Random(1), 1.0)
+        r = T.puntuar(s, {"ordenes": bueno.ordenes, "score_normalized": 0})
+        self.assertEqual(r["normalizado"], bueno.resumen()["score_normalized"])
+        nada = T.puntuar(s, {"ordenes": [], "score_normalized": 1000, "a_tiempo": 99})
+        self.assertEqual(nada["normalizado"], 0)
+        self.assertGreater(r["normalizado"], nada["normalizado"])
+        for mala in ({}, {"ordenes": "x"}, {"ordenes": [[0, "teletransportar", 0, 0, 0]]},
+                     {"ordenes": [[10, "despachar", 0, 0, 0], [5, "despachar", 0, 0, 0]]},
+                     {"ordenes": [[0, "despachar", 0, 0, 0]] * 401}, {"ordenes": [[-1, "despachar", 0, 0, 0]]}):
+            with self.assertRaises(T.ResultadoInvalido):
+                T.puntuar(s, mala)
 
     def test_duelo_recalcula_en_servidor(self):
         s = spec("ritmo")

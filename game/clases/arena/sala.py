@@ -11,11 +11,11 @@ Dos formatos:
 - clasica: solo las rondas del Consejo Civico (fases ronda -> resultado -> ... -> final).
 - campana (por defecto): una historia compartida con cuatro perspectivas (campana.py). Cada ronda es
       escena -> reto -> reto_resultado -> ronda (decision civica) -> resultado (consecuencia)
-  y los retos son los cinco minijuegos, que juegan TODOS: Moderacion, Rastreador, Caza-Rumores, Ruta de la
+  y los retos son los cinco minijuegos, que juegan TODOS: Moderacion, Rastreador, Central de Emergencias, Ruta de la
   Verdad (plataformas) y Duelo de Frecuencias (final). El servidor decide semilla y escenario, y puntua:
       moderador   -> cada decision llega al servidor, que la juzga con ColaModeracion (el cliente no sabe quien es bot);
       rastreador  -> el tablero vive en el servidor (PuzzleEvidencias); el cliente pide comprobar y pedir pista;
-      contencion  -> el cliente envia sus intercepciones y el servidor rejuega la propagacion (caza_web);
+      contencion  -> Central de Emergencias: el cliente envia sus ordenes y el servidor rejuega la partida (CentralEmergencias);
       plataformas -> el cliente envia su traza de entradas y el servidor rejuega la carrera (Plataformas);
       ritmo       -> juicio y desvio por nota, validados contra el chart y el reloj de la sala (duelo_online).
 """
@@ -29,7 +29,8 @@ from clases.Moderador import ColaModeracion
 from clases.PuzzleEvidencias import PuzzleEvidencias, CONCLUSIONES
 from clases.RedCivitas import crear_red_civitas
 from clases.arena import campana as CA
-from clases.arena import caza_web as CW
+from clases import CentralEmergencias as CE
+from clases.arena import caza_web as CW   # Caza-Rumores: retirado del torneo, se conserva
 from clases.arena import duelo_online as DO
 from clases.arena import torneo as T
 from clases.arena.bot import elegir_ruta
@@ -201,9 +202,9 @@ class SalaArena(object):
         elif clave == "rastreador":
             duracion = spec["ajustes"]["tiempo"]
         elif clave == "contencion":
-            reto["cfg"] = CW.config(self.modo, semilla)
+            reto["cfg"] = CE.config_cliente(T.escenario_central(spec))
             reto["publico"] = reto["cfg"]
-            duracion = reto["cfg"]["duracion_ms"] / 1000.0
+            duracion = reto["cfg"]["escenario"]["duracion"] / float(CE.TICKS_S)
         elif clave == "plataformas":
             reto["publico"] = PL.config_cliente(spec["nivel"])
             duracion = spec["limite_s"]
@@ -345,11 +346,12 @@ class SalaArena(object):
             transcurrido_ms = (self.reloj() - r["inicio"]) * 1000.0
             try:
                 if r["clave"] == "contencion":
-                    if transcurrido_ms < r["cfg"]["duracion_ms"] - DO.TOLERANCIA_SYNC_MS and datos.get("toques"):
-                        ultimo = datos["toques"][-1][0] * CW.TICK_MS if isinstance(datos["toques"][-1], list) and datos["toques"][-1] else 0
-                        if isinstance(ultimo, int) and ultimo > transcurrido_ms + DO.TOLERANCIA_SYNC_MS:
-                            raise CW.ToquesInvalidos("Llegó un resultado antes de que pasara su tiempo.")
-                    res = CW.puntuar(r["cfg"], datos)
+                    ordenes = datos.get("ordenes")
+                    if isinstance(ordenes, list) and ordenes and isinstance(ordenes[-1], list) and ordenes[-1] \
+                            and isinstance(ordenes[-1][0], int) and not isinstance(ordenes[-1][0], bool):
+                        if ordenes[-1][0] * 1000.0 / CE.TICKS_S > transcurrido_ms + DO.TOLERANCIA_SYNC_MS + 1000:
+                            raise T.ResultadoInvalido("Llegó una orden antes de que pasara su tiempo.")
+                    res = T.puntuar_central(r["spec"], datos)
                 elif r["clave"] == "plataformas":
                     traza = datos.get("traza")
                     ticks = sum(s[1] for s in traza if isinstance(s, list) and len(s) == 2 and isinstance(s[1], int)) if isinstance(traza, list) else 0
@@ -374,8 +376,6 @@ class SalaArena(object):
         rng = random.Random("bot|%s|%s|%s" % (self.partida.semilla, r["clave"], jid))
         nivel = 0.45 + 0.4 * random.Random("nivel|%s|%s" % (self.partida.semilla, jid)).random()
         c = r["clave"]
-        if c == "contencion":
-            return CW.puntuar(r["cfg"], CW.toques_bot(r["cfg"], nivel, rng))
         if c == "ritmo":
             return DO.validar_y_puntuar(r["chart"], DO.payload_bot(r["chart"], nivel, rng), 10 ** 9)
         return T.puntuar(r["spec"], T.payload_bot(r["spec"], nivel, rng))

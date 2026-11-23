@@ -1,4 +1,4 @@
-## Pausa comun de los minijuegos de tiempo real (Moderacion, Caza-Rumores, Rastreador).
+## Pausa comun de los minijuegos de tiempo real (Moderacion, Rastreador; Central tiene su propia pausa).
 ## Mientras minijuego_pausado es True el reloj de cada minijuego no avanza. El Duelo y la Ruta de la Verdad
 ## tienen su propia pausa (la cancion y la fisica necesitan detenerse a su manera).
 

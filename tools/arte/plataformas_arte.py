@@ -450,6 +450,151 @@ def primer_plano():
     return im
 
 
+# ------------------------------------------------------------------ Ruta de la Verdad 2: piezas nuevas y decoracion
+def pasarela(izq, der):
+    """Pasarela de datos (un sentido): losa fina con borde claro arriba y luz lila hacia abajo; transparente debajo."""
+    im = lienzo(T, T)
+    d = ImageDraw.Draw(im)
+    for k in range(4):                          # resplandor plano en bandas (se ve que se puede atravesar)
+        d.rectangle([0, 40 + k * 10, T, 48 + k * 10], fill=(201, 184, 216, 70 - k * 16))
+    x0 = 10 if izq else 0
+    x1 = T - 10 if der else T
+    d.rectangle([x0, 4, x1, 38], fill=PASARELA)
+    d.rectangle([x0, 26, x1, 38], fill=(186, 170, 206, 255))
+    for x in range(x0 + 10, x1 - 6, 30):
+        d.rectangle([x, 12, x + 14, 18], fill=TEAL)
+    d.line([(x0, 4), (x1, 4)], fill=TINTA, width=L)
+    d.line([(x0, 38), (x1, 38)], fill=TINTA, width=L)
+    if izq:
+        d.line([(x0, 4), (x0, 38)], fill=TINTA, width=L)
+        d.rectangle([x0 + 8, 38, x0 + 18, 60], fill=TINTA)
+    if der:
+        d.line([(x1, 4), (x1, 38)], fill=TINTA, width=L)
+        d.rectangle([x1 - 18, 38, x1 - 8, 60], fill=TINTA)
+    return im
+
+
+def impulsor(pulsado):
+    """Impulsor: bloque de la infraestructura con una plataforma de resorte y flechas (forma, no solo color)."""
+    im = solido(True, True, True, False, 0)
+    d = ImageDraw.Draw(im)
+    alto = 18 if pulsado else 34
+    d.rectangle([18, 0, T - 18, 40], fill=HONDO)
+    d.rounded_rectangle([14, 40 - alto, T - 14, 40], radius=8, fill=TEAL, outline=TINTA, width=L)
+    for k in range(3):
+        y = 40 - alto - 18 - k * 20
+        if y < -60:
+            break
+    for x in (36, 72, 108):
+        d.polygon([(x - 12, 62), (x, 48), (x + 12, 62)], fill=PAPEL if not pulsado else AMBAR, outline=TINTA)
+    d.rectangle([24, 76, T - 24, 86], fill=TINTA)
+    return im
+
+
+def escaner(estado):
+    """Haz del escaner (un tile de alto): off = guia punteada; aviso = linea fina que parpadea; on = haz ancho."""
+    im = lienzo(T, T)
+    d = ImageDraw.Draw(im)
+    c = T // 2
+    if estado == "off":
+        for y in range(0, T, 24):
+            d.rectangle([c - 3, y, c + 3, y + 10], fill=(209, 73, 91, 90))
+    elif estado == "aviso":
+        d.rectangle([c - 5, 0, c + 5, T], fill=(209, 73, 91, 200))
+        for y in range(8, T, 36):
+            d.rectangle([c - 14, y, c + 14, y + 4], fill=(251, 246, 238, 160))
+    else:
+        d.rectangle([c - 34, 0, c + 34, T], fill=(209, 73, 91, 90))
+        d.rectangle([c - 22, 0, c + 22, T], fill=(209, 73, 91, 200))
+        d.rectangle([c - 8, 0, c + 8, T], fill=(255, 220, 228, 255))
+    return im
+
+
+def emisor(activo):
+    """Cabeza del escaner, colgada bajo el bloque: lente roja (encendida) o apagada."""
+    im = lienzo(T, T // 2)
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([30, 0, T - 30, 48], radius=10, fill=MORADO2, outline=TINTA, width=L)
+    d.ellipse([T // 2 - 18, 22, T // 2 + 18, 58], fill=RUMOR if activo else MORADO3, outline=TINTA, width=5)
+    return im
+
+
+def deco_pantalla(texto):
+    """Pantalla de NOVA en la pared del fondo con una frase del rumor (decoracion, no colisiona)."""
+    w, h = 288, 180
+    im = lienzo(w, h)
+    d = ImageDraw.Draw(im)
+    d.rounded_rectangle([6, 6, w - 6, h - 30], radius=12, fill=(30, 24, 46, 255), outline=TINTA, width=L)
+    d.rectangle([22, 22, w - 22, h - 46], fill=(52, 40, 74, 255))
+    f = ImageFont.truetype(FUENTE, 22)
+    d.text((34, 32), "@verdad.oculta", font=f, fill=(209, 73, 91, 255))
+    f2 = ImageFont.truetype(FUENTE, 26)
+    d.text((34, 66), texto, font=f2, fill=PAPEL)
+    d.rectangle([w // 2 - 10, h - 30, w // 2 + 10, h - 6], fill=TINTA)
+    return im
+
+
+def deco_rack():
+    """Rack de servidores al fondo (2 tiles de alto), con LEDs."""
+    w, h = 120, 288
+    im = lienzo(w, h)
+    d = ImageDraw.Draw(im)
+    d.rectangle([4, 4, w - 4, h - 4], fill=(40, 33, 60, 255), outline=(26, 20, 38, 255), width=6)
+    rnd = random.Random(5)
+    for y in range(20, h - 20, 26):
+        d.rectangle([16, y, w - 16, y + 16], fill=(30, 24, 46, 255))
+        d.rectangle([w - 34, y + 5, w - 24, y + 11], fill=TEAL if rnd.random() < 0.4 else (60, 52, 88, 255))
+    return im
+
+
+def deco_cartel(simbolo):
+    """Cartel de aviso antes de un peligro: triangulo con signo (pinchos, escaner, plataforma) o flecha de impulsor."""
+    w, h = 120, 160
+    im = lienzo(w, h)
+    d = ImageDraw.Draw(im)
+    d.rectangle([w // 2 - 6, 70, w // 2 + 6, h], fill=TINTA)
+    if simbolo == "impulso":
+        d.rounded_rectangle([12, 8, w - 12, 84], radius=10, fill=TEAL, outline=TINTA, width=L)
+        d.polygon([(w // 2, 18), (w // 2 + 24, 48), (w // 2 + 8, 48), (w // 2 + 8, 72), (w // 2 - 8, 72),
+                   (w // 2 - 8, 48), (w // 2 - 24, 48)], fill=PAPEL)
+        return im
+    d.polygon([(w // 2, 6), (w - 8, 84), (8, 84)], fill=AMBAR, outline=TINTA)
+    d.line([(w // 2, 6), (w - 8, 84), (8, 84), (w // 2, 6)], fill=TINTA, width=L)
+    if simbolo == "escaner":
+        d.rectangle([w // 2 - 5, 30, w // 2 + 5, 74], fill=RUMOR)
+    else:
+        d.rectangle([w // 2 - 5, 30, w // 2 + 5, 58], fill=TINTA)
+        d.ellipse([w // 2 - 6, 64, w // 2 + 6, 76], fill=TINTA)
+    return im
+
+
+def deco_arco(nombre):
+    """Arco de zona (se cruza al llegar a cada punto de control): marco de servidor con letrero."""
+    w, h = 288, 432
+    im = lienzo(w, h)
+    d = ImageDraw.Draw(im)
+    for x0 in (8, w - 48):
+        d.rectangle([x0, 70, x0 + 40, h], fill=MORADO2, outline=TINTA, width=L)
+        for y in range(100, h - 20, 40):
+            d.rectangle([x0 + 10, y, x0 + 30, y + 8], fill=TEAL)
+    d.rounded_rectangle([0, 8, w, 80], radius=12, fill=PAPEL, outline=TINTA, width=L)
+    f = ImageFont.truetype(FUENTE, 24)
+    tw = d.textlength(nombre, font=f)
+    d.text(((w - tw) / 2, 30), nombre, font=f, fill=VINO)
+    return im
+
+
+def meta_haz():
+    """Columna de luz sobre el archivo (presentacion de la meta)."""
+    w, h = 216, 720
+    im = lienzo(w, h)
+    d = ImageDraw.Draw(im)
+    for k, a in enumerate((40, 60, 90)):
+        m = 30 + k * 28
+        d.rectangle([m, 0, w - m, h], fill=(232, 176, 75, a))
+    return im
+
+
 def main():
     for m in range(16):
         arriba, izq, der, abajo = bool(m & 1), bool(m & 2), bool(m & 4), bool(m & 8)
@@ -475,6 +620,23 @@ def main():
     guardar(fondo_lejos(), "fondo_lejos")
     guardar(fondo_medio(), "fondo_medio")
     guardar(primer_plano(), "primer_plano")
+    for izq in (0, 1):
+        for der in (0, 1):
+            guardar(pasarela(izq, der), "pasarela_%d%d" % (izq, der))
+    guardar(impulsor(False), "impulsor_0")
+    guardar(impulsor(True), "impulsor_1")
+    for e in ("off", "aviso", "on"):
+        guardar(escaner(e), "escaner_" + e)
+    guardar(emisor(False), "emisor_0")
+    guardar(emisor(True), "emisor_1")
+    for k, t in enumerate(("NO LA TOMEN", "COMPARTE YA", "¿Y EL ALCALDE?")):
+        guardar(deco_pantalla(t), "deco_pantalla_%d" % k)
+    guardar(deco_rack(), "deco_rack")
+    for simb in ("peligro", "escaner", "impulso"):
+        guardar(deco_cartel(simb), "deco_cartel_" + simb)
+    for k, nombre in enumerate(("PUERTA DE ENLACE", "GRANJA DE BOTS", "NÚCLEO DE NOVA", "ARCHIVO ORIGINAL")):
+        guardar(deco_arco(nombre), "deco_arco_%d" % k)
+    guardar(meta_haz(), "meta_haz")
     print("ok:", len(os.listdir(OUT)), "archivos en", OUT)
 
 

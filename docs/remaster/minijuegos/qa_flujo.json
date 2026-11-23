@@ -1,0 +1,56 @@
+{
+ "galeria": {
+  "fotos": [
+   "j01_moderador_inicio",
+   "j01b_moderador_pausa",
+   "j02_moderador_feedback_a",
+   "j03_moderador_feedback_b",
+   "j04_moderador_resultado",
+   "j05_central_intro",
+   "j06_central_juego",
+   "j07_central_crisis",
+   "j08_central_resultado",
+   "j09_plataformas_tutorial",
+   "j10_plataformas_cuenta",
+   "j11_plataformas_juego_a",
+   "j11_plataformas_juego_b",
+   "j11_plataformas_juego_c",
+   "j11_plataformas_victoria",
+   "j12_plataformas_resultado",
+   "j13_rastreador_tutorial",
+   "j14_rastreador_error",
+   "j15_rastreador_siguiente",
+   "j16_rastreador_resultado"
+  ],
+  "eventos": [
+   [
+    "moderador",
+    true,
+    null
+   ],
+   [
+    "contencion",
+    true,
+    "A"
+   ],
+   [
+    "plataformas_fps",
+    98.8,
+    1384,
+    27.7
+   ],
+   [
+    "viralizacion",
+    true,
+    "S"
+   ],
+   [
+    "rastreador",
+    true,
+    "A"
+   ]
+  ],
+  "etapa": "minijuegos",
+  "ok": true
+ }
+}

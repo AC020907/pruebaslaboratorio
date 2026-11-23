@@ -1,0 +1,46 @@
+{
+ "galeria": {
+  "fotos": [
+   "r00_presentacion",
+   "r01_serie",
+   "r02_serie",
+   "r03_serie",
+   "r04_serie",
+   "r05_serie",
+   "r61_zona",
+   "r06_serie",
+   "r50_impulso",
+   "r07_serie",
+   "r08_serie",
+   "r62_zona",
+   "r51_escaner_encendido",
+   "r09_serie",
+   "r10_serie",
+   "r11_serie",
+   "r12_serie",
+   "r63_zona",
+   "r13_serie",
+   "r14_serie",
+   "r15_serie",
+   "r16_serie",
+   "r17_serie",
+   "r80_victoria",
+   "r90_resultado"
+  ],
+  "eventos": [
+   [
+    "ruta",
+    "historia",
+    true,
+    "S",
+    8,
+    8,
+    0,
+    33.333,
+    113.6
+   ]
+  ],
+  "etapa": "ruta",
+  "ok": true
+ }
+}

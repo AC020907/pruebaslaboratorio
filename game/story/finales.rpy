@@ -37,7 +37,7 @@ init python:
             store.decisiones_pub, store.decisiones_calidad, store.registro_minijuegos,
             list(mem()["pistas"]), inv.PISTAS_CLAVE, indicadores_ciudad(), final=final)
 
-    NOMBRE_MINIJUEGO = {"moderador": "Moderación Express", "contencion": "Caza-Rumores",
+    NOMBRE_MINIJUEGO = {"moderador": "Moderación Express", "contencion": "Central de Emergencias",
                         "rastreador": "Rastreador", "viralizacion": "Ruta de la Verdad",
                         "ritmo": "Duelo de Frecuencias"}
 

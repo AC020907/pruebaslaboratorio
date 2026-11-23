@@ -58,7 +58,7 @@ label reaccion_red_civitas(sesion):
             "Tu repost encendió la mecha. La publicación se está volviendo viral en Civitas."
             call evento_gran_viralizacion
         elif "contencion" not in registro_minijuegos:
-            "La publicación falsa que compartiste se expande sin control. Hay que contenerla."
+            "La publicación falsa que compartiste se expande sin control: ya hay calles bloqueadas y llamadas al 123."
             call minijuego_contencion
 
     elif accion_red == "verificar_no" and pub_red.es_falsa and pub_red.nivel_riesgo >= 75 and "rastreador" not in registro_minijuegos:

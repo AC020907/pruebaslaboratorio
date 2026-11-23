@@ -105,6 +105,10 @@ label qa_galeria:
         jump qa_gal_arena_solo
     if etapa_gal == "arena_solo_completa":
         jump qa_gal_arena_solo_completa
+    if etapa_gal == "ruta":
+        jump qa_gal_ruta
+    if etapa_gal == "central":
+        jump qa_gal_central
     if etapa_gal == "cinematica":
         jump qa_gal_cinematica
     if etapa_gal == "apertura":
@@ -269,11 +273,14 @@ label qa_gal_minijuegos:
                        + [(1.2, "foto:j04_moderador_resultado", None)] + qa_pad_repetir("a", 30, 1.0))
     call minijuego_moderador(aplicar=False, cantidad=6)
     $ qa_gal["eventos"].append(("moderador", _return.get("exito"), _return.get("calificacion")))
-    ## Caza-Rumores: victoria con jugador automatico.
-    show screen qa_gal_mirar_fin("j08_contencion_resultado_victoria")
-    $ qa_pad_programar(qa_gal_pasos_arcade("j05_contencion", True) + qa_pad_repetir("a", 60, 1.0))
-    call minijuego_contencion(aplicar=False, ajustes={"duracion": 20.0})
-    hide screen qa_gal_mirar_fin
+    ## Central de Emergencias (sustituye a Caza-Rumores): turno de Feria con el despachador automatico.
+    ## A pasa la presentacion; despues no se pulsa nada hasta el resultado (A podria activar botones del panel).
+    $ qa_central_auto = 1.0
+    $ qa_pad_programar([(1.5, "foto:j05_central_intro", None), (0.3, "a", "press"), (20.0, "foto:j06_central_juego", None),
+                        (40.0, "foto:j07_central_crisis", None), (56.0, "foto:j08_central_resultado", None)]
+                       + qa_pad_repetir("a", 30, 1.0))
+    call minijuego_contencion(aplicar=False, ajustes={"modo": "feria"})
+    $ qa_central_auto = None
     $ qa_gal["eventos"].append(("contencion", _return.get("exito"), _return.get("calificacion")))
     ## Ruta de la Verdad (plataformero): tutorial, juego con piloto automatico y resultado.
     $ qa_plataformas_auto = 0.9

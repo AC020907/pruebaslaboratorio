@@ -33,7 +33,9 @@ def mascaras(clave, semilla, habilidad, ruido):
     """Entradas de un piloto con ruido (teclas al azar): cubre muertes, retrocesos y tiempo agotado."""
     rng = random.Random(semilla)
     p = P.Partida(clave)
-    piloto = P.Piloto(random.Random(semilla + 1), habilidad)
+    # Con habilidad 1 sigue la ruta verificada (impulsores, pasarelas, escaneres, intermitentes); si no, el piloto
+    # sencillo. El ruido mete teclas al azar: muertes, retrocesos, saltos cortos y tiempo agotado.
+    piloto = P.PilotoRuta(clave) if habilidad >= 1.0 else P.Piloto(random.Random(semilla + 1), habilidad)
     lista, huellas = [], []
     while p.jugando():
         m = piloto.mascara(p)
@@ -51,7 +53,7 @@ class TestPlataformasWeb(unittest.TestCase):
     def test_paridad_tick_a_tick_y_traza_aceptada_por_el_servidor(self):
         casos, esperados = [], []
         for clave in P.NIVELES:
-            for semilla, hab, ruido in ((1, 1.0, 0.0), (2, 0.6, 0.05), (3, 0.3, 0.2), (4, 1.0, 0.5)):
+            for semilla, hab, ruido in ((1, 1.0, 0.0), (2, 0.6, 0.05), (3, 0.3, 0.2), (4, 1.0, 0.5), (5, 1.0, 0.03), (6, 1.0, 0.1)):
                 lista, huellas, p = mascaras(clave, semilla, hab, ruido)
                 casos.append({"cfg": P.config_cliente(clave), "mascaras": lista})
                 esperados.append((clave, huellas, p))
@@ -67,6 +69,8 @@ class TestPlataformasWeb(unittest.TestCase):
                 self.assertEqual(servidor.puntuacion(), js["puntos"])
         self.assertTrue(any(p.muertes for _, _, p in esperados))
         self.assertTrue(any(p.completado() for _, _, p in esperados))
+        eventos = {e[1] for _, _, p in esperados for e in p.eventos}
+        self.assertIn("impulso", eventos)                     # las piezas nuevas se ejercitan en ambos motores
 
 
 if __name__ == "__main__":

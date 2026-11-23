@@ -31,9 +31,17 @@ RESPAWN_TICKS = 36
 PARPADEO = 80               # ticks encendido / apagado de los bloques intermitentes '~'
 MARGEN_PINCHO = 9 * SUB     # la caja de dano de un pincho es mas pequena que el tile (justo para el jugador)
 ESQUINA = 7 * SUB           # correccion de esquina: si la cabeza roza el borde de un bloque al saltar, se desliza
+# Remaster (Ruta de la Verdad 2): tres piezas nuevas, sencillas y deterministas.
+V_IMPULSO = -268            # impulsor: ~4.6 tiles de altura (el salto normal da ~2.5); no se recorta al soltar
+ESCANER_CICLO = 150         # escaner: 150 ticks por ciclo...
+ESCANER_ACTIVO = 66         # ...de los que 66 barre (letal); avisa ESCANER_AVISO ticks antes de encenderse
+ESCANER_AVISO = 30
+ESCANER_DESFASE = 37        # cada columna arranca desfasada: los escaneres seguidos forman una ola
+MARGEN_ESCANER = 12 * SUB   # el haz es mas estrecho que el tile
 
 SOLIDO, PINCHO, INTERMITENTE = "#", "^", "~"
 EVIDENCIA, CONTROL, INICIO, META = "E", "C", "S", "M"
+PASARELA, IMPULSO, ESCANER = "=", "J", "L"     # pasarela de un sentido, impulsor, escaner de NOVA
 
 # Fragmentos de evidencia (significado narrativo de cada coleccionable, en orden de aparicion).
 FRAGMENTOS = (
@@ -47,10 +55,9 @@ FRAGMENTOS = (
     "Chat interno: «que parezca que lo dice un vecino»",
 )
 
-# Los niveles se arman con tramos de 8 filas (las 3 de arriba van vacias). Asi cada obstaculo se disena y se
-# prueba una vez, y los niveles de Historia, Arena y Feria comparten geometria conocida.
+# ---- Niveles v1 (remaster 1-3): tramos de 8 filas al mismo nivel de suelo. Se conservan como referencia. ----
 # Leyenda: # suelo/pared  ^ pinchos (foso)  ~ bloque intermitente  E evidencia  C punto de control  S inicio  M meta
-TRAMOS = {
+TRAMOS_V1 = {
     "inicio": ["........", "........", "........", "........", "........", ".S....E.", "########", "########"],
     "hueco2": ["........", "........", "........", "........", "........", "........", "###..###", "###..###"],
     "hueco3": [".........", ".........", ".........", ".........", ".........", ".........", "###...###", "###...###"],
@@ -63,24 +70,68 @@ TRAMOS = {
     "control": [".....", ".....", ".....", ".....", ".....", "..C..", "#####", "#####"],
     "meta": ["........", "........", "........", "........", "........", "....M...", "########", "########"],
 }
-RECORRIDOS = {
-    "tutorial": (60, "inicio escalon hueco2 control pinchos2 alta meta"),
-    "historia": (120, "inicio hueco2 escalon control pinchos2 hueco3 torre control puente alta pinchos3 control "
-                      "escalon hueco2 torre control puente pinchos2 hueco3 meta"),
-    "arena": (80, "inicio hueco2 escalon control pinchos2 torre control puente alta pinchos3 control hueco3 escalon meta"),
-    "feria": (55, "inicio hueco2 escalon control pinchos2 torre control hueco3 alta meta"),
+
+# ---- Niveles v2 (Ruta de la Verdad 2): tramos verticales de 13 filas disenados a mano ----
+# Nuevas piezas:  = pasarela de datos (se atraviesa desde abajo, frena al caer)   J impulsor (lanza ~4.6 tiles)
+#                 L escaner de NOVA (haz letal que se enciende por ciclos; cada columna va desfasada)
+# Medidas del motor: el salto sube ~2.5 tiles y salta huecos de 3; el impulsor sube ~4.6. Por eso cada repisa
+# esta a 2 tiles (salto) o a 4 (impulsor) de la anterior, y ningun hueco pasa de 3 tiles.
+# test_todos_los_niveles_se_pueden_completar_con_todas_las_evidencias rejuega una ruta encontrada por busqueda
+# (tools/plataformas_rutas.py) que recoge todo y llega a la meta.
+_V = "...................."
+def _t(ancho, filas):
+    """Tramo de 13 filas: filas = {indice: texto}; el resto, vacias; suelo (filas 10-12) si no se indica."""
+    res = []
+    for k in range(13):
+        if k in filas:
+            res.append(filas[k])
+        elif k >= 10:
+            res.append("#" * ancho)
+        else:
+            res.append("." * ancho)
+    assert all(len(f) == ancho for f in res), (ancho, [len(f) for f in res])
+    return res
+
+
+TRAMOS = {
+    # Zona 1: puerta de enlace (aprender pasarelas, huecos e impulsor).
+    "entrada": _t(12, {9: ".S.........."}),
+    "escalones": _t(14, {5: "..........E...", 6: "........====..", 8: "....###......."}),
+    "foso": _t(15, {6: ".........E.....", 8: "....==..==.....", 10: "###.........###", 11: "###^^^^^^^^^###"}),
+    "impulso": _t(16, {5: "........E.......", 6: "......######....", 10: "###J############"}),
+    # Zona 2: granja de bots (tiempo: plataformas inestables y escaneres).
+    "inestable": _t(12, {10: "###~~~~~~###", 11: "###......###", 12: "###^^^^^^###"}),
+    "escaneres": _t(16, {5: ".....#....#.....", 6: ".....L....L.....", 7: ".....L....L.....", 8: ".....L....L.....",
+                         9: ".....L..E.L....."}),
+    "dos_alturas": _t(16, {5: "...........E....", 6: ".........====...", 8: "....====........", 10: "###..........###",
+                           11: "###^^^^^^^^^^###"}),
+    # Zona 3: nucleo de NOVA (combinaciones).
+    "cadena": _t(20, {5: ".........E..........", 6: "....===========.....", 10: "##J............#####",
+                      11: "###^^^^^^^^^^^^#####"}),
+    "torre": _t(14, {3: "..........E...", 4: ".......=====..", 6: "...###........", 8: ".......###...."}),
+    "barrido": _t(18, {6: "..........#...#...", 7: ".......E..L...L...", 8: "......===.L...L...", 9: "..........L...L...",
+                       10: "###~~~############", 11: "###...############", 12: "###^^^############"}),
+    "control": _t(6, {9: "..C..."}),
+    "meta": _t(14, {9: "........M....."}),
 }
+RECORRIDOS = {
+    "tutorial": (60, "entrada escalones foso control impulso torre meta"),
+    "feria": (75, "entrada escalones foso control impulso inestable control escaneres torre meta"),
+    "arena": (80, "entrada escalones foso control impulso inestable control escaneres dos_alturas control cadena meta"),
+    "historia": (120, "entrada escalones foso control inestable impulso control escaneres dos_alturas control cadena "
+                      "barrido torre meta"),
+}
+# Zonas (se cambia de zona en cada punto de control): nombre que aparece al entrar y tono del fondo.
+ZONAS = ("PUERTA DE ENLACE", "GRANJA DE BOTS", "NÚCLEO DE NOVA", "ARCHIVO ORIGINAL")
+ZONAS_TITULO = ("Puerta de enlace", "Granja de bots", "Núcleo de NOVA", "Archivo original")
 
 
 def _armar(tramos):
-    filas = ["", "", ""] + [""] * 8
+    filas = [""] * 13
     for nombre in tramos.split():
         t = TRAMOS[nombre]
-        ancho = len(t[0])
-        for k in range(3):
-            filas[k] += "." * ancho
-        for k in range(8):
-            filas[3 + k] += t[k]
+        for k in range(13):
+            filas[k] += t[k]
     return filas
 
 
@@ -132,13 +183,21 @@ class Nivel(object):
 
     def solido(self, fx, fy, tick):
         ch = self.tile(fx, fy)
-        if ch == SOLIDO:
+        if ch == SOLIDO or ch == IMPULSO:
             return True
         return ch == INTERMITENTE and intermitente_activo(tick)
 
 
 def intermitente_activo(tick):
     return _piso(tick, PARPADEO) % 2 == 0
+
+
+def escaner_fase(tick, fx):
+    return (tick + fx * ESCANER_DESFASE) % ESCANER_CICLO
+
+
+def escaner_activo(tick, fx):
+    return escaner_fase(tick, fx) < ESCANER_ACTIVO
 
 
 class Partida(object):
@@ -155,6 +214,7 @@ class Partida(object):
         self.eventos = []                  # (tick, tipo, dato) para sonido y efectos; no afecta a las reglas
         self.traza = []                    # [[mascara, ticks], ...] (RLE) para rejugar en el servidor
         self.salto_previo = False
+        self.impulsado = False             # subiendo por un impulsor: el salto no se recorta al soltar
         self._colocar(self.nivel.inicio)
 
     # ----- utilidades -----
@@ -230,7 +290,9 @@ class Partida(object):
             self.buffer = self.coyote = 0
             self.en_suelo = False
             self.eventos.append((self.tick, "salto", None))
-        if not salto and self.vy < V_CORTE:
+        if self.vy >= 0:
+            self.impulsado = False
+        if not salto and self.vy < V_CORTE and not self.impulsado:
             self.vy = V_CORTE
         self.salto_previo = salto
         self.vy = min(V_CAIDA_MAX, self.vy + GRAVEDAD)
@@ -270,10 +332,31 @@ class Partida(object):
                 ny = self.y
             if self._choca(self.x, ny):
                 ny = self.y
-            if self.en_suelo and not estaba_en_suelo:
-                self.eventos.append((self.tick, "aterriza", None))
             self.vy = 0
+        if self.vy > 0:
+            # Pasarela '=': solo frena cayendo, si los pies estaban por encima de su borde antes de este tick.
+            pie0, pie1 = self.y + ALTO, ny + ALTO
+            fx0, fx1 = _piso(self.x, T), _piso(self.x + ANCHO - 1, T)
+            for fy in range(_piso(pie0, T), _piso(pie1, T) + 1):
+                borde = fy * T
+                if pie0 <= borde < pie1 and any(self.nivel.tile(fx, fy) == PASARELA for fx in range(fx0, fx1 + 1)):
+                    ny = borde - ALTO
+                    self.en_suelo = True
+                    self.vy = 0
+                    break
+        if self.en_suelo and not estaba_en_suelo:
+            self.eventos.append((self.tick, "aterriza", None))
         self.y = ny
+        if self.en_suelo:
+            # Impulsor 'J' bajo los pies: lanza hacia arriba en el mismo tick.
+            fy = _piso(self.y + ALTO, T)
+            fx0, fx1 = _piso(self.x, T), _piso(self.x + ANCHO - 1, T)
+            if any(self.nivel.tile(fx, fy) == IMPULSO for fx in range(fx0, fx1 + 1)):
+                self.vy = V_IMPULSO
+                self.en_suelo = False
+                self.impulsado = True
+                self.coyote = self.buffer = 0
+                self.eventos.append((self.tick, "impulso", None))
 
         # mundo: caida, pinchos, bloque que se materializa sobre el jugador
         n = self.nivel
@@ -285,6 +368,8 @@ class Partida(object):
             for fx in range(fx0, fx1 + 1):
                 ch = n.tile(fx, fy)
                 if ch == PINCHO and self._toca(fx, fy, MARGEN_PINCHO):
+                    return self._morir()
+                if ch == ESCANER and escaner_activo(self.tick, fx) and self._toca(fx, fy, MARGEN_ESCANER):
                     return self._morir()
                 if ch == EVIDENCIA:
                     i = n.evidencias.index((fx, fy))
@@ -300,6 +385,7 @@ class Partida(object):
                     return
 
     def _morir(self):
+        self.impulsado = False
         self.muertes += 1
         self.respawn = RESPAWN_TICKS
         self.eventos.append((self.tick, "dano", None))
@@ -409,11 +495,57 @@ class Piloto(object):
         return mascara
 
 
+# ---- Rutas verificadas (tools/plataformas_rutas.py): una carrera que recoge todo y llega a la meta sin morir ----
+_RUTAS = None
+
+
+def rutas():
+    global _RUTAS
+    if _RUTAS is None:
+        import json
+        import os
+        ruta = os.path.join(os.path.dirname(os.path.abspath(__file__)), "plataformas_rutas.json")
+        try:
+            with open(ruta, encoding="utf-8") as f:
+                _RUTAS = json.load(f)
+        except (IOError, OSError, ValueError):
+            _RUTAS = {}
+    return _RUTAS
+
+
+def mascaras_ruta(clave):
+    traza = rutas().get(clave)
+    if not traza:
+        return None
+    return [m for m, n in traza for _ in range(n)]
+
+
+class PilotoRuta(object):
+    """Sigue la ruta verificada del nivel tick a tick (QA visual). Si se acaba, corre a la derecha."""
+
+    def __init__(self, clave):
+        self.m = mascaras_ruta(clave) or []
+
+    def mascara(self, p):
+        return self.m[p.tick] if p.tick < len(self.m) else DER
+
+
 def bot(clave, rng, habilidad=1.0):
+    """Bot de la Arena: recorre la ruta verificada. Con mucha habilidad llega al archivo; con menos, abandona
+    antes (solo valen las evidencias que ya recogio). Sin ruta guardada, usa el piloto sencillo."""
     p = Partida(clave)
-    piloto = Piloto(rng, habilidad)
-    while p.jugando():
-        p.avanzar(piloto.mascara(p))
+    m = mascaras_ruta(clave)
+    if m is None:
+        piloto = Piloto(rng, habilidad)
+        while p.jugando():
+            p.avanzar(piloto.mascara(p))
+        return p
+    corte = len(m) if habilidad >= 0.85 else int(len(m) * max(0.15, min(0.97, habilidad + rng.uniform(-0.08, 0.08))))
+    for k in range(corte):
+        p.avanzar(m[k])
+        if not p.jugando():
+            break
+    p.abandonar()
     return p
 
 
@@ -425,4 +557,6 @@ def config_cliente(clave, extra_s=0):
             "constantes": {"T": T, "ANCHO": ANCHO, "ALTO": ALTO, "V_MAX": V_MAX, "ACEL_SUELO": ACEL_SUELO, "ACEL_AIRE": ACEL_AIRE,
                            "FRENO": FRENO, "GRAVEDAD": GRAVEDAD, "V_CAIDA_MAX": V_CAIDA_MAX, "V_SALTO": V_SALTO, "V_CORTE": V_CORTE,
                            "COYOTE": COYOTE, "BUFFER": BUFFER, "RESPAWN_TICKS": RESPAWN_TICKS, "PARPADEO": PARPADEO,
-                           "MARGEN_PINCHO": MARGEN_PINCHO, "ESQUINA": ESQUINA}}
+                           "MARGEN_PINCHO": MARGEN_PINCHO, "ESQUINA": ESQUINA, "V_IMPULSO": V_IMPULSO,
+                           "ESCANER_CICLO": ESCANER_CICLO, "ESCANER_ACTIVO": ESCANER_ACTIVO, "ESCANER_AVISO": ESCANER_AVISO,
+                           "ESCANER_DESFASE": ESCANER_DESFASE, "MARGEN_ESCANER": MARGEN_ESCANER}}

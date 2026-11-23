@@ -20,6 +20,23 @@ def avanzar(p, mascara, ticks):
         p.avanzar(mascara)
 
 
+def nivel_prueba(filas, limite_s=30):
+    """Nivel de laboratorio para probar una pieza aislada (se registra y se borra en cada prueba).
+    La meta va en la esquina superior derecha, fuera de alcance: la prueba no termina por llegar a ella."""
+    filas = [filas[0][:-1] + P.META] + list(filas[1:])
+    P.NIVELES["_prueba"] = {"limite_s": limite_s, "mapa": filas}
+    return P.Partida("_prueba")
+
+
+def piloto_ruta_hasta(clave, condicion, max_ticks=20000):
+    p = P.Partida(clave)
+    piloto = P.PilotoRuta(clave)
+    while not condicion(p) and p.jugando() and p.tick < max_ticks:
+        p.avanzar(piloto.mascara(p))
+    assert condicion(p), clave
+    return p
+
+
 def en_suelo(clave="tutorial"):
     p = P.Partida(clave)
     avanzar(p, 0, 3)
@@ -39,20 +56,39 @@ class TestNiveles(unittest.TestCase):
                 self.assertEqual(n.tile(fx, fy + 1), P.SOLIDO, (clave, fx))      # se reaparece sobre suelo
 
     def test_todos_los_niveles_se_pueden_completar_con_todas_las_evidencias(self):
-        """Busqueda con pilotos aleatorios: cada evidencia la recoge alguno y alguno llega a la meta."""
-        for clave in P.NIVELES:
-            vistas, metas = set(), 0
-            for i in range(60):
-                p = P.bot(clave, random.Random(i), 1.0 if i % 2 else 0.7)
-                vistas |= set(p.recogidas)
-                metas += p.completado()
-            self.assertGreater(metas, 0, clave)
-            self.assertEqual(vistas, set(range(len(P.Nivel(clave).evidencias))), clave)
+        """La ruta encontrada por busqueda sobre el motor (tools/plataformas_rutas.py) se rejuega: cada nivel se
+        completa con TODAS las evidencias y sin detecciones, en menos del 55 % del tiempo (margen para personas)."""
+        for clave in ("tutorial", "feria", "arena", "historia"):
+            traza = P.rutas().get(clave)
+            self.assertTrue(traza, clave)
+            p = P.rejugar(clave, traza)
+            self.assertTrue(p.completado(), clave)
+            self.assertEqual(sorted(p.recogidas), list(range(len(p.nivel.evidencias))), clave)
+            self.assertEqual(p.muertes, 0, clave)
+            self.assertLess(p.tick, p.nivel.limite_ticks * 0.55, clave)
+
+    def test_niveles_usan_las_piezas_nuevas_y_tienen_zonas(self):
+        for clave in ("feria", "arena", "historia"):
+            mapa = "".join(P.NIVELES[clave]["mapa"])
+            for pieza in (P.PASARELA, P.IMPULSO, P.ESCANER, P.INTERMITENTE, P.PINCHO):
+                self.assertIn(pieza, mapa, (clave, pieza))
+            self.assertGreaterEqual(len(P.Nivel(clave).controles), 2, clave)
+            self.assertEqual(len(P.NIVELES[clave]["mapa"]), 13)
+
+    def test_bots_ordenados_por_habilidad(self):
+        for clave in ("feria", "arena"):
+            alto = P.bot(clave, random.Random(1), 0.95)
+            medio = P.bot(clave, random.Random(1), 0.6)
+            bajo = P.bot(clave, random.Random(1), 0.25)
+            self.assertTrue(alto.completado())
+            self.assertGreater(alto.puntuacion(), medio.puntuacion())
+            self.assertGreaterEqual(medio.puntuacion(), bajo.puntuacion())
 
     def test_velocidad_maxima_menor_que_un_tile(self):
         self.assertLess(P.V_MAX, P.T)
         self.assertLess(P.V_CAIDA_MAX, P.T)
         self.assertLess(abs(P.V_SALTO), P.T)
+        self.assertLess(abs(P.V_IMPULSO), P.T)
 
 
 class TestFisica(unittest.TestCase):
@@ -154,23 +190,20 @@ class TestFisica(unittest.TestCase):
         self.assertEqual((p.x, p.y), (x0, y))             # quieto durante la reaparicion
 
     def test_punto_de_control(self):
-        p = P.bot("tutorial", random.Random(1), 1.0)
-        self.assertTrue(any(e[1] == "control" for e in p.eventos))
-        q = P.Partida("tutorial")
-        piloto = P.Piloto(random.Random(1), 1.0)
-        while not any(e[1] == "control" for e in q.eventos):
-            q.avanzar(piloto.mascara(q))
+        q = piloto_ruta_hasta("tutorial", lambda q: any(e[1] == "control" for e in q.eventos))
         control = q.control
         while q.muertes == 0 and q.jugando():
-            q.avanzar(P.DER)              # sin saltar: cae en los pinchos
+            q.avanzar(P.IZQ)              # volver atras sin saltar: cae en el foso de pinchos
         self.assertEqual(q.muertes, 1)
         self.assertEqual(q.x // P.T, control[0])
 
     def test_correccion_de_esquina_y_aterrizaje(self):
         """Un salto que roza el borde inferior de un bloque por pocos px no se corta: se desliza y sigue subiendo."""
         n = P.Nivel("tutorial")
+        # Un bloque al alcance de un salto normal: su borde inferior a 1 tile sobre el suelo de al lado.
         fx, fy = next((x, y) for y, fila in enumerate(n.filas) for x, ch in enumerate(fila)
-                      if ch == P.SOLIDO and y < 8 and n.tile(x - 1, y) == "." and n.tile(x, y + 1) == ".")
+                      if ch == P.SOLIDO and y <= 8 and n.tile(x - 1, y) == "." and n.tile(x, y + 1) == "."
+                      and n.tile(x - 1, y + 2) == P.SOLIDO)
         for roce, debe_pasar in ((4 * P.SUB, True), (20 * P.SUB, False)):
             p = P.Partida("tutorial")
             suelo = next(y for y in range(fy + 1, n.alto) if n.tile(fx - 1, y) == P.SOLIDO)
@@ -183,6 +216,68 @@ class TestFisica(unittest.TestCase):
             for _ in range(120):
                 p.avanzar(0)
             self.assertTrue(any(e[1] == "aterriza" for e in p.eventos))
+
+    def test_pasarela_se_atraviesa_desde_abajo_y_sostiene_al_caer(self):
+        filas = ["." * 10] * 8 + ["....====..", ".S........"] + ["#" * 10] * 3
+        p = nivel_prueba(filas)
+        try:
+            avanzar(p, 0, 3)
+            p.x = 5 * P.T                                         # justo debajo de la pasarela (fila 8)
+            avanzar(p, 0, 2)
+            y_suelo = p.y
+            minimo = p.y
+            for i in range(40):
+                p.avanzar(P.SALTO)
+                minimo = min(minimo, p.y)
+            self.assertLess(minimo, 8 * P.T - P.ALTO)            # los pies subieron por encima del borde: la atraveso
+            avanzar(p, 0, 60)
+            self.assertTrue(p.en_suelo)
+            self.assertEqual(p.y + P.ALTO, 8 * P.T)              # quedo de pie SOBRE la pasarela
+            self.assertLess(p.y, y_suelo)
+            avanzar(p, P.DER, 40)                                 # al caminar fuera, cae: no es una pared
+            avanzar(p, 0, 60)
+            self.assertEqual(p.y, y_suelo)
+        finally:
+            P.NIVELES.pop("_prueba", None)
+
+    def test_impulsor_lanza_alto_y_no_se_recorta(self):
+        filas = ["." * 8] * 9 + [".S......", "###J####", "########", "########"]
+        p = nivel_prueba(filas)
+        try:
+            avanzar(p, 0, 3)
+            y0 = p.y
+            p.x = 3 * P.T + (P.T - P.ANCHO) // 2
+            minimo = p.y
+            for i in range(90):
+                p.avanzar(0)                                      # sin pulsar salto: el impulso no se corta
+                minimo = min(minimo, p.y)
+                if any(e[1] == "impulso" for e in p.eventos) and p.vy > 0:
+                    break
+            altura = y0 - minimo
+            self.assertTrue(any(e[1] == "impulso" for e in p.eventos))
+            self.assertGreater(altura, 4 * P.T)
+            self.assertLess(altura, 5 * P.T)
+        finally:
+            P.NIVELES.pop("_prueba", None)
+
+    def test_escaner_solo_detecta_encendido(self):
+        filas = ["." * 8] * 5 + [".....#..", ".....L..", ".....L..", ".....L..", ".S...L.."] + ["#" * 8] * 3
+        for desfase, muere in ((P.ESCANER_ACTIVO + 2, False), (0, True)):
+            p = nivel_prueba(filas)
+            try:
+                avanzar(p, 0, 3)
+                # Colocar al jugador sobre el haz en un instante de la fase elegida.
+                objetivo = (desfase - 5 * P.ESCANER_DESFASE) % P.ESCANER_CICLO
+                while P.escaner_fase(p.tick + 1, 5) != (objetivo + 5 * P.ESCANER_DESFASE) % P.ESCANER_CICLO:
+                    p.avanzar(0)
+                p.x = 5 * P.T + (P.T - P.ANCHO) // 2
+                p.avanzar(0)
+                self.assertEqual(p.muertes == 1, muere, desfase)
+            finally:
+                P.NIVELES.pop("_prueba", None)
+        self.assertTrue(P.escaner_activo(0, 0))
+        self.assertFalse(P.escaner_activo(P.ESCANER_ACTIVO, 0))
+        self.assertNotEqual(P.escaner_activo(10, 0), P.escaner_activo(10, 2))   # columnas desfasadas: una ola
 
     def test_intermitentes(self):
         self.assertTrue(P.intermitente_activo(0))
@@ -207,10 +302,7 @@ class TestPuntuacion(unittest.TestCase):
         self.assertEqual(parado.resultado()["calificacion"], "D")
 
     def test_sin_meta_no_hay_bonos_ni_victoria(self):
-        p = P.Partida("feria")
-        piloto = P.Piloto(random.Random(3), 1.0)
-        while len(p.recogidas) < 2:
-            p.avanzar(piloto.mascara(p))
+        p = piloto_ruta_hasta("feria", lambda q: len(q.recogidas) >= 2)
         p.abandonar()
         total = len(p.nivel.evidencias)
         self.assertEqual(p.puntuacion(), (550 * len(p.recogidas) + total // 2) // total)
@@ -218,10 +310,7 @@ class TestPuntuacion(unittest.TestCase):
         self.assertFalse(p.completado())
 
     def test_morir_no_multiplica_evidencias(self):
-        p = P.Partida("tutorial")
-        piloto = P.Piloto(random.Random(1), 1.0)
-        while not p.recogidas:
-            p.avanzar(piloto.mascara(p))
+        p = piloto_ruta_hasta("tutorial", lambda q: bool(q.recogidas))
         while p.muertes < 2 and p.jugando():
             p.avanzar(P.DER)
         self.assertEqual(len(p.recogidas), len(set(p.recogidas)))
@@ -265,10 +354,10 @@ class TestRejuego(unittest.TestCase):
 
     def test_independiente_de_los_fps(self):
         """El render acumula tiempo y avanza a paso fijo: a 30, 60 o 144 FPS se simulan los mismos ticks."""
-        referencia = P.bot("feria", random.Random(5), 0.8)
+        referencia = P.rejugar("feria", P.rutas()["feria"])
         for fps in (30, 60, 144):
             p = P.Partida("feria")
-            piloto = P.Piloto(random.Random(5), 0.8)
+            piloto = P.PilotoRuta("feria")
             acum, paso, dt = 0.0, 1.0 / P.TICKS_S, 1.0 / fps
             while p.jugando():
                 acum += dt

@@ -1,9 +1,9 @@
 ## MODO FERIA: version condensada (10-12 min medidos: ~1.000 palabras, 4 minijuegos) para exhibicion.
-## Incluye los 4 minijuegos (Moderacion, Caza-Rumores, Rastreador corto, Gran Viralizacion),
+## Incluye los 4 minijuegos (Moderacion, Central de Emergencias, Rastreador corto, Gran Viralizacion),
 ## CivitasNet, expediente, la oferta a Martina y el audio de Tomas (los cinco finales son alcanzables),
 ## el giro de NOVA y el final secreto. Termina en un final y vuelve al menu.
 
-define FERIA_CONTENCION = {"duracion": 40.0}
+define FERIA_CONTENCION = {"modo": "feria"}
 define FERIA_VIRAL = {"nivel": "feria"}
 define FERIA_RASTREO = dict(CASO_AGUA, eslabones=2, senuelos=2, tiempo=75.0)
 
@@ -43,7 +43,7 @@ label modo_feria:
         m triste "Borramos a gente real... Ya hay capturas diciendo que censuro."
     hide martina with suave
 
-    # ----- Miercoles: consecuencias en CivitasNet, Caza-Rumores y la oferta a Martina -----
+    # ----- Miercoles: consecuencias en CivitasNet, Central de Emergencias y la oferta a Martina -----
     $ avanzar_momento(inv.MIERCOLES)
     scene bg ciudad noche at paneo with negro
     "El lunes termina con el rumor del agua todavía vivo. Lo que hiciste esta mañana ya circula en Civitas."

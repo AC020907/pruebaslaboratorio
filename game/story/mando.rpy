@@ -4,7 +4,7 @@
 ##   Cruceta / palanca izq.   moverse, conducir, mover la mira
 ##   A                        aceptar, avanzar, seleccionar ficha o hueco, disparar
 ##   B                        menu del juego / cerrar
-##   X                        onda (Caza-Rumores) · aprobar comentario no
+##   X                        aprobar comentario no
 ##   Y                        pista
 ##   LB                       volver un paso (rastreo)
 ##   Start                    pausa
