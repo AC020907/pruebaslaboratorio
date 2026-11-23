@@ -1,0 +1,13 @@
+{
+ "archivo": "C:\\Users\\ALEJAN~1\\AppData\\Local\\Temp\\claude\\763d48fdb3ef5ddf\\4a6f0d62-ec19-4f61-b249-a84bb34f3ac4\\scratchpad\\video1\\civitas_cinematica_apertura.avi",
+ "tamano": [
+  1280,
+  720
+ ],
+ "fps_salida": 30,
+ "segundos": 39.17,
+ "capturas_durante_la_cinematica": 1624,
+ "capturas_por_segundo": 41.7,
+ "mayor_desfase_cuadro_s": 0.015,
+ "bytes": 143409828
+}

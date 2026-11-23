@@ -105,6 +105,8 @@ label qa_galeria:
         jump qa_gal_arena_solo
     if etapa_gal == "arena_solo_completa":
         jump qa_gal_arena_solo_completa
+    if etapa_gal == "cinematica":
+        jump qa_gal_cinematica
     if etapa_gal == "apertura":
         jump qa_gal_apertura
     if etapa_gal in ("arena", "arena_cliente"):

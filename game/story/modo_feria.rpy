@@ -10,6 +10,7 @@ define FERIA_RASTREO = dict(CASO_AGUA, eslabones=2, senuelos=2, tiempo=75.0)
 label modo_feria:
     $ modo_feria_activo = True
     $ preparar_partida(feria=True)
+    call cinematica_apertura
     call prologo(corto=True)
     show screen hud_ciudad
 

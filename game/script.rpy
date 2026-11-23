@@ -6,6 +6,7 @@ default modo_feria_activo = False
 
 label start:
     $ preparar_partida(feria=False)
+    call cinematica_apertura
     call prologo
     call acto1
     call acto2
