@@ -375,7 +375,7 @@ screen duelo_tutorial(modo):
         spacing 14
         xfill True
         text "DUELO DE FRECUENCIAS" size 44 bold True color "#8c2f4b" xalign 0.5
-        text "NOVA lanza una frase distorsionada. Tú respondes con la señal de Ciudad Nova: toca cada nota cuando llegue a su marca." size 22 color "#2b2440" xalign 0.5 text_align 0.5
+        text "NOVA lanza una frase distorsionada. Tú respondes con la señal de Ciudad Nova: toca cada nota cuando llegue a su marca." size 22 color "#2b2440" xalign 0.5 text_align 0.5 xmaximum 1060
         hbox:
             xalign 0.5
             spacing 26
@@ -390,13 +390,13 @@ screen duelo_tutorial(modo):
         null height 6
         hbox:
             xalign 0.5
-            spacing 20
-            textbutton "Normal" style "boton_vn_compacto" text_style "boton_vn_text" action Return("normal") default_focus (not renpy.variant("touch"))
-            textbutton "Fácil" style "boton_vn_compacto" text_style "boton_vn_text" action Return("facil") default_focus renpy.variant("touch")
-            textbutton "Asistido" style "boton_vn_compacto" text_style "boton_vn_text" action Return("asistido")
-            textbutton "Difícil" style "boton_vn_compacto" text_style "boton_vn_text" action Return("dificil")
+            spacing 16
+            textbutton "Normal" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 76 action Return("normal") default_focus (not renpy.variant("touch"))
+            textbutton "Fácil" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 76 action Return("facil") default_focus renpy.variant("touch")
+            textbutton "Asistido" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 76 action Return("asistido")
+            textbutton "Difícil" style "boton_vn_compacto" text_style "boton_vn_text" xsize 240 ysize 76 action Return("dificil")
         text "Asistido: menos notas y más margen para acertar. El duelo cuenta igual para la historia." size 16 italic True color "#8b84a8" xalign 0.5
-        text "Difícil: cinco carriles con D · F · ESPACIO · J · K (mando: izquierda, abajo, A, arriba, derecha), canción propia a 144 BPM, ráfagas y notas dobles." size 16 italic True color "#8c2f4b" xalign 0.5 text_align 0.5
+        text "Difícil: cinco carriles con D · F · ESPACIO · J · K (mando: izquierda, abajo, A, arriba, derecha), canción propia a 144 BPM, ráfagas y notas dobles." size 16 italic True color "#8c2f4b" xalign 0.5 text_align 0.5 xmaximum 1060
 
 
 label minijuego_ritmo(modo="historia", aplicar=True, aliado=None, dificultad=None, **kwargs):
